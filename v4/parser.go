@@ -3437,8 +3437,9 @@ func (p *parser) structDeclarator() (r *StructDeclarator) {
 //
 //  constant-expression:
 // 	conditional-expression
-func (p *parser) constantExpression() ExpressionNode {
-	r, _ := p.conditionalExpression(true)
+func (p *parser) constantExpression() (r *ConstantExpression) {
+	r = &ConstantExpression{}
+	r.ConditionalExpression, _ = p.conditionalExpression(true)
 	return r
 }
 
