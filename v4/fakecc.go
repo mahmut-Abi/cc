@@ -180,7 +180,13 @@ func sanitize(args []string) (r []string) {
 	set.Arg("D", true, func(opt, val string) error { r = append(r, fmt.Sprintf("%s%s", opt, val)); return nil })
 	set.Arg("O", true, func(opt, val string) error { r = append(r, fmt.Sprintf("%s%s", opt, val)); return nil })
 	set.Arg("U", true, func(opt, val string) error { r = append(r, fmt.Sprintf("%s%s", opt, val)); return nil })
-	set.Arg("std", true, func(opt, val string) error { r = append(r, fmt.Sprintf("%s=%s", opt, val)); return nil })
+	set.Arg("mlong-double", false, func(opt, val string) error { r = append(r, fmt.Sprintf("%s=%s", opt, val)); return nil })
+	set.Arg("std", false, func(opt, val string) error { r = append(r, fmt.Sprintf("%s=%s", opt, val)); return nil })
+	set.Opt("m128bit-long-double", func(opt string) error { r = append(r, opt); return nil })
+	set.Opt("m96bit-long-double", func(opt string) error { r = append(r, opt); return nil })
+	set.Opt("mlong-double-128", func(opt string) error { r = append(r, opt); return nil })
+	set.Opt("mlong-double-64", func(opt string) error { r = append(r, opt); return nil })
+	set.Opt("mlong-double-80", func(opt string) error { r = append(r, opt); return nil })
 	set.Opt("pthread", func(opt string) error { r = append(r, opt); return nil })
 
 	// Ignore

@@ -34,6 +34,7 @@ import (
 	"reflect"
 	"runtime"
 	"sort"
+	"strconv"
 	"strings"
 
 	"modernc.org/opt"
@@ -126,6 +127,10 @@ func NewConfig(goos, goarch string, opts ...string) (r *Config, err error) {
 		return nil, err
 	}
 
+	if err := adjustLongDouble(predefined, abi); err != nil {
+		return nil, err
+	}
+
 	includePaths = includePaths[:len(includePaths):len(includePaths)]
 	sysIncludePaths = sysIncludePaths[:len(sysIncludePaths):len(sysIncludePaths)]
 	return &Config{
@@ -138,6 +143,32 @@ func NewConfig(goos, goarch string, opts ...string) (r *Config, err error) {
 		SysIncludePaths:     sysIncludePaths,
 		keywords:            keywords,
 	}, nil
+}
+
+func adjustLongDouble(predefined string, abi *ABI) error {
+	const tag = "#define __SIZEOF_LONG_DOUBLE__ "
+	x := strings.Index(predefined, tag)
+	if x < 0 {
+		return nil
+	}
+
+	y := x + len(tag)
+	for ; y < len(predefined) && predefined[y] >= '0' && predefined[y] <= '9'; y++ {
+	}
+	n, err := strconv.ParseInt(predefined[x+len(tag):y], 10, 32)
+	if err != nil {
+		return fmt.Errorf("parsing %s: %v", tag, err)
+	}
+	if abi.types[LongDouble].size == n {
+		return nil
+	}
+
+	if abi.types[Double].size != n {
+		return nil
+	}
+
+	abi.types[LongDouble] = abi.types[Double]
+	return nil
 }
 
 func newConfig(opts []string) (cc, predefined string, includePaths, sysIncludePaths []string, keywords map[string]rune, err error) {

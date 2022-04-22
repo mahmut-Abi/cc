@@ -570,3 +570,25 @@ func (f *fset) Position(pos int32) mtoken.Position {
 	it = f.items[l-1]
 	return it.file.Position(mtoken.Pos(pos - it.off))
 }
+
+// LongDouble64Flag returns the C compiler flag that switches long double to 64
+// bits, if any.
+func LongDouble64Flag(os, arch string) string {
+	switch fmt.Sprintf("%s/%s", os, arch) {
+	case
+		//TODO linux/riscv64 builder is currently MIA
+		"darwin/amd64",
+		"freebsd/386",
+		"freebsd/amd64",
+		"linux/386",
+		"linux/amd64",
+		"linux/s390x",
+		"netbsd/amd64",
+		"openbsd/amd64",
+		"windows/386",
+		"windows/amd64":
+
+		return "-mlong-double-64"
+	}
+	return ""
+}

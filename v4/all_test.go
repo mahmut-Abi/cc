@@ -46,7 +46,7 @@ func init() {
 	isTesting = true
 	extendedErrors = true
 	var err error
-	if defaultCfg0, err = NewConfig(runtime.GOOS, runtime.GOARCH); err != nil {
+	if defaultCfg0, err = NewConfig(runtime.GOOS, runtime.GOARCH, []string{LongDouble64Flag(runtime.GOOS, runtime.GOARCH)}...); err != nil {
 		panic(errorf("NewConfig: %v", err))
 	}
 
@@ -1737,6 +1737,7 @@ func TestMake(t *testing.T) {
 	case "netbsd":
 		cfg.cflags = "-I/usr/pkg/include"
 	}
+	cfg.cflags = strings.TrimSpace(cfg.cflags + LongDouble64Flag(goos, goarch))
 	for _, v := range []struct {
 		archive string
 		dir     string
