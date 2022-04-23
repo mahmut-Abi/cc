@@ -433,6 +433,7 @@ type AST struct {
 	LongDouble      Type // Valid only after Translate
 	Macros          map[string]*Macro
 	Scope           *Scope // File scope.
+	SizeT           Type   // Valid only after Translate
 	TranslationUnit *TranslationUnit
 	Void            Type // Valid only after Translate
 	kinds           map[Kind]Type
@@ -444,6 +445,7 @@ func (n *AST) check() error {
 		l.ExternalDeclaration.check(c)
 	}
 	c.checkScope(n.Scope)
+	n.SizeT = c.sizeT(n.EOF)
 	return c.errors.err()
 }
 
