@@ -152,6 +152,15 @@ func newCtx(ast *AST) *ctx {
 	return c
 }
 
+// return a synthesized declarator representing "int nm".
+func (c *ctx) predefinedDeclarator(nm Token) *Declarator {
+	r := *c.ast.predefinedDeclarator0
+	dd := *r.DirectDeclarator
+	dd.Token = nm
+	r.DirectDeclarator = &dd
+	return &r
+}
+
 func (c *ctx) checkScope(s *Scope) {
 	for _, ns := range s.Nodes {
 		var (
@@ -426,17 +435,18 @@ type resolver struct{ resolved *Scope }
 func (n resolver) ResolvedIn() *Scope { return n.resolved }
 
 type AST struct {
-	ABI             *ABI
-	Double          Type // Valid only after Translate
-	EOF             Token
-	Float           Type // Valid only after Translate
-	LongDouble      Type // Valid only after Translate
-	Macros          map[string]*Macro
-	Scope           *Scope // File scope.
-	SizeT           Type   // Valid only after Translate
-	TranslationUnit *TranslationUnit
-	Void            Type // Valid only after Translate
-	kinds           map[Kind]Type
+	ABI                   *ABI
+	Double                Type // Valid only after Translate
+	EOF                   Token
+	Float                 Type // Valid only after Translate
+	LongDouble            Type // Valid only after Translate
+	Macros                map[string]*Macro
+	Scope                 *Scope // File scope.
+	SizeT                 Type   // Valid only after Translate
+	TranslationUnit       *TranslationUnit
+	Void                  Type // Valid only after Translate
+	kinds                 map[Kind]Type
+	predefinedDeclarator0 *Declarator // `int __predefined_declarator`
 }
 
 func (n *AST) check() error {
@@ -558,6 +568,12 @@ func (n *FunctionDefinition) check(c *ctx) {
 		for _, param := range d.DirectDeclarator.IdentifierList.parameters {
 			switch d := m[param.name.SrcStr()]; {
 			case d == nil:
+				d := c.predefinedDeclarator(param.name)
+				d.isExtern = false
+				d.isParam = true
+				d.lexicalScope = d.DirectDeclarator.params
+				d.resolved = d.lexicalScope
+				param.Declarator = d
 				param.typ = c.intT
 			default:
 				param.Declarator = d
@@ -3590,8 +3606,14 @@ out:
 			n.typ = x.Type()
 			break out
 		case *Parameter:
-			n.resolvedTo = x
-			n.typ = x.Type()
+			switch {
+			case x.Declarator != nil:
+				n.resolvedTo = x.Declarator
+				n.typ = x.Declarator.Type()
+			default:
+				n.resolvedTo = x
+				n.typ = x.Type()
+			}
 			break out
 		default:
 			d = n.LexicalScope().builtin(n.Token)

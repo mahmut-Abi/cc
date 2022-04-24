@@ -337,14 +337,22 @@ func (p *parser) parse() (ast *AST, err error) {
 	p.cpp.mmap = nil
 	switch p.rune(false) {
 	case eof:
+		var pd *Declarator
+		if a := p.scope.Nodes["__predefined_declarator"]; len(a) != 0 {
+			pd, _ = a[0].(*Declarator)
+		}
+		if pd == nil && !p.cpp.cfg.noPredefinedDeclarator {
+			errors.add(errorf("<bultin>: missing definition of '__predefined_declarator'"))
+		}
 		t := p.shift(false)
 		t.Set(append(p.prevNL.Sep(), p.prevNL.Src()...), nil)
 		return &AST{
-			ABI:             p.cpp.cfg.ABI,
-			EOF:             t,
-			Macros:          p.cpp.macros,
-			Scope:           p.scope,
-			TranslationUnit: tu,
+			ABI:                   p.cpp.cfg.ABI,
+			EOF:                   t,
+			Macros:                p.cpp.macros,
+			Scope:                 p.scope,
+			TranslationUnit:       tu,
+			predefinedDeclarator0: pd,
 		}, errors.err()
 	default:
 		t := p.shift(false)
@@ -411,6 +419,7 @@ again:
 		rune(ASM),
 		rune(ATTRIBUTE):
 
+		//TODO wrong parse of pr37573.c
 		return &ExternalDeclaration{Case: ExternalDeclarationDecl, Declaration: p.declaration(ds, d, true)}
 	case '{':
 		return &ExternalDeclaration{Case: ExternalDeclarationFuncDef, FunctionDefinition: p.functionDefinition(ds, d)}
@@ -3499,6 +3508,10 @@ func (s *Scope) ident(t Token) Node {
 		return a[0]
 	case 0:
 		return nil
+	}
+
+	if p, ok := a[0].(*Parameter); ok && p.Declarator != nil {
+		return p.Declarator
 	}
 
 	d, ok := a[0].(*Declarator)

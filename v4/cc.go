@@ -62,6 +62,8 @@ typedef void *__builtin_va_list;
 #define __builtin_offsetof(type, member) ((__SIZE_TYPE__)&(((type*)0)->member))
 #define __builtin_types_compatible_p(t1, t2) __builtin_types_compatible_p_impl((t1)0, (t2)0)
 
+int __predefined_declarator;
+
 #ifdef __SIZE_TYPE__
 typedef __SIZE_TYPE__ __predefined_size_t;
 #endif
@@ -84,6 +86,7 @@ typedef __PTRDIFF_TYPE__ __predefined_ptrdiff_t;
 __UINT16_TYPE__ __builtin_bswap16 (__UINT16_TYPE__ x);
 __UINT32_TYPE__ __builtin_bswap32 (__UINT32_TYPE__ x);
 __UINT64_TYPE__ __builtin_bswap64 (__UINT64_TYPE__ x);
+
 `
 )
 
@@ -342,8 +345,9 @@ type Config struct {
 	SysIncludePaths     []string
 	keywords            map[string]rune
 
-	doNotInjectFunc bool // testing
-	fakeIncludes    bool // testing
+	doNotInjectFunc        bool // testing
+	fakeIncludes           bool // testing
+	noPredefinedDeclarator bool // testing
 }
 
 type errors []string

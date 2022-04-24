@@ -49,7 +49,7 @@ const (
 )
 
 func (n *Declarator) Linkage() Linkage {
-	if n.IsTypename() {
+	if n.IsTypename() || n.IsParam() {
 		return None
 	}
 

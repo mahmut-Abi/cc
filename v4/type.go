@@ -459,8 +459,8 @@ func (n *PredefinedType) Size() int64 {
 
 // Parameter represents a function parameter.
 type Parameter struct {
-	Declarator         *Declarator         // Can be nil.
-	AbstractDeclarator *AbstractDeclarator // Can be nil
+	Declarator         *Declarator         // Can be synthetic.
+	AbstractDeclarator *AbstractDeclarator // Can be nil.
 	name               Token
 	typer
 	resolver

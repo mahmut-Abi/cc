@@ -871,7 +871,9 @@ func TestBOM(t *testing.T) {
 		{"int main() {}", ""},
 		{"\xEF\xBB\xBFint main() {}", ""},
 	} {
-		switch _, err := Parse(defaultCfg(), []Source{{Value: v.src}}); {
+		cfg := *defaultCfg()
+		cfg.noPredefinedDeclarator = true
+		switch _, err := Parse(&cfg, []Source{{Value: v.src}}); {
 		case v.err == "" && err != nil:
 			t.Errorf("%v: unexpected error %v", i, err)
 		case v.err != "" && err == nil:
@@ -925,7 +927,10 @@ func TestStrCatSep(t *testing.T) {
 		{`int f() {` + "\n" + `"a";}`, `"a"`, "\n", "\n"},
 	} {
 		ast, err := Parse(
-			&Config{doNotInjectFunc: true},
+			&Config{
+				doNotInjectFunc:        true,
+				noPredefinedDeclarator: true,
+			},
 			[]Source{{Name: "test", Value: v.src}},
 		)
 		if err != nil {
