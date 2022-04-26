@@ -552,8 +552,11 @@ func (n *AsmQualifier) check(c *ctx) {
 //  FunctionDefinition:
 //          DeclarationSpecifiers Declarator DeclarationList CompoundStatement
 func (n *FunctionDefinition) check(c *ctx) {
-	d := n.Declarator
-	d.check(c, n.DeclarationSpecifiers.check(c, &d.isExtern, &d.isStatic, &d.isAtomic, &d.isThreadLocal, &d.isConst, &d.isVolatile, &d.isInline, &d.isRegister, &d.isAuto, &d.isNoreturn, &d.isRestrict, &d.alignas))
+	c.checkFunctionDefinition(n.scope, n.DeclarationSpecifiers, n.Declarator, n.DeclarationList, n.CompoundStatement)
+}
+
+func (c *ctx) checkFunctionDefinition(sc *Scope, ds *DeclarationSpecifiers, d *Declarator, dl *DeclarationList, cs *CompoundStatement) {
+	d.check(c, ds.check(c, &d.isExtern, &d.isStatic, &d.isAtomic, &d.isThreadLocal, &d.isConst, &d.isVolatile, &d.isInline, &d.isRegister, &d.isAuto, &d.isNoreturn, &d.isRestrict, &d.alignas))
 	if x, ok := d.Type().(*FunctionType); ok {
 		x.hasImplicitResult = true
 	}
@@ -564,7 +567,7 @@ func (n *FunctionDefinition) check(c *ctx) {
 			break
 		}
 
-		m := n.DeclarationList.check(c)
+		m := dl.check(c)
 		for _, param := range d.DirectDeclarator.IdentifierList.parameters {
 			switch d := m[param.name.SrcStr()]; {
 			case d == nil:
@@ -576,6 +579,10 @@ func (n *FunctionDefinition) check(c *ctx) {
 				param.Declarator = d
 				param.typ = c.intT
 			default:
+				d.isExtern = false
+				d.isParam = true
+				d.lexicalScope = d.DirectDeclarator.params
+				d.resolved = d.lexicalScope
 				param.Declarator = d
 				param.typ = d.Type()
 			}
@@ -585,9 +592,10 @@ func (n *FunctionDefinition) check(c *ctx) {
 		ft2.hasImplicitResult = ft.hasImplicitResult
 		d.typ = ft2
 	}
-	c.fnScope = n.scope
-	defer func() { c.fnScope = nil }()
-	n.CompoundStatement.check(c)
+	var sc0 *Scope
+	sc0, c.fnScope = c.fnScope, sc
+	defer func() { c.fnScope = sc0 }()
+	cs.check(c)
 }
 
 //  DeclarationList:
@@ -641,12 +649,7 @@ func (n *BlockItem) check(c *ctx) (r Type) {
 	case BlockItemStmt: // Statement
 		return n.Statement.check(c)
 	case BlockItemFuncDef: // DeclarationSpecifiers Declarator CompoundStatement
-		var isExtern, isStatic, isAtomic, isThreadLocal, isConst, isVolatile, isInline, isRegister, isAuto, isNoreturn, isRestrict bool
-		var alignas int
-		n.Declarator.check(c, n.DeclarationSpecifiers.check(c, &isExtern, &isStatic, &isAtomic, &isThreadLocal, &isConst, &isVolatile, &isInline, &isRegister, &isAuto, &isNoreturn, &isRestrict, &alignas))
-		if isExtern || isStatic || isAtomic || isThreadLocal || isConst || isVolatile || isRegister || isAuto || isRestrict || alignas != 0 {
-			c.errors.add(errorf("%v: invalid specifier/qualifer combination", n.Position()))
-		}
+		c.checkFunctionDefinition(n.CompoundStatement.LexicalScope(), n.DeclarationSpecifiers, n.Declarator, nil, n.CompoundStatement)
 	default:
 		c.errors.add(errorf("internal error: %v", n.Case))
 	}

@@ -2568,7 +2568,7 @@ func (p *parser) declaratorOrAbstractDeclarator(declare bool) (r Node) {
 			dad := &DirectAbstractDeclarator{Case: DirectAbstractDeclaratorFunc, Token: lparen, Token2: p.shift(false)}
 			return &AbstractDeclarator{Case: AbstractDeclaratorDecl, Pointer: ptr0, DirectAbstractDeclarator: p.directAbstractDeclarator2(dad)}
 		case '(':
-			switch x := p.declaratorOrAbstractDeclarator(declare).(type) {
+			switch x := p.declaratorOrAbstractDeclarator(false).(type) {
 			case *AbstractDeclarator:
 				dad := &DirectAbstractDeclarator{
 					Case:               DirectAbstractDeclaratorDecl,
@@ -3492,7 +3492,7 @@ type Scope struct {
 func newScope(parent *Scope) (r *Scope) { return &Scope{Parent: parent} }
 
 func (s *Scope) declare(eh interface{}, nm string, n Node) {
-	// trc("%v: %q %T, visible %v (scope %p) (%v:)", n.Position(), nm, n, n.(interface{ Visible() int }).Visible(), s, origin(2))
+	// trc("%v: %q %T, visible %v (scope %p) '%s' (%v: %v: %v:)", n.Position(), nm, n, n.(interface{ Visible() int }).Visible(), s, NodeSource(n), origin(4), origin(3), origin(2))
 	if s.Nodes != nil {
 		s.Nodes[nm] = append(s.Nodes[nm], n)
 		return
@@ -3510,7 +3510,7 @@ func (s *Scope) ident(t Token) Node {
 		return nil
 	}
 
-	if p, ok := a[0].(*Parameter); ok && p.Declarator != nil {
+	if p, ok := a[0].(*Parameter); ok {
 		return p.Declarator
 	}
 
