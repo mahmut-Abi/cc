@@ -292,25 +292,24 @@ func (c *ctx) convert(v Value, t Type) (r Value) {
 		case t.Size() > 8:
 			return Unknown
 		case IsSignedInteger(t):
-			m := Int64Value(-1)
-			if t.Size() < 8 {
-				m = Int64Value(1)<<(8*t.Size()) - 1
-			}
 			switch x := v.(type) {
 			case Int64Value:
-				switch {
-				case x < 0:
-					return x | ^m
-				default:
-					return x & m
+				if t.Size() < 8 {
+					sbit := uint64(1) << (t.Size()*8 - 1)
+					switch {
+					case x&Int64Value(sbit) != 0:
+						x |= ^Int64Value(sbit<<1 - 1)
+					default:
+						x &= Int64Value(sbit - 1)
+					}
 				}
+				return x
 			case UInt64Value:
-				switch y := Int64Value(x); {
-				case y < 0:
-					return y | ^m
-				default:
-					return y & m
+				if t.Size() < 8 {
+					m := uint64(1)<<(t.Size()*8) - 1
+					x &= UInt64Value(m)
 				}
+				return Int64Value(x)
 			}
 		default:
 			m := ^UInt64Value(0)
