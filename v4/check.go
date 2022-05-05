@@ -3410,16 +3410,6 @@ out:
 		}
 	case PostfixExpressionCall: // PostfixExpression '(' ArgumentExpressionList ')'
 		switch isName(n.PostfixExpression) {
-		case "__builtin_types_compatible_p_impl":
-			n.typ = c.intT
-			args := n.ArgumentExpressionList.check(c, 0)
-			if len(args) != 2 {
-				c.errors.add(errorf("%v: expected two arguments: (%s)", n.Position(), NodeSource(n.ArgumentExpressionList)))
-				break out
-			}
-
-			n.val = bool2int(args[0].Type().IsCompatible(args[1].Type()))
-			break out
 		case "__builtin_constant_p":
 			n.typ = c.intT
 			args := n.ArgumentExpressionList.check(c, decay)
