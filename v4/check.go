@@ -3628,7 +3628,7 @@ out:
 				n.resolvedTo = d
 				if mode.has(implicitFuncDef) {
 					n.typ = c.implicitFunc
-					d.typ = n.Type()
+					d.typ = n.Type().(*PointerType).Elem()
 					break out
 				}
 
