@@ -86,6 +86,130 @@ typedef __PTRDIFF_TYPE__ __predefined_ptrdiff_t;
 __UINT16_TYPE__ __builtin_bswap16 (__UINT16_TYPE__ x);
 __UINT32_TYPE__ __builtin_bswap32 (__UINT32_TYPE__ x);
 __UINT64_TYPE__ __builtin_bswap64 (__UINT64_TYPE__ x);
+double __builtin_acos(double x);
+double __builtin_asin(double x);
+double __builtin_atan(double x);
+double __builtin_atan2(double y, double x);
+double __builtin_fabs(double x);
+float __builtin_acosf(float x);
+float __builtin_asinf(float x);
+float __builtin_atan2f(float y, float x);
+float __builtin_atanf(float x);
+float __builtin_fabsf(float x);
+int __builtin___sprintf_chk(char * str, int flag, __SIZE_TYPE__ strlen, char * format, ...);
+int __builtin_abs(int j);
+long __builtin_labs(long j);
+long double __builtin_acosl(long double x);
+long double __builtin_asinl(long double x);
+long double __builtin_atan2l(long double y, long double x);
+long double __builtin_atanl( long double x);
+long double __builtin_fabsl(long double x);
+long long __builtin_llabs(long long j);
+void *__builtin___memcpy_chk(void * dest, void * src, __SIZE_TYPE__ len, __SIZE_TYPE__ destlen);
+void *__builtin___memset_chk(void * dest, int c, __SIZE_TYPE__ len, __SIZE_TYPE__ destlen);
+void *__builtin__strncpy_chk (char *dest, char *src, __SIZE_TYPE__ len, __SIZE_TYPE__ dstlen);
+void __builtin_abort(void);
+
+//TODO calloc
+//TODO ceil
+//TODO ceilf
+//TODO ceill
+//TODO cos
+//TODO cosf
+//TODO cosh
+//TODO coshf
+//TODO coshl
+//TODO cosl
+//TODO exit
+//TODO exp
+//TODO expf
+//TODO expl
+//TODO floor
+//TODO floorf
+//TODO floorl
+//TODO fmod
+//TODO fmodf
+//TODO fmodl
+//TODO fprintf
+//TODO fputs
+//TODO free
+//TODO frexp
+//TODO frexpf
+//TODO frexpl
+//TODO fscanf
+//TODO isalnum
+//TODO isalpha
+//TODO iscntrl
+//TODO isdigit
+//TODO isgraph
+//TODO islower
+//TODO isprint
+//TODO ispunct
+//TODO isspace
+//TODO isupper
+//TODO isxdigit
+//TODO labs
+//TODO ldexp
+//TODO ldexpf
+//TODO ldexpl
+//TODO log
+//TODO log10
+//TODO log10f
+//TODO log10l
+//TODO logf
+//TODO logl
+//TODO malloc
+//TODO memchr
+//TODO memcmp
+//TODO memcpy
+//TODO memset
+//TODO modf
+//TODO modff
+//TODO modfl
+//TODO pow
+//TODO powf
+//TODO powl
+//TODO printf
+//TODO putchar
+//TODO puts
+//TODO realloc
+//TODO scanf
+//TODO sin
+//TODO sinf
+//TODO sinh
+//TODO sinhf
+//TODO sinhl
+//TODO sinl
+//TODO snprintf
+//TODO sprintf
+//TODO sqrt
+//TODO sqrtf
+//TODO sqrtl
+//TODO sscanf
+//TODO strcat
+//TODO strchr
+//TODO strcmp
+//TODO strcpy
+//TODO strcspn
+//TODO strlen
+//TODO strncat
+//TODO strncmp
+//TODO strncpy
+//TODO strpbrk
+//TODO strrchr
+//TODO strspn
+//TODO strstr
+//TODO tan
+//TODO tanf
+//TODO tanh
+//TODO tanhf
+//TODO tanhl
+//TODO tanl
+//TODO tolower
+//TODO toupper
+//TODO vfprintf
+//TODO vprintf
+//TODO vsprintf
 
 `
 )
