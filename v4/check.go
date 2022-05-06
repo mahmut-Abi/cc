@@ -3421,6 +3421,7 @@ out:
 			n.val = bool2int(args[0].Type().IsCompatible(args[1].Type()))
 			break out
 		case "__builtin_constant_p":
+			n.PostfixExpression.check(c, mode.add(decay|implicitFuncDef))
 			n.typ = c.intT
 			args := n.ArgumentExpressionList.check(c, decay)
 			if len(args) != 1 {
