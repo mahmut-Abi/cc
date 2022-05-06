@@ -3620,14 +3620,21 @@ out:
 		default:
 			d = n.LexicalScope().builtin(n.Token)
 			if d == nil {
-				n.resolvedTo = c.predefinedDeclarator(n.Token)
+				d = c.predefinedDeclarator(n.Token)
+				d.isExtern = true
+				d.isParam = false
+				d.lexicalScope = n.LexicalScope()
+				d.resolved = d.lexicalScope
+				n.resolvedTo = d
 				if mode.has(implicitFuncDef) {
 					n.typ = c.implicitFunc
+					d.typ = n.Type()
 					break out
 				}
 
 				if mode.has(ignoreUndefined) {
 					n.typ = c.intT
+					d.typ = n.Type()
 					break out
 				}
 
