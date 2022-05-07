@@ -1345,6 +1345,7 @@ type Declarator struct {
 	isThreadLocal    bool
 	isTypename       bool
 	isVolatile       bool
+	addrTaken        bool
 	DirectDeclarator *DirectDeclarator
 	Pointer          *Pointer
 }

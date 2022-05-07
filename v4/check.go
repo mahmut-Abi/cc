@@ -3265,7 +3265,9 @@ func (n *UnaryExpression) check(c *ctx, mode flags) (r Type) {
 			c.errors.add(errorf("%v: operand shall have real or pointer type: %s", n.UnaryExpression.Position(), n.Type()))
 		}
 	case UnaryExpressionAddrof: // '&' CastExpression
-		switch t := n.CastExpression.check(c, mode.del(decay)); {
+		t := n.CastExpression.check(c, mode.del(decay))
+		c.takeAddr(n.CastExpression)
+		switch {
 		case
 			// The operand of the unary & operator shall be either a function designator,
 			t.Kind() == Function,
@@ -3361,6 +3363,73 @@ func (n *UnaryExpression) check(c *ctx, mode flags) (r Type) {
 		c.errors.add(errorf("internal error: %v", n.Case))
 	}
 	return n.Type()
+}
+
+func (c *ctx) takeAddr(n Node) {
+	switch x := n.(type) {
+	case *PrimaryExpression:
+		switch x.Case {
+		case PrimaryExpressionExpr: // '(' ExpressionList ')'
+			c.takeAddr(x.ExpressionList)
+		case PrimaryExpressionIdent: // IDENTIFIER
+			switch y := x.ResolvedTo().(type) {
+			case *Declarator:
+				y.addrTaken = true
+			default:
+				panic(todo("%v: %T", position(n), y))
+			}
+		case PrimaryExpressionString: // STRINGLITERAL
+			// nop
+		case PrimaryExpressionLString: // LONGSTRINGLITERAL
+			// nop
+		case PrimaryExpressionInt: // INTCONST
+			// nop
+		default:
+			panic(todo("%v: %v", position(n), x.Case))
+		}
+	case *PostfixExpression:
+		switch x.Case {
+		case PostfixExpressionIndex: // PostfixExpression '[' ExpressionList ']'
+			switch {
+			case IsIntegerType(x.ExpressionList.Type()):
+				c.takeAddr(x.PostfixExpression)
+			default:
+				c.takeAddr(x.ExpressionList)
+			}
+		case PostfixExpressionSelect: // PostfixExpression '.' IDENTIFIER
+			c.takeAddr(x.PostfixExpression)
+		case PostfixExpressionPSelect: // PostfixExpression "->" IDENTIFIER
+			// nop
+		case PostfixExpressionComplit: // '(' TypeName ')' '{' InitializerList ',' '}'
+			// nop
+		default:
+			panic(todo("%v: %v", position(n), x.Case))
+		}
+	case *CastExpression:
+		switch x.Case {
+		case CastExpressionUnary: // UnaryExpression
+			c.takeAddr(x.UnaryExpression)
+		case CastExpressionCast: // '(' TypeName ')' CastExpression
+			c.takeAddr(x.CastExpression)
+		default:
+			panic(todo("%v: %v", position(n), x.Case))
+		}
+	case *UnaryExpression:
+		switch x.Case {
+		case UnaryExpressionDeref: // '*' CastExpression
+			// nop
+		case UnaryExpressionReal: // "__real__" UnaryExpression
+			c.takeAddr(x.UnaryExpression)
+		case UnaryExpressionImag: // "__imag__" UnaryExpression
+			c.takeAddr(x.UnaryExpression)
+		case UnaryExpressionAddrof: // '&' CastExpression
+			c.takeAddr(x.CastExpression)
+		default:
+			panic(todo("%v: %v", position(n), x.Case))
+		}
+	default:
+		panic(todo("%v: %T", position(n), x))
+	}
 }
 
 //  PostfixExpression:

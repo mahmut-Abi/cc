@@ -687,6 +687,7 @@ package cc // import "modernc.org/cc/v4"
 			/*yy:field	isThreadLocal	bool		*/
 			/*yy:field	isTypename	bool		*/
 			/*yy:field	isVolatile	bool		*/
+			/*yy:field	addrTaken	bool		*/
 			/*yy:example int *p; */
 			Declarator:
 				Pointer DirectDeclarator

@@ -3501,11 +3501,18 @@ func (p *parser) structOrUnion() *StructOrUnion {
 //  *Parameter
 //  *StructOrUnionSpecifier     binds the tag
 type Scope struct {
-	Nodes  map[string][]Node
-	Parent *Scope
+	Children []*Scope
+	Nodes    map[string][]Node
+	Parent   *Scope
 }
 
-func newScope(parent *Scope) (r *Scope) { return &Scope{Parent: parent} }
+func newScope(parent *Scope) (r *Scope) {
+	r = &Scope{Parent: parent}
+	if parent != nil {
+		parent.Children = append(parent.Children, r)
+	}
+	return r
+}
 
 func (s *Scope) declare(eh interface{}, nm string, n Node) {
 	// trc("%v: %q %T, visible %v (scope %p) '%s' (%v: %v: %v:)", n.Position(), nm, n, n.(interface{ Visible() int }).Visible(), s, NodeSource(n), origin(4), origin(3), origin(2))

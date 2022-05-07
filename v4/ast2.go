@@ -4,6 +4,9 @@
 
 package cc // import "modernc.org/cc/v4"
 
+// AddressTaken reports whether address of n is taken.
+func (n *Declarator) AddressTaken() bool { return n.addrTaken }
+
 // Name returns the name of n.
 func (n *Declarator) Name() string {
 	if n == nil {
