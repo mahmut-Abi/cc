@@ -612,6 +612,20 @@ func NodeSource(s ...Node) string {
 	return b.String()
 }
 
+func nodeSource2(s ...Node) string {
+	var a []Token
+	for _, n := range s {
+		nodeSource(n, &a)
+	}
+	sort.Slice(a, func(i, j int) bool { return a[i].seq < a[j].seq })
+	var b strings.Builder
+	for _, t := range a {
+		b.Write(t.Sep())
+		b.Write(t.Src())
+	}
+	return b.String()
+}
+
 func nodeSource(n Node, a *[]Token) {
 	if n == nil {
 		return

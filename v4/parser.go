@@ -174,7 +174,15 @@ func (p *parser) next() {
 		case ' ':
 			// nop
 		case '\n':
+			var sep []byte
+			if p.prevNL.Ch != 0 {
+				sep = append(p.prevNL.Sep(), p.prevNL.Src()...)
+			}
 			p.prevNL = t
+			if len(sep) != 0 {
+				sep = append(sep, p.prevNL.Sep()...)
+				p.prevNL.Set(sep, p.prevNL.Src())
+			}
 		default:
 			p.seq++
 			t.seq = p.seq
@@ -521,17 +529,24 @@ var funcTokensText = [][]byte{
 }
 
 func (p *parser) injectFuncTokens(lbrace Token, nm string) {
+	seq := lbrace.seq
 	for i := range p.funcTokens {
 		pt := &p.funcTokens[i]
 		pt.s = lbrace.s
 		pt.off = lbrace.off
-		pt.seq = lbrace.seq
+		seq++
+		pt.seq = seq
 		if i != 7 {
-			pt.Set(nil, funcTokensText[i])
+			pt.Set(sp, funcTokensText[i])
 		}
 	}
-	p.funcTokens[7].Set(nil, []byte(`"`+nm+`"`))
+	p.funcTokens[7].Set(sp, []byte(`"`+nm+`"`))
 	p.rune(false)
+	for i := range p.toks {
+		seq++
+		p.toks[i].seq = seq
+	}
+	p.seq = seq + 1
 	p.toks = append(p.funcTokens, p.toks...)
 }
 
