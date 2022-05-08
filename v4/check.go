@@ -2724,7 +2724,7 @@ func (c *ctx) assignTo(n Node, unread bool) {
 	case *PrimaryExpression:
 		switch x.Case {
 		case PrimaryExpressionExpr: // '(' ExpressionList ')'
-			c.takeAddr(x.ExpressionList)
+			c.assignTo(x.ExpressionList, unread)
 		case PrimaryExpressionIdent: // IDENTIFIER
 			switch y := x.ResolvedTo().(type) {
 			case *Declarator:
@@ -2746,6 +2746,8 @@ func (c *ctx) assignTo(n Node, unread bool) {
 			c.assignTo(x.PostfixExpression, unread)
 		case PostfixExpressionPSelect: // PostfixExpression "->" IDENTIFIER
 			// nop
+		case PostfixExpressionComplit: // '(' TypeName ')' '{' InitializerList ',' '}'
+			// nop
 		default:
 			c.errors.add(errorf("internal error: %v", x.Case))
 		}
@@ -2756,6 +2758,13 @@ func (c *ctx) assignTo(n Node, unread bool) {
 		case UnaryExpressionReal: // "__real__" UnaryExpression
 			c.assignTo(x.UnaryExpression, unread)
 		case UnaryExpressionImag: // "__imag__" UnaryExpression
+			c.assignTo(x.UnaryExpression, unread)
+		default:
+			c.errors.add(errorf("internal error: %v", x.Case))
+		}
+	case *CastExpression:
+		switch x.Case {
+		case CastExpressionUnary: // UnaryExpression
 			c.assignTo(x.UnaryExpression, unread)
 		default:
 			c.errors.add(errorf("internal error: %v", x.Case))
