@@ -4,8 +4,17 @@
 
 package cc // import "modernc.org/cc/v4"
 
-// AddressTaken reports whether address of n is taken.
+// AddressTaken reports whether address of n is taken. The result is valid
+// after Translate.
 func (n *Declarator) AddressTaken() bool { return n.addrTaken }
+
+// ReadCount reports the number of times n is read. The result is valid after
+// Translate.
+func (n *Declarator) ReadCount() int { return n.read }
+
+// WriteCount reports the number of times n is written. The result is valid
+// after Translate.
+func (n *Declarator) WriteCount() int { return n.write }
 
 // Name returns the name of n.
 func (n *Declarator) Name() string {

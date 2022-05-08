@@ -2677,6 +2677,7 @@ func (n *AssignmentExpression) check(c *ctx, mode flags) (r Type) {
 		AssignmentExpressionOr:     // UnaryExpression "|=" AssignmentExpression
 
 		n.typ = n.UnaryExpression.check(c, mode)
+		c.assignTo(n.UnaryExpression)
 		a := n.Type()
 		b := n.AssignmentExpression.check(c, mode)
 		if !isModifiableLvalue(a) {
@@ -2716,6 +2717,50 @@ func (n *AssignmentExpression) check(c *ctx, mode flags) (r Type) {
 		c.errors.add(errorf("internal error: %v", n.Case))
 	}
 	return n.Type()
+}
+
+func (c *ctx) assignTo(n Node) {
+	switch x := n.(type) {
+	case *PrimaryExpression:
+		switch x.Case {
+		case PrimaryExpressionExpr: // '(' ExpressionList ')'
+			c.takeAddr(x.ExpressionList)
+		case PrimaryExpressionIdent: // IDENTIFIER
+			switch y := x.ResolvedTo().(type) {
+			case *Declarator:
+				y.read--
+				y.write++
+			default:
+				c.errors.add(errorf("internal error: %T", y))
+			}
+		default:
+			c.errors.add(errorf("internal error: %v", x.Case))
+		}
+	case *PostfixExpression:
+		switch x.Case {
+		case PostfixExpressionIndex: // PostfixExpression '[' ExpressionList ']'
+			//nop
+		case PostfixExpressionSelect: // PostfixExpression '.' IDENTIFIER
+			c.assignTo(x.PostfixExpression)
+		case PostfixExpressionPSelect: // PostfixExpression "->" IDENTIFIER
+			// nop
+		default:
+			c.errors.add(errorf("internal error: %v", x.Case))
+		}
+	case *UnaryExpression:
+		switch x.Case {
+		case UnaryExpressionDeref: // '*' CastExpression
+			// nop
+		case UnaryExpressionReal: // "__real__" UnaryExpression
+			c.assignTo(x.UnaryExpression)
+		case UnaryExpressionImag: // "__imag__" UnaryExpression
+			c.assignTo(x.UnaryExpression)
+		default:
+			c.errors.add(errorf("internal error: %v", x.Case))
+		}
+	default:
+		c.errors.add(errorf("internal error: %T", x))
+	}
 }
 
 //  ConditionalExpression:
@@ -3261,6 +3306,7 @@ func (n *UnaryExpression) check(c *ctx, mode flags) (r Type) {
 		UnaryExpressionDec: // "--" UnaryExpression
 
 		n.typ = n.UnaryExpression.check(c, mode.add(decay))
+		c.assignTo(n.UnaryExpression)
 		if !IsRealType(n.Type()) && !isPointerType(n.Type()) {
 			c.errors.add(errorf("%v: operand shall have real or pointer type: %s", n.UnaryExpression.Position(), n.Type()))
 		}
@@ -3376,7 +3422,7 @@ func (c *ctx) takeAddr(n Node) {
 			case *Declarator:
 				y.addrTaken = true
 			default:
-				panic(todo("%v: %T", position(n), y))
+				c.errors.add(errorf("internal error: %T", y))
 			}
 		case PrimaryExpressionString: // STRINGLITERAL
 			// nop
@@ -3385,7 +3431,7 @@ func (c *ctx) takeAddr(n Node) {
 		case PrimaryExpressionInt: // INTCONST
 			// nop
 		default:
-			panic(todo("%v: %v", position(n), x.Case))
+			c.errors.add(errorf("internal error: %v", x.Case))
 		}
 	case *PostfixExpression:
 		switch x.Case {
@@ -3403,7 +3449,7 @@ func (c *ctx) takeAddr(n Node) {
 		case PostfixExpressionComplit: // '(' TypeName ')' '{' InitializerList ',' '}'
 			// nop
 		default:
-			panic(todo("%v: %v", position(n), x.Case))
+			c.errors.add(errorf("internal error: %v", x.Case))
 		}
 	case *CastExpression:
 		switch x.Case {
@@ -3412,7 +3458,7 @@ func (c *ctx) takeAddr(n Node) {
 		case CastExpressionCast: // '(' TypeName ')' CastExpression
 			c.takeAddr(x.CastExpression)
 		default:
-			panic(todo("%v: %v", position(n), x.Case))
+			c.errors.add(errorf("internal error: %v", x.Case))
 		}
 	case *UnaryExpression:
 		switch x.Case {
@@ -3425,10 +3471,10 @@ func (c *ctx) takeAddr(n Node) {
 		case UnaryExpressionAddrof: // '&' CastExpression
 			c.takeAddr(x.CastExpression)
 		default:
-			panic(todo("%v: %v", position(n), x.Case))
+			c.errors.add(errorf("internal error: %v", x.Case))
 		}
 	default:
-		panic(todo("%v: %T", position(n), x))
+		c.errors.add(errorf("internal error: %T", x))
 	}
 }
 
@@ -3583,7 +3629,9 @@ out:
 	case
 		PostfixExpressionInc, // PostfixExpression "++"
 		PostfixExpressionDec: // PostfixExpression "--"
-		switch t := n.PostfixExpression.check(c, mode.add(decay)); {
+		t := n.PostfixExpression.check(c, mode.add(decay))
+		c.assignTo(n.PostfixExpression)
+		switch {
 		case
 			// The operand of the postfix increment or decrement operator shall have
 			// qualified or unqualified real or pointer type and shall be a modifiable
@@ -3672,6 +3720,7 @@ out:
 		case *Declarator:
 			d = x
 			n.typ = d.Type()
+			d.read++
 		case *Enumerator:
 			n.resolvedTo = x
 			n.val = x.val
@@ -3691,6 +3740,7 @@ out:
 			d = n.LexicalScope().builtin(n.Token)
 			if d == nil {
 				d = c.predefinedDeclarator(n.Token)
+				d.read++
 				d.isExtern = true
 				d.isParam = false
 				d.lexicalScope = n.LexicalScope()
@@ -3714,6 +3764,7 @@ out:
 		}
 
 		n.resolvedTo = d
+		d.read++
 		n.typ = d.Type()
 	case PrimaryExpressionInt: // INTCONST
 		n.val, n.typ = n.intConst(c)

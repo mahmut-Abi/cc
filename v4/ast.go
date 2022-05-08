@@ -1327,6 +1327,8 @@ func (n *DeclarationSpecifiers) Position() (r token.Position) {
 //	        Pointer DirectDeclarator
 type Declarator struct {
 	alignas int
+	read    int
+	write   int
 	lexicalScoper
 	typer
 	visible
