@@ -2677,7 +2677,7 @@ func (n *AssignmentExpression) check(c *ctx, mode flags) (r Type) {
 		AssignmentExpressionOr:     // UnaryExpression "|=" AssignmentExpression
 
 		n.typ = n.UnaryExpression.check(c, mode)
-		c.assignTo(n.UnaryExpression)
+		c.assignTo(n.UnaryExpression, n.Case == AssignmentExpressionAssign)
 		a := n.Type()
 		b := n.AssignmentExpression.check(c, mode)
 		if !isModifiableLvalue(a) {
@@ -2719,7 +2719,7 @@ func (n *AssignmentExpression) check(c *ctx, mode flags) (r Type) {
 	return n.Type()
 }
 
-func (c *ctx) assignTo(n Node) {
+func (c *ctx) assignTo(n Node, unread bool) {
 	switch x := n.(type) {
 	case *PrimaryExpression:
 		switch x.Case {
@@ -2728,7 +2728,9 @@ func (c *ctx) assignTo(n Node) {
 		case PrimaryExpressionIdent: // IDENTIFIER
 			switch y := x.ResolvedTo().(type) {
 			case *Declarator:
-				y.read--
+				if unread {
+					y.read--
+				}
 				y.write++
 			default:
 				c.errors.add(errorf("internal error: %T", y))
@@ -2741,7 +2743,7 @@ func (c *ctx) assignTo(n Node) {
 		case PostfixExpressionIndex: // PostfixExpression '[' ExpressionList ']'
 			//nop
 		case PostfixExpressionSelect: // PostfixExpression '.' IDENTIFIER
-			c.assignTo(x.PostfixExpression)
+			c.assignTo(x.PostfixExpression, unread)
 		case PostfixExpressionPSelect: // PostfixExpression "->" IDENTIFIER
 			// nop
 		default:
@@ -2752,9 +2754,9 @@ func (c *ctx) assignTo(n Node) {
 		case UnaryExpressionDeref: // '*' CastExpression
 			// nop
 		case UnaryExpressionReal: // "__real__" UnaryExpression
-			c.assignTo(x.UnaryExpression)
+			c.assignTo(x.UnaryExpression, unread)
 		case UnaryExpressionImag: // "__imag__" UnaryExpression
-			c.assignTo(x.UnaryExpression)
+			c.assignTo(x.UnaryExpression, unread)
 		default:
 			c.errors.add(errorf("internal error: %v", x.Case))
 		}
@@ -3306,7 +3308,7 @@ func (n *UnaryExpression) check(c *ctx, mode flags) (r Type) {
 		UnaryExpressionDec: // "--" UnaryExpression
 
 		n.typ = n.UnaryExpression.check(c, mode.add(decay))
-		c.assignTo(n.UnaryExpression)
+		c.assignTo(n.UnaryExpression, false)
 		if !IsRealType(n.Type()) && !isPointerType(n.Type()) {
 			c.errors.add(errorf("%v: operand shall have real or pointer type: %s", n.UnaryExpression.Position(), n.Type()))
 		}
@@ -3630,7 +3632,7 @@ out:
 		PostfixExpressionInc, // PostfixExpression "++"
 		PostfixExpressionDec: // PostfixExpression "--"
 		t := n.PostfixExpression.check(c, mode.add(decay))
-		c.assignTo(n.PostfixExpression)
+		c.assignTo(n.PostfixExpression, false)
 		switch {
 		case
 			// The operand of the postfix increment or decrement operator shall have
@@ -3720,7 +3722,6 @@ out:
 		case *Declarator:
 			d = x
 			n.typ = d.Type()
-			d.read++
 		case *Enumerator:
 			n.resolvedTo = x
 			n.val = x.val
@@ -3740,7 +3741,6 @@ out:
 			d = n.LexicalScope().builtin(n.Token)
 			if d == nil {
 				d = c.predefinedDeclarator(n.Token)
-				d.read++
 				d.isExtern = true
 				d.isParam = false
 				d.lexicalScope = n.LexicalScope()
@@ -3749,12 +3749,14 @@ out:
 				if mode.has(implicitFuncDef) {
 					n.typ = c.implicitFunc
 					d.typ = n.Type().(*PointerType).Elem()
+					d.read++
 					break out
 				}
 
 				if mode.has(ignoreUndefined) {
 					n.typ = c.intT
 					d.typ = n.Type()
+					d.read++
 					break out
 				}
 
