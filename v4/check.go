@@ -933,6 +933,7 @@ func (n *Declaration) check(c *ctx) {
 		}
 
 		n.Declarator.typ = n.Initializer.AssignmentExpression.check(c, decay)
+		n.Declarator.write++
 	default:
 		c.errors.add(errorf("internal error: %v", n.Case))
 	}
@@ -981,6 +982,7 @@ func (n *InitDeclarator) check(c *ctx, t Type, isExtern, isStatic, isAtomic, isT
 
 	if n.Case == InitDeclaratorInit {
 		n.Initializer.check(c, t, 0)
+		n.Declarator.write++
 	}
 }
 
