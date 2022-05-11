@@ -83,6 +83,12 @@ typedef __PTRDIFF_TYPE__ __predefined_ptrdiff_t;
 #define __builtin_convertvector(src, type) ((type)(src))
 #endif
 
+#ifdef __APPLE__
+int __darwin_check_fd_set_overflow(int, void *, int) {
+	abort();
+}
+#endif
+
 __UINT16_TYPE__ __builtin_bswap16 (__UINT16_TYPE__ x);
 __UINT32_TYPE__ __builtin_bswap32 (__UINT32_TYPE__ x);
 __UINT64_TYPE__ __builtin_bswap64 (__UINT64_TYPE__ x);
