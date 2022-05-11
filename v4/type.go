@@ -836,7 +836,7 @@ type Field struct {
 	// be zero even for a bit field, for example, the first bit field after a non
 	// bit field will have offsetBits zero.
 	offsetBits int
-	ordinal    int // index into .fields in structType
+	index      int // index into .fields in structType
 
 	isBitField bool
 }
@@ -859,11 +859,14 @@ type Field struct {
 // attached, with parent field 'e'.
 func (n *Field) Parent() *Field { return n.parent }
 
+// Index returns the zero based field declaration index.
+func (n *Field) Index() int { return n.index }
+
 func (n *Field) path() (r []int) {
 	if n.parent != nil {
 		r = n.parent.path()
 	}
-	return append(r, n.ordinal)
+	return append(r, n.index)
 }
 
 // Type reports the type of f.

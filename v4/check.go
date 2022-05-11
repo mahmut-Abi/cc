@@ -1453,7 +1453,7 @@ func (n *InitializerList) checkStruct(c *ctx, t *StructType, off int64, outer bo
 
 		n.Initializer.check(c, f.Type(), off+f.Offset())
 		n = n.InitializerList
-		f = t.NamedFieldByIndex(f.ordinal + 1)
+		f = t.NamedFieldByIndex(f.index + 1)
 	}
 	return n
 }
@@ -2454,7 +2454,7 @@ func (n *StructDeclarationList) check(c *ctx, s *StructOrUnionSpecifier) {
 			return
 		}
 
-		f.ordinal = i
+		f.index = i
 
 		switch {
 		case f.isBitField:
