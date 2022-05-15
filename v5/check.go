@@ -548,7 +548,7 @@ func (n *AsmQualifier) check(c *ctx) {
 //  FunctionDefinition:
 //          DeclarationSpecifiers Declarator DeclarationList CompoundStatement
 func (n *FunctionDefinition) check(c *ctx) Type {
-	c.checkFunctionDefinition(n.scope, n.DeclarationSpecifiers, n.Declarator, n.Declarations, n.CompoundStatement)
+	c.checkFunctionDefinition(n.scope, n.Specifiers, n.Declarator, n.Declarations, n.Body)
 	return nil
 }
 

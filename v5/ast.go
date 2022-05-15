@@ -2260,11 +2260,11 @@ func (*AutoDeclaration) isExternalDeclaration()         {}
 //	FunctionDefinition:
 //	        DeclarationSpecifiers Declarator DeclarationList CompoundStatement
 type FunctionDefinition struct {
-	scope                 *Scope
-	CompoundStatement     *CompoundStatement
-	Declarations          []Declaration
-	DeclarationSpecifiers DeclarationSpecifiers
-	Declarator            *Declarator
+	scope        *Scope
+	Specifiers   DeclarationSpecifiers
+	Declarator   *Declarator
+	Declarations []Declaration
+	Body         *CompoundStatement
 }
 
 // String implements fmt.Stringer.
@@ -2276,7 +2276,7 @@ func (n *FunctionDefinition) Position() (r token.Position) {
 		return r
 	}
 
-	for _, s := range n.DeclarationSpecifiers {
+	for _, s := range n.Specifiers {
 		if p := s.Position(); p.IsValid() {
 			return p
 		}
@@ -2292,7 +2292,7 @@ func (n *FunctionDefinition) Position() (r token.Position) {
 		}
 	}
 
-	return n.CompoundStatement.Position()
+	return n.Body.Position()
 }
 
 // FunctionSpecifierCase represents case numbers of production FunctionSpecifier

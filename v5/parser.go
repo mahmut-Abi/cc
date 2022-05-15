@@ -444,7 +444,7 @@ func (p *parser) functionDefinition(ds DeclarationSpecifiers, d *Declarator) (r 
 		p.fnScope = nil
 	}()
 	d.isFuncDef = true
-	return &FunctionDefinition{DeclarationSpecifiers: ds, Declarator: d, Declarations: p.declarationListOpt(), CompoundStatement: p.compoundStatement(true, d)}
+	return &FunctionDefinition{Specifiers: ds, Declarator: d, Declarations: p.declarationListOpt(), Body: p.compoundStatement(true, d)}
 }
 
 //  declaration-list:
@@ -576,8 +576,8 @@ again:
 		}
 		switch p.rune(false) {
 		case '{':
-			fd := &FunctionDefinition{DeclarationSpecifiers: ds, Declarator: d, CompoundStatement: p.compoundStatement(true, d)}
-			fd.scope = fd.CompoundStatement.LexicalScope()
+			fd := &FunctionDefinition{Specifiers: ds, Declarator: d, Body: p.compoundStatement(true, d)}
+			fd.scope = fd.Body.LexicalScope()
 			return fd
 		default:
 			return p.declaration(ds, d, true)
