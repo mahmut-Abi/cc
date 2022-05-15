@@ -1441,8 +1441,8 @@ func (p *parser) conditionalExpression(checkTypeName bool) (r, u ExpressionNode)
 		p.cpp.eh("%v: unexpected EOF", p.toks[0].Position())
 		return nil, nil
 	case '?':
-		r := &ConditionalExpression{Case: ConditionalExpressionCond, LogicalOrExpression: lhs, Token: p.shift(false), ExpressionList: p.expression(true), Token2: p.must(':')}
-		r.ConditionalExpression, _ = p.conditionalExpression(checkTypeName)
+		r := &ConditionalExpression{Condition: lhs, Token: p.shift(false), Then: p.expression(true), Token2: p.must(':')}
+		r.Else, _ = p.conditionalExpression(checkTypeName)
 		return r, nil
 	default:
 		return lhs, u

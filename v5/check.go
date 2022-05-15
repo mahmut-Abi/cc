@@ -2733,55 +2733,48 @@ func (n *ConditionalExpression) check(c *ctx, mode flags) (r Type) {
 		}
 	}()
 
-	switch n.Case {
-	case ConditionalExpressionLOr: // LogicalOrExpression
-		n.typ = n.LogicalOrExpression.check(c, mode)
-	case ConditionalExpressionCond: // LogicalOrExpression '?' ExpressionList ':' ConditionalExpression
-		mode = mode.add(decay)
-		t1 := n.LogicalOrExpression.check(c, mode)
-		if !IsScalarType(t1) {
-			c.errors.add(errorf("%v: operand shall have scalar type: %s", n.LogicalOrExpression.Position(), t1))
-			break
-		}
+	mode = mode.add(decay)
+	t1 := n.Condition.check(c, mode)
+	if !IsScalarType(t1) {
+		c.errors.add(errorf("%v: operand shall have scalar type: %s", n.Condition.Position(), t1))
+		return n.Type()
+	}
 
-		t2 := t1
-		if n.ExpressionList != nil {
-			t2 = n.ExpressionList.check(c, mode)
-			n.ExpressionList.eval(c, decay)
-		}
-		switch t3 := n.ConditionalExpression.check(c, mode); {
-		case
-			// both operands have arithmetic type;
-			IsArithmeticType(t2) && IsArithmeticType(t3):
-			n.typ = UsualArithmeticConversions(t2, t3)
-		case
-			// both operands have the same structure or union type;
-			(t2.Kind() == Struct || t2.Kind() == Union) && t3.Kind() == t2.Kind():
-			n.typ = t2
-		case
-			// both operands have void type;
-			t2.Kind() == Void && t3.Kind() == Void:
-			n.typ = t2
-		case
-			// both operands are pointers to qualified or unqualified versions of compatible types;
-			isPointerType(t2) && isPointerType(t3):
-			n.typ = t2
-		case
-			// one operand is a pointer and the other is a null pointer constant; or
-			isPointerType(t2) && IsIntegerType(t3):
-			n.typ = t2
-		case
-			IsIntegerType(t2) && isPointerType(t3):
-			n.typ = t3
-		case t2.Kind() == Void:
-			n.typ = t2
-		case t3.Kind() == Void:
-			n.typ = t3
-		default:
-			c.errors.add(errorf("TODO %v, t1 %v, t2 %v, t3 %v", n.Case, t1, t2, t3))
-		}
+	t2 := t1
+	if n.Then != nil {
+		t2 = n.Then.check(c, mode)
+		n.Then.eval(c, decay)
+	}
+	switch t3 := n.Else.check(c, mode); {
+	case
+		// both operands have arithmetic type;
+		IsArithmeticType(t2) && IsArithmeticType(t3):
+		n.typ = UsualArithmeticConversions(t2, t3)
+	case
+		// both operands have the same structure or union type;
+		(t2.Kind() == Struct || t2.Kind() == Union) && t3.Kind() == t2.Kind():
+		n.typ = t2
+	case
+		// both operands have void type;
+		t2.Kind() == Void && t3.Kind() == Void:
+		n.typ = t2
+	case
+		// both operands are pointers to qualified or unqualified versions of compatible types;
+		isPointerType(t2) && isPointerType(t3):
+		n.typ = t2
+	case
+		// one operand is a pointer and the other is a null pointer constant; or
+		isPointerType(t2) && IsIntegerType(t3):
+		n.typ = t2
+	case
+		IsIntegerType(t2) && isPointerType(t3):
+		n.typ = t3
+	case t2.Kind() == Void:
+		n.typ = t2
+	case t3.Kind() == Void:
+		n.typ = t3
 	default:
-		c.errors.add(errorf("internal error: %v", n.Case))
+		c.errors.add(errorf("TODO t1 %v, t2 %v, t3 %v", t1, t2, t3))
 	}
 	return n.Type()
 }

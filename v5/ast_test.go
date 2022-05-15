@@ -1381,21 +1381,20 @@ func ExampleConditionalExpression_cond() {
 	fmt.Println(exampleAST(73, "int i = x ? y : z;"))
 	// Output:
 	// &cc.ConditionalExpression{
-	// · Case: ConditionalExpressionCond,
-	// · ConditionalExpression: &cc.PrimaryExpression{
-	// · · Case: PrimaryExpressionIdent,
-	// · · Token: example.c:1:17: identifier "z",
-	// · },
-	// · ExpressionList: &cc.PrimaryExpression{
-	// · · Case: PrimaryExpressionIdent,
-	// · · Token: example.c:1:13: identifier "y",
-	// · },
-	// · LogicalOrExpression: &cc.PrimaryExpression{
+	// · Condition: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:9: identifier "x",
 	// · },
 	// · Token: example.c:1:11: '?' "?",
+	// · Then: &cc.PrimaryExpression{
+	// · · Case: PrimaryExpressionIdent,
+	// · · Token: example.c:1:13: identifier "y",
+	// · },
 	// · Token2: example.c:1:15: ':' ":",
+	// · Else: &cc.PrimaryExpression{
+	// · · Case: PrimaryExpressionIdent,
+	// · · Token: example.c:1:17: identifier "z",
+	// · },
 	// }
 }
 

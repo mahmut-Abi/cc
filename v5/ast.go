@@ -863,27 +863,6 @@ func (n *CompoundStatement) Position() (r token.Position) {
 	return n.Rbrace.Position()
 }
 
-// ConditionalExpressionCase represents case numbers of production ConditionalExpression
-type ConditionalExpressionCase int
-
-// Values of type ConditionalExpressionCase
-const (
-	ConditionalExpressionLOr ConditionalExpressionCase = iota
-	ConditionalExpressionCond
-)
-
-// String implements fmt.Stringer
-func (n ConditionalExpressionCase) String() string {
-	switch n {
-	case ConditionalExpressionLOr:
-		return "ConditionalExpressionLOr"
-	case ConditionalExpressionCond:
-		return "ConditionalExpressionCond"
-	default:
-		return fmt.Sprintf("ConditionalExpressionCase(%v)", int(n))
-	}
-}
-
 // ConditionalExpression represents data reduced by productions:
 //
 //	ConditionalExpression:
@@ -892,12 +871,11 @@ func (n ConditionalExpressionCase) String() string {
 type ConditionalExpression struct {
 	typer
 	valuer
-	Case                  ConditionalExpressionCase `PrettyPrint:"stringer,zero"`
-	ConditionalExpression ExpressionNode
-	ExpressionList        ExpressionNode
-	LogicalOrExpression   ExpressionNode
-	Token                 Token
-	Token2                Token
+	Condition ExpressionNode
+	Token     Token
+	Then      ExpressionNode
+	Token2    Token
+	Else      ExpressionNode
 }
 
 // String implements fmt.Stringer.
@@ -909,30 +887,23 @@ func (n *ConditionalExpression) Position() (r token.Position) {
 		return r
 	}
 
-	switch n.Case {
-	case 0:
-		return n.LogicalOrExpression.Position()
-	case 1:
-		if p := n.LogicalOrExpression.Position(); p.IsValid() {
-			return p
-		}
-
-		if p := n.Token.Position(); p.IsValid() {
-			return p
-		}
-
-		if p := n.ExpressionList.Position(); p.IsValid() {
-			return p
-		}
-
-		if p := n.Token2.Position(); p.IsValid() {
-			return p
-		}
-
-		return n.ConditionalExpression.Position()
-	default:
-		panic("internal error")
+	if p := n.Condition.Position(); p.IsValid() {
+		return p
 	}
+
+	if p := n.Token.Position(); p.IsValid() {
+		return p
+	}
+
+	if p := n.Then.Position(); p.IsValid() {
+		return p
+	}
+
+	if p := n.Token2.Position(); p.IsValid() {
+		return p
+	}
+
+	return n.Else.Position()
 }
 
 // ConstantExpression represents data reduced by production:

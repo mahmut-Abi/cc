@@ -132,22 +132,15 @@ func (n *ConstantExpression) eval(c *ctx, mode flags) (r Value) {
 
 func (n *ConditionalExpression) eval(c *ctx, mode flags) (r Value) {
 	if mode.has(addrOf) {
-		c.errors.add(errorf("TODO %v %v", n.Case, mode.has(addrOf)))
+		c.errors.add(errorf("TODO %v", mode.has(addrOf)))
 		return n.Value()
 	}
 
-	switch n.Case {
-	case ConditionalExpressionLOr: // LogicalOrExpression
-		n.val = n.LogicalOrExpression.eval(c, mode)
-	case ConditionalExpressionCond: // LogicalOrExpression '?' ExpressionList ':' ConditionalExpression
-		switch val := n.LogicalOrExpression.eval(c, mode); {
-		case isNonzero(val):
-			n.val = c.convert(n.ExpressionList.eval(c, mode), n.Type())
-		case isZero(val):
-			n.val = c.convert(n.ConditionalExpression.eval(c, mode), n.Type())
-		}
-	default:
-		c.errors.add(errorf("internal error: %v", n.Case))
+	switch val := n.Condition.eval(c, mode); {
+	case isNonzero(val):
+		n.val = c.convert(n.Then.eval(c, mode), n.Type())
+	case isZero(val):
+		n.val = c.convert(n.Else.eval(c, mode), n.Type())
 	}
 	return n.Value()
 }
