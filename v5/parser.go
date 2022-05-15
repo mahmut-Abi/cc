@@ -391,15 +391,15 @@ func (p *parser) translationUnit() (r []*TranslationUnit) {
 // 	asm-function-definition
 //	asm-statement
 // 	;
-func (p *parser) externalDeclaration() *ExternalDeclaration {
+func (p *parser) externalDeclaration() ExternalDeclaration {
 again:
 	switch p.rune(false) {
 	case eof:
 		return nil
 	case rune(ASM):
-		return &ExternalDeclaration{Case: ExternalDeclarationAsmStmt, AsmStatement: p.asmStatement()}
+		return p.asmStatement()
 	case rune(STATICASSERT), rune(AUTOTYPE):
-		return &ExternalDeclaration{Case: ExternalDeclarationDecl, Declaration: p.declaration(nil, nil, false)}
+		return p.declaration(nil, nil, false)
 	}
 
 	ds, ok := p.declarationSpecifiers()
@@ -420,12 +420,12 @@ again:
 		rune(ATTRIBUTE):
 
 		//TODO wrong parse of pr37573.c
-		return &ExternalDeclaration{Case: ExternalDeclarationDecl, Declaration: p.declaration(ds, d, true)}
+		return p.declaration(ds, d, true)
 	case '{':
-		return &ExternalDeclaration{Case: ExternalDeclarationFuncDef, FunctionDefinition: p.functionDefinition(ds, d)}
+		return p.functionDefinition(ds, d)
 	default:
 		if d.isFn() {
-			return &ExternalDeclaration{Case: ExternalDeclarationFuncDef, FunctionDefinition: p.functionDefinition(ds, d)}
+			return p.functionDefinition(ds, d)
 		}
 
 		t := p.shift(false)

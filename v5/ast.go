@@ -2409,33 +2409,6 @@ func (n *ExpressionStatement) Position() (r token.Position) {
 	return n.Token.Position()
 }
 
-// ExternalDeclarationCase represents case numbers of production ExternalDeclaration
-type ExternalDeclarationCase int
-
-// Values of type ExternalDeclarationCase
-const (
-	ExternalDeclarationFuncDef ExternalDeclarationCase = iota
-	ExternalDeclarationDecl
-	ExternalDeclarationAsmStmt
-	ExternalDeclarationEmpty
-)
-
-// String implements fmt.Stringer
-func (n ExternalDeclarationCase) String() string {
-	switch n {
-	case ExternalDeclarationFuncDef:
-		return "ExternalDeclarationFuncDef"
-	case ExternalDeclarationDecl:
-		return "ExternalDeclarationDecl"
-	case ExternalDeclarationAsmStmt:
-		return "ExternalDeclarationAsmStmt"
-	case ExternalDeclarationEmpty:
-		return "ExternalDeclarationEmpty"
-	default:
-		return fmt.Sprintf("ExternalDeclarationCase(%v)", int(n))
-	}
-}
-
 // ExternalDeclaration represents data reduced by productions:
 //
 //	ExternalDeclaration:
@@ -2443,36 +2416,16 @@ func (n ExternalDeclarationCase) String() string {
 //	|       Declaration         // Case ExternalDeclarationDecl
 //	|       AsmStatement        // Case ExternalDeclarationAsmStmt
 //	|       ';'                 // Case ExternalDeclarationEmpty
-type ExternalDeclaration struct {
-	AsmStatement       *AsmStatement
-	Case               ExternalDeclarationCase `PrettyPrint:"stringer,zero"`
-	Declaration        *Declaration
-	FunctionDefinition *FunctionDefinition
-	Token              Token
+type ExternalDeclaration interface {
+	Node
+	fmt.Stringer
+	isExternalDeclaration()
+	check(c *ctx)
 }
 
-// String implements fmt.Stringer.
-func (n *ExternalDeclaration) String() string { return PrettyString(n) }
-
-// Position reports the position of the first component of n, if available.
-func (n *ExternalDeclaration) Position() (r token.Position) {
-	if n == nil {
-		return r
-	}
-
-	switch n.Case {
-	case 2:
-		return n.AsmStatement.Position()
-	case 1:
-		return n.Declaration.Position()
-	case 0:
-		return n.FunctionDefinition.Position()
-	case 3:
-		return n.Token.Position()
-	default:
-		panic("internal error")
-	}
-}
+func (*FunctionDefinition) isExternalDeclaration() {}
+func (*Declaration) isExternalDeclaration()        {}
+func (*AsmStatement) isExternalDeclaration()       {}
 
 // FunctionDefinition represents data reduced by production:
 //
@@ -4902,7 +4855,7 @@ func (n *StructOrUnionSpecifier) Position() (r token.Position) {
 //	        ExternalDeclaration
 //	|       TranslationUnit ExternalDeclaration
 type TranslationUnit struct {
-	ExternalDeclaration *ExternalDeclaration
+	ExternalDeclaration ExternalDeclaration
 }
 
 // String implements fmt.Stringer.
@@ -4911,6 +4864,10 @@ func (n *TranslationUnit) String() string { return PrettyString(n) }
 // Position reports the position of the first component of n, if available.
 func (n *TranslationUnit) Position() (r token.Position) {
 	if n == nil {
+		return r
+	}
+
+	if n.ExternalDeclaration == nil {
 		return r
 	}
 

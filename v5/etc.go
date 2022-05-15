@@ -446,6 +446,21 @@ func extractPos(s string) (p token.Position, ok bool) {
 // 	return r
 // }
 
+var (
+	reflExternalDecl = reflect.TypeOf((*ExternalDeclaration)(nil)).Elem()
+)
+
+func typeNameEqual(t reflect.Type, typ string) bool {
+	if t.Name() == typ {
+		return true
+	}
+	switch typ {
+	case "ExternalDeclaration":
+		return t.Implements(reflExternalDecl) || reflect.PointerTo(t).Implements(reflExternalDecl)
+	}
+	return false
+}
+
 func findNode(typ string, n Node, depth int, out *Node, pdepth *int) {
 	if depth >= *pdepth {
 		return
@@ -462,7 +477,7 @@ func findNode(typ string, n Node, depth int, out *Node, pdepth *int) {
 	}
 
 	t := reflect.TypeOf(elem.Interface())
-	if t.Name() == typ {
+	if typeNameEqual(t, typ) {
 		*pdepth = depth
 		*out = n
 		return

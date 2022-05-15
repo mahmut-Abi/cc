@@ -467,31 +467,13 @@ func (n *AST) Position() (r token.Position) {
 func (n *AST) check() error {
 	c := newCtx(n)
 	for _, l := range n.TranslationUnits {
-		l.ExternalDeclaration.check(c)
+		if l.ExternalDeclaration != nil {
+			l.ExternalDeclaration.check(c)
+		}
 	}
 	c.checkScope(n.Scope)
 	n.SizeT = c.sizeT(n.EOF)
 	return c.errors.err()
-}
-
-//  ExternalDeclaration:
-//          FunctionDefinition  // Case ExternalDeclarationFuncDef
-//  |       Declaration         // Case ExternalDeclarationDecl
-//  |       AsmStatement        // Case ExternalDeclarationAsmStmt
-//  |       ';'                 // Case ExternalDeclarationEmpty
-func (n *ExternalDeclaration) check(c *ctx) {
-	switch n.Case {
-	case ExternalDeclarationFuncDef: // FunctionDefinition
-		n.FunctionDefinition.check(c)
-	case ExternalDeclarationDecl: // Declaration
-		n.Declaration.check(c)
-	case ExternalDeclarationAsmStmt: // AsmStatement
-		n.AsmStatement.check(c)
-	case ExternalDeclarationEmpty: // ';'
-		c.errors.add(errorf("TODO %v", n.Case))
-	default:
-		c.errors.add(errorf("internal error: %v", n.Case))
-	}
 }
 
 //  AsmStatement:
