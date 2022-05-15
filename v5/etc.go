@@ -450,6 +450,7 @@ var (
 	reflExternalDecl         = reflect.TypeOf((*ExternalDeclaration)(nil)).Elem()
 	reflBlockItem            = reflect.TypeOf((*BlockItem)(nil)).Elem()
 	reflDeclarationSpecifier = reflect.TypeOf((*DeclarationSpecifier)(nil)).Elem()
+	reflDeclaration          = reflect.TypeOf((*Declaration)(nil)).Elem()
 )
 
 func typeNameEqual(t reflect.Type, typ string) bool {
@@ -463,6 +464,8 @@ func typeNameEqual(t reflect.Type, typ string) bool {
 		return t.Implements(reflBlockItem) || reflect.PointerTo(t).Implements(reflBlockItem)
 	case "DeclarationSpecifier":
 		return t.Implements(reflDeclarationSpecifier) || reflect.PointerTo(t).Implements(reflDeclarationSpecifier)
+	case "Declaration":
+		return t.Implements(reflDeclaration) || reflect.PointerTo(t).Implements(reflDeclaration)
 	}
 	return false
 }

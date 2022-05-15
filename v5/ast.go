@@ -826,10 +826,12 @@ type BlockItem interface {
 	check(c *ctx) Type
 }
 
-func (*Declaration) isBlockItem()        {}
-func (*Statement) isBlockItem()          {}
-func (*LabelDeclaration) isBlockItem()   {}
-func (*FunctionDefinition) isBlockItem() {}
+func (*Statement) isBlockItem()               {}
+func (*LabelDeclaration) isBlockItem()        {}
+func (*FunctionDefinition) isBlockItem()      {}
+func (*CommonDeclaration) isBlockItem()       {}
+func (*StaticAssertDeclaration) isBlockItem() {}
+func (*AutoDeclaration) isBlockItem()         {}
 
 // CastExpressionCase represents case numbers of production CastExpression
 type CastExpressionCase int
@@ -1025,98 +1027,89 @@ func (n *ConstantExpression) Position() (r token.Position) {
 	return n.ConditionalExpression.Position()
 }
 
-// DeclarationCase represents case numbers of production Declaration
-type DeclarationCase int
-
-// Values of type DeclarationCase
-const (
-	DeclarationDecl DeclarationCase = iota
-	DeclarationAssert
-	DeclarationAuto
-)
-
-// String implements fmt.Stringer
-func (n DeclarationCase) String() string {
-	switch n {
-	case DeclarationDecl:
-		return "DeclarationDecl"
-	case DeclarationAssert:
-		return "DeclarationAssert"
-	case DeclarationAuto:
-		return "DeclarationAuto"
-	default:
-		return fmt.Sprintf("DeclarationCase(%v)", int(n))
-	}
-}
-
 // Declaration represents data reduced by productions:
 //
 //	Declaration:
 //	        DeclarationSpecifiers InitDeclaratorList AttributeSpecifierList ';'  // Case DeclarationDecl
 //	|       StaticAssertDeclaration                                              // Case DeclarationAssert
 //	|       "__auto_type" Declarator '=' Initializer ';'                         // Case DeclarationAuto
-type Declaration struct {
-	AttributeSpecifierList  *AttributeSpecifierList
-	Case                    DeclarationCase `PrettyPrint:"stringer,zero"`
-	DeclarationSpecifiers   DeclarationSpecifiers
-	Declarator              *Declarator
-	InitDeclaratorList      *InitDeclaratorList
-	Initializer             *Initializer
-	StaticAssertDeclaration *StaticAssertDeclaration
-	Token                   Token
-	Token2                  Token
-	Token3                  Token
+type Declaration interface {
+	Node
+	fmt.Stringer
+	BlockItem
+	ExternalDeclaration
+	isDeclaration()
+}
+
+func (*CommonDeclaration) isDeclaration()       {}
+func (*StaticAssertDeclaration) isDeclaration() {}
+func (*AutoDeclaration) isDeclaration()         {}
+
+type CommonDeclaration struct {
+	DeclarationSpecifiers  DeclarationSpecifiers
+	InitDeclaratorList     *InitDeclaratorList
+	AttributeSpecifierList *AttributeSpecifierList
+	Token                  Token
 }
 
 // String implements fmt.Stringer.
-func (n *Declaration) String() string { return PrettyString(n) }
+func (n *CommonDeclaration) String() string { return PrettyString(n) }
 
 // Position reports the position of the first component of n, if available.
-func (n *Declaration) Position() (r token.Position) {
+func (n *CommonDeclaration) Position() (r token.Position) {
 	if n == nil {
 		return r
 	}
-
-	switch n.Case {
-	case 0:
-		for _, s := range n.DeclarationSpecifiers {
-			if p := s.Position(); p.IsValid() {
-				return p
-			}
-		}
-
-		if p := n.InitDeclaratorList.Position(); p.IsValid() {
+	for _, s := range n.DeclarationSpecifiers {
+		if p := s.Position(); p.IsValid() {
 			return p
 		}
-
-		if p := n.AttributeSpecifierList.Position(); p.IsValid() {
-			return p
-		}
-
-		return n.Token.Position()
-	case 1:
-		return n.StaticAssertDeclaration.Position()
-	case 2:
-		if p := n.Token.Position(); p.IsValid() {
-			return p
-		}
-
-		if p := n.Declarator.Position(); p.IsValid() {
-			return p
-		}
-
-		if p := n.Token2.Position(); p.IsValid() {
-			return p
-		}
-
-		if p := n.Initializer.Position(); p.IsValid() {
-			return p
-		}
-
-		return n.Token3.Position()
-	default:
-		panic("internal error")
 	}
+
+	if p := n.InitDeclaratorList.Position(); p.IsValid() {
+		return p
+	}
+
+	if p := n.AttributeSpecifierList.Position(); p.IsValid() {
+		return p
+	}
+
+	return n.Token.Position()
+}
+
+type AutoDeclaration struct {
+	Token       Token
+	Declarator  *Declarator
+	Token2      Token
+	Initializer *Initializer
+	Token3      Token
+}
+
+// String implements fmt.Stringer.
+func (n *AutoDeclaration) String() string { return PrettyString(n) }
+
+// Position reports the position of the first component of n, if available.
+func (n *AutoDeclaration) Position() (r token.Position) {
+	if n == nil {
+		return r
+	}
+	if p := n.Token.Position(); p.IsValid() {
+		return p
+	}
+
+	if p := n.Declarator.Position(); p.IsValid() {
+		return p
+	}
+
+	if p := n.Token2.Position(); p.IsValid() {
+		return p
+	}
+
+	if p := n.Initializer.Position(); p.IsValid() {
+		return p
+	}
+
+	return n.Token3.Position()
 }
 
 // DeclarationSpecifier represents data reduced by productions:
@@ -2256,9 +2249,11 @@ type ExternalDeclaration interface {
 	check(c *ctx) Type
 }
 
-func (*FunctionDefinition) isExternalDeclaration() {}
-func (*Declaration) isExternalDeclaration()        {}
-func (*AsmStatement) isExternalDeclaration()       {}
+func (*FunctionDefinition) isExternalDeclaration()      {}
+func (*AsmStatement) isExternalDeclaration()            {}
+func (*CommonDeclaration) isExternalDeclaration()       {}
+func (*StaticAssertDeclaration) isExternalDeclaration() {}
+func (*AutoDeclaration) isExternalDeclaration()         {}
 
 // FunctionDefinition represents data reduced by production:
 //
@@ -2267,7 +2262,7 @@ func (*AsmStatement) isExternalDeclaration()       {}
 type FunctionDefinition struct {
 	scope                 *Scope
 	CompoundStatement     *CompoundStatement
-	Declarations          []*Declaration
+	Declarations          []Declaration
 	DeclarationSpecifiers DeclarationSpecifiers
 	Declarator            *Declarator
 }
@@ -2806,7 +2801,7 @@ func (n IterationStatementCase) String() string {
 //	|       "for" '(' Declaration ExpressionList ';' ExpressionList ')' Statement         // Case IterationStatementForDecl
 type IterationStatement struct {
 	Case            IterationStatementCase `PrettyPrint:"stringer,zero"`
-	Declaration     *Declaration
+	Declaration     Declaration
 	ExpressionList  ExpressionNode
 	ExpressionList2 ExpressionNode
 	ExpressionList3 ExpressionNode

@@ -450,7 +450,7 @@ func (p *parser) functionDefinition(ds DeclarationSpecifiers, d *Declarator) (r 
 //  declaration-list:
 // 	declaration
 // 	declaration-list declaration
-func (p *parser) declarationListOpt() (r []*Declaration) {
+func (p *parser) declarationListOpt() (r []Declaration) {
 	for {
 		switch p.rune(false) {
 		case '{', eof:
@@ -1039,10 +1039,10 @@ func (p *parser) isExpression(ch rune) bool {
 // 	declaration-specifiers init-declarator-list_opt attribute-specifier-list_opt;
 //	static-assert-declaration
 //	__auto_type ident = initializer ;
-func (p *parser) declaration(ds DeclarationSpecifiers, d *Declarator, declare bool) (r *Declaration) {
+func (p *parser) declaration(ds DeclarationSpecifiers, d *Declarator, declare bool) (r Declaration) {
 	switch p.rune(false) {
 	case rune(STATICASSERT):
-		return &Declaration{Case: DeclarationAssert, StaticAssertDeclaration: p.staticAssertDeclaration()}
+		return p.staticAssertDeclaration()
 	case rune(AUTOTYPE):
 		nm := p.peek(1, true)
 		if nm.Ch != rune(IDENTIFIER) {
@@ -1052,12 +1052,13 @@ func (p *parser) declaration(ds DeclarationSpecifiers, d *Declarator, declare bo
 			return nil
 		}
 
-		r = &Declaration{Case: DeclarationAuto, Token: p.shift(false), Declarator: p.declarator(nil, nil, false)}
-		r.Token2 = p.must('=')
-		r.Initializer = p.initializer()
-		r.Token3 = p.must(';')
-		r.Declarator.visible = visible(r.Token3.seq)
-		p.scope.declare(p.cpp.eh, nm.SrcStr(), r.Declarator)
+		a := &AutoDeclaration{Token: p.shift(false), Declarator: p.declarator(nil, nil, false)}
+		r = a
+		a.Token2 = p.must('=')
+		a.Initializer = p.initializer()
+		a.Token3 = p.must(';')
+		a.Declarator.visible = visible(a.Token3.seq)
+		p.scope.declare(p.cpp.eh, nm.SrcStr(), a.Declarator)
 		return r
 	}
 
@@ -1068,7 +1069,7 @@ func (p *parser) declaration(ds DeclarationSpecifiers, d *Declarator, declare bo
 		}
 	}
 
-	return &Declaration{Case: DeclarationDecl, DeclarationSpecifiers: ds, InitDeclaratorList: p.initDeclaratorListOpt(ds, d, declare), AttributeSpecifierList: p.attributeSpecifierListOpt(), Token: p.must(';')}
+	return &CommonDeclaration{DeclarationSpecifiers: ds, InitDeclaratorList: p.initDeclaratorListOpt(ds, d, declare), AttributeSpecifierList: p.attributeSpecifierListOpt(), Token: p.must(';')}
 }
 
 //  static-assert-declaration

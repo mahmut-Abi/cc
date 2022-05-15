@@ -552,7 +552,7 @@ func (n *FunctionDefinition) check(c *ctx) Type {
 	return nil
 }
 
-func (c *ctx) checkFunctionDefinition(sc *Scope, ds DeclarationSpecifiers, d *Declarator, dl []*Declaration, cs *CompoundStatement) {
+func (c *ctx) checkFunctionDefinition(sc *Scope, ds DeclarationSpecifiers, d *Declarator, dl []Declaration, cs *CompoundStatement) {
 	d.check(c, checkDeclarationSpecifiers(c, ds, &d.isExtern, &d.isStatic, &d.isAtomic, &d.isThreadLocal, &d.isConst, &d.isVolatile, &d.isInline, &d.isRegister, &d.isAuto, &d.isNoreturn, &d.isRestrict, &d.alignas))
 	if x, ok := d.Type().(*FunctionType); ok {
 		x.hasImplicitResult = true
@@ -567,15 +567,17 @@ func (c *ctx) checkFunctionDefinition(sc *Scope, ds DeclarationSpecifiers, d *De
 		m := map[string]*Declarator{}
 		for _, n := range dl {
 			n.check(c)
-			for l := n.InitDeclaratorList; l != nil; l = l.InitDeclaratorList {
-				d := l.InitDeclarator.Declarator
-				nm := d.Name()
-				if x := m[nm]; x != nil {
-					c.errors.add(errorf("%v: %s redeclared, previous declaration at %v:", d.Position(), nm, x.Position()))
-					continue
-				}
+			if n, ok := n.(*CommonDeclaration); ok {
+				for l := n.InitDeclaratorList; l != nil; l = l.InitDeclaratorList {
+					d := l.InitDeclarator.Declarator
+					nm := d.Name()
+					if x := m[nm]; x != nil {
+						c.errors.add(errorf("%v: %s redeclared, previous declaration at %v:", d.Position(), nm, x.Position()))
+						continue
+					}
 
-				m[nm] = d
+					m[nm] = d
+				}
 			}
 		}
 		for _, param := range d.DirectDeclarator.IdentifierList.parameters {
@@ -878,40 +880,36 @@ func (n *ExpressionStatement) check(c *ctx) (r Type) {
 	return r
 }
 
-func (n *Declaration) check(c *ctx) Type {
-	switch n.Case {
-	case DeclarationDecl: // DeclarationSpecifiers InitDeclaratorList AttributeSpecifierList ';'
-		var isExtern, isStatic, isAtomic, isThreadLocal, isConst, isVolatile, isInline, isRegister, isAuto, isNoreturn, isRestrict bool
-		var alignas int
-		t := checkDeclarationSpecifiers(c, n.DeclarationSpecifiers, &isExtern, &isStatic, &isAtomic, &isThreadLocal, &isConst, &isVolatile, &isInline, &isRegister, &isAuto, &isNoreturn, &isRestrict, &alignas)
-		var attr *Attributes
-		if n.InitDeclaratorList != nil && n.InitDeclaratorList.InitDeclaratorList == nil {
-			if attr = n.InitDeclaratorList.InitDeclarator.AttributeSpecifierList.check(c); attr != nil {
-				t = t.setAttr(attr)
-			}
+func (n *CommonDeclaration) check(c *ctx) Type {
+	var isExtern, isStatic, isAtomic, isThreadLocal, isConst, isVolatile, isInline, isRegister, isAuto, isNoreturn, isRestrict bool
+	var alignas int
+	t := checkDeclarationSpecifiers(c, n.DeclarationSpecifiers, &isExtern, &isStatic, &isAtomic, &isThreadLocal, &isConst, &isVolatile, &isInline, &isRegister, &isAuto, &isNoreturn, &isRestrict, &alignas)
+	var attr *Attributes
+	if n.InitDeclaratorList != nil && n.InitDeclaratorList.InitDeclaratorList == nil {
+		if attr = n.InitDeclaratorList.InitDeclarator.AttributeSpecifierList.check(c); attr != nil {
+			t = t.setAttr(attr)
 		}
-		for l := n.InitDeclaratorList; l != nil; l = l.InitDeclaratorList {
-			l.InitDeclarator.check(c, t, isExtern, isStatic, isAtomic, isThreadLocal, isConst, isVolatile, isInline, isRegister, isAuto, alignas)
-		}
-	case DeclarationAssert: // StaticAssertDeclaration
-		n.StaticAssertDeclaration.check(c)
-	case DeclarationAuto: // "__auto_type" Declarator '=' Initializer ';'
-		if n.Initializer.Case != InitializerExpr {
-			c.errors.add(errorf("%v: expected assignment expression", n.Initializer.Position()))
-			break
-		}
-
-		n.Declarator.typ = n.Initializer.AssignmentExpression.check(c, decay)
-		n.Declarator.write++
-	default:
-		c.errors.add(errorf("internal error: %v", n.Case))
 	}
+	for l := n.InitDeclaratorList; l != nil; l = l.InitDeclaratorList {
+		l.InitDeclarator.check(c, t, isExtern, isStatic, isAtomic, isThreadLocal, isConst, isVolatile, isInline, isRegister, isAuto, alignas)
+	}
+	return nil
+}
+
+func (n *AutoDeclaration) check(c *ctx) Type {
+	if n.Initializer.Case != InitializerExpr {
+		c.errors.add(errorf("%v: expected assignment expression", n.Initializer.Position()))
+		return nil
+	}
+
+	n.Declarator.typ = n.Initializer.AssignmentExpression.check(c, decay)
+	n.Declarator.write++
 	return nil
 }
 
 //  StaticAssertDeclaration:
 //          "_Static_assert" '(' ConstantExpression ',' STRINGLITERAL ')'
-func (n *StaticAssertDeclaration) check(c *ctx) {
+func (n *StaticAssertDeclaration) check(c *ctx) Type {
 	n.ConstantExpression.check(c, decay)
 	if !isNonzero(n.ConstantExpression.Value()) {
 		s := stringConst(func(msg string, args ...interface{}) {
@@ -919,6 +917,7 @@ func (n *StaticAssertDeclaration) check(c *ctx) {
 		}, n.Token4)
 		c.errors.add(errorf("%v: assertion failed: %s", n.ConstantExpression.Position(), s[:len(s)-1]))
 	}
+	return nil
 }
 
 //  InitDeclarator:

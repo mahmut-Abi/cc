@@ -649,9 +649,8 @@ func ExampleBlockItem_decl() {
 	// &cc.FunctionDefinition{
 	// · CompoundStatement: &cc.CompoundStatement{
 	// · · Lbrace: example.c:1:9: '{' "{",
-	// · · List: []*cc.Declaration{ // len 2
-	// · · · 0: &cc.Declaration{
-	// · · · · Case: DeclarationDecl,
+	// · · List: []*cc.CommonDeclaration{ // len 2
+	// · · · 0: &cc.CommonDeclaration{
 	// · · · · DeclarationSpecifiers: []*cc.StorageClassSpecifier{ // len 3
 	// · · · · · 0: &cc.StorageClassSpecifier{
 	// · · · · · · Case: StorageClassSpecifierStatic,
@@ -692,8 +691,7 @@ func ExampleBlockItem_decl() {
 	// · · · · },
 	// · · · · Token: example.c:1:9: ';' ";",
 	// · · · },
-	// · · · 1: &cc.Declaration{
-	// · · · · Case: DeclarationDecl,
+	// · · · 1: &cc.CommonDeclaration{
 	// · · · · DeclarationSpecifiers: []*cc.TypeSpecifier{ // len 1
 	// · · · · · 0: &cc.TypeSpecifier{
 	// · · · · · · Case: TypeSpecifierInt,
@@ -742,9 +740,8 @@ func ExampleBlockItem_label() {
 	// &cc.FunctionDefinition{
 	// · CompoundStatement: &cc.CompoundStatement{
 	// · · Lbrace: example.c:1:9: '{' "{",
-	// · · List: []*cc.Declaration{ // len 3
-	// · · · 0: &cc.Declaration{
-	// · · · · Case: DeclarationDecl,
+	// · · List: []*cc.CommonDeclaration{ // len 3
+	// · · · 0: &cc.CommonDeclaration{
 	// · · · · DeclarationSpecifiers: []*cc.StorageClassSpecifier{ // len 3
 	// · · · · · 0: &cc.StorageClassSpecifier{
 	// · · · · · · Case: StorageClassSpecifierStatic,
@@ -792,8 +789,7 @@ func ExampleBlockItem_label() {
 	// · · · · Token: example.c:1:11: '__label__' "__label__",
 	// · · · · Token2: example.c:1:22: ';' ";",
 	// · · · },
-	// · · · 2: &cc.Declaration{
-	// · · · · Case: DeclarationDecl,
+	// · · · 2: &cc.CommonDeclaration{
 	// · · · · DeclarationSpecifiers: []*cc.TypeSpecifier{ // len 1
 	// · · · · · 0: &cc.TypeSpecifier{
 	// · · · · · · Case: TypeSpecifierInt,
@@ -842,9 +838,8 @@ func ExampleBlockItem_stmt() {
 	// &cc.FunctionDefinition{
 	// · CompoundStatement: &cc.CompoundStatement{
 	// · · Lbrace: example.c:1:9: '{' "{",
-	// · · List: []*cc.Declaration{ // len 2
-	// · · · 0: &cc.Declaration{
-	// · · · · Case: DeclarationDecl,
+	// · · List: []*cc.CommonDeclaration{ // len 2
+	// · · · 0: &cc.CommonDeclaration{
 	// · · · · DeclarationSpecifiers: []*cc.StorageClassSpecifier{ // len 3
 	// · · · · · 0: &cc.StorageClassSpecifier{
 	// · · · · · · Case: StorageClassSpecifierStatic,
@@ -929,9 +924,8 @@ func ExampleBlockItem_funcDef() {
 	// &cc.FunctionDefinition{
 	// · CompoundStatement: &cc.CompoundStatement{
 	// · · Lbrace: example.c:1:9: '{' "{",
-	// · · List: []*cc.Declaration{ // len 2
-	// · · · 0: &cc.Declaration{
-	// · · · · Case: DeclarationDecl,
+	// · · List: []*cc.CommonDeclaration{ // len 2
+	// · · · 0: &cc.CommonDeclaration{
 	// · · · · DeclarationSpecifiers: []*cc.StorageClassSpecifier{ // len 3
 	// · · · · · 0: &cc.StorageClassSpecifier{
 	// · · · · · · Case: StorageClassSpecifierStatic,
@@ -975,9 +969,8 @@ func ExampleBlockItem_funcDef() {
 	// · · · 1: &cc.FunctionDefinition{
 	// · · · · CompoundStatement: &cc.CompoundStatement{
 	// · · · · · Lbrace: example.c:1:19: '{' "{",
-	// · · · · · List: []*cc.Declaration{ // len 1
-	// · · · · · · 0: &cc.Declaration{
-	// · · · · · · · Case: DeclarationDecl,
+	// · · · · · List: []*cc.CommonDeclaration{ // len 1
+	// · · · · · · 0: &cc.CommonDeclaration{
 	// · · · · · · · DeclarationSpecifiers: []*cc.StorageClassSpecifier{ // len 3
 	// · · · · · · · · 0: &cc.StorageClassSpecifier{
 	// · · · · · · · · · Case: StorageClassSpecifierStatic,
@@ -1068,9 +1061,8 @@ func ExampleBlockItem_case0() {
 	// &cc.FunctionDefinition{
 	// · CompoundStatement: &cc.CompoundStatement{
 	// · · Lbrace: example.c:1:9: '{' "{",
-	// · · List: []*cc.Declaration{ // len 2
-	// · · · 0: &cc.Declaration{
-	// · · · · Case: DeclarationDecl,
+	// · · List: []*cc.CommonDeclaration{ // len 2
+	// · · · 0: &cc.CommonDeclaration{
 	// · · · · DeclarationSpecifiers: []*cc.StorageClassSpecifier{ // len 3
 	// · · · · · 0: &cc.StorageClassSpecifier{
 	// · · · · · · Case: StorageClassSpecifierStatic,
@@ -1111,8 +1103,7 @@ func ExampleBlockItem_case0() {
 	// · · · · },
 	// · · · · Token: example.c:1:9: ';' ";",
 	// · · · },
-	// · · · 1: &cc.Declaration{
-	// · · · · Case: DeclarationDecl,
+	// · · · 1: &cc.CommonDeclaration{
 	// · · · · DeclarationSpecifiers: []*cc.TypeSpecifier{ // len 1
 	// · · · · · 0: &cc.TypeSpecifier{
 	// · · · · · · Case: TypeSpecifierInt,
@@ -1161,9 +1152,8 @@ func ExampleBlockItem_case1() {
 	// &cc.FunctionDefinition{
 	// · CompoundStatement: &cc.CompoundStatement{
 	// · · Lbrace: example.c:1:9: '{' "{",
-	// · · List: []*cc.Declaration{ // len 3
-	// · · · 0: &cc.Declaration{
-	// · · · · Case: DeclarationDecl,
+	// · · List: []*cc.CommonDeclaration{ // len 3
+	// · · · 0: &cc.CommonDeclaration{
 	// · · · · DeclarationSpecifiers: []*cc.StorageClassSpecifier{ // len 3
 	// · · · · · 0: &cc.StorageClassSpecifier{
 	// · · · · · · Case: StorageClassSpecifierStatic,
@@ -1204,8 +1194,7 @@ func ExampleBlockItem_case1() {
 	// · · · · },
 	// · · · · Token: example.c:1:9: ';' ";",
 	// · · · },
-	// · · · 1: &cc.Declaration{
-	// · · · · Case: DeclarationDecl,
+	// · · · 1: &cc.CommonDeclaration{
 	// · · · · DeclarationSpecifiers: []*cc.TypeSpecifier{ // len 1
 	// · · · · · 0: &cc.TypeSpecifier{
 	// · · · · · · Case: TypeSpecifierInt,
@@ -1225,8 +1214,7 @@ func ExampleBlockItem_case1() {
 	// · · · · },
 	// · · · · Token: example.c:1:16: ';' ";",
 	// · · · },
-	// · · · 2: &cc.Declaration{
-	// · · · · Case: DeclarationDecl,
+	// · · · 2: &cc.CommonDeclaration{
 	// · · · · DeclarationSpecifiers: []*cc.TypeSpecifier{ // len 1
 	// · · · · · 0: &cc.TypeSpecifier{
 	// · · · · · · Case: TypeSpecifierDouble,
@@ -1318,9 +1306,8 @@ func ExampleCompoundStatement_case0() {
 	// Output:
 	// &cc.CompoundStatement{
 	// · Lbrace: example.c:1:9: '{' "{",
-	// · List: []*cc.Declaration{ // len 3
-	// · · 0: &cc.Declaration{
-	// · · · Case: DeclarationDecl,
+	// · List: []*cc.CommonDeclaration{ // len 3
+	// · · 0: &cc.CommonDeclaration{
 	// · · · DeclarationSpecifiers: []*cc.StorageClassSpecifier{ // len 3
 	// · · · · 0: &cc.StorageClassSpecifier{
 	// · · · · · Case: StorageClassSpecifierStatic,
@@ -1368,8 +1355,7 @@ func ExampleCompoundStatement_case0() {
 	// · · · Token: example.c:1:11: '__label__' "__label__",
 	// · · · Token2: example.c:1:22: ';' ";",
 	// · · },
-	// · · 2: &cc.Declaration{
-	// · · · Case: DeclarationDecl,
+	// · · 2: &cc.CommonDeclaration{
 	// · · · DeclarationSpecifiers: []*cc.TypeSpecifier{ // len 1
 	// · · · · 0: &cc.TypeSpecifier{
 	// · · · · · Case: TypeSpecifierInt,
@@ -1430,8 +1416,7 @@ func ExampleConstantExpression_case0() {
 func ExampleDeclaration_decl() {
 	fmt.Println(exampleAST(89, "int i, j __attribute__((a));"))
 	// Output:
-	// &cc.Declaration{
-	// · Case: DeclarationDecl,
+	// &cc.CommonDeclaration{
 	// · DeclarationSpecifiers: []*cc.TypeSpecifier{ // len 1
 	// · · 0: &cc.TypeSpecifier{
 	// · · · Case: TypeSpecifierInt,
@@ -1483,43 +1468,41 @@ func ExampleDeclaration_decl() {
 func ExampleDeclaration_assert() {
 	fmt.Println(exampleAST(90, "_Static_assert(x > y, \"abc\")"))
 	// Output:
-	// &cc.Declaration{
-	// · Case: DeclarationAssert,
-	// · StaticAssertDeclaration: &cc.StaticAssertDeclaration{
-	// · · ConstantExpression: &cc.ConstantExpression{
-	// · · · ConditionalExpression: &cc.RelationalExpression{
-	// · · · · Case: RelationalExpressionGt,
-	// · · · · RelationalExpression: &cc.PrimaryExpression{
-	// · · · · · Case: PrimaryExpressionIdent,
-	// · · · · · Token: example.c:1:16: identifier "x",
-	// · · · · },
-	// · · · · ShiftExpression: &cc.PrimaryExpression{
-	// · · · · · Case: PrimaryExpressionIdent,
-	// · · · · · Token: example.c:1:20: identifier "y",
-	// · · · · },
-	// · · · · Token: example.c:1:18: '>' ">",
+	// &cc.StaticAssertDeclaration{
+	// · ConstantExpression: &cc.ConstantExpression{
+	// · · ConditionalExpression: &cc.RelationalExpression{
+	// · · · Case: RelationalExpressionGt,
+	// · · · RelationalExpression: &cc.PrimaryExpression{
+	// · · · · Case: PrimaryExpressionIdent,
+	// · · · · Token: example.c:1:16: identifier "x",
 	// · · · },
+	// · · · ShiftExpression: &cc.PrimaryExpression{
+	// · · · · Case: PrimaryExpressionIdent,
+	// · · · · Token: example.c:1:20: identifier "y",
+	// · · · },
+	// · · · Token: example.c:1:18: '>' ">",
 	// · · },
-	// · · Token: example.c:1:1: _Static_assert "_Static_assert",
-	// · · Token2: example.c:1:15: '(' "(",
-	// · · Token3: example.c:1:21: ',' ",",
-	// · · Token4: example.c:1:23: string literal "\"abc\"",
-	// · · Token5: example.c:1:28: ')' ")",
 	// · },
+	// · Token: example.c:1:1: _Static_assert "_Static_assert",
+	// · Token2: example.c:1:15: '(' "(",
+	// · Token3: example.c:1:21: ',' ",",
+	// · Token4: example.c:1:23: string literal "\"abc\"",
+	// · Token5: example.c:1:28: ')' ")",
 	// }
 }
 
 func ExampleDeclaration_auto() {
 	fmt.Println(exampleAST(91, "__auto_type x = y;"))
 	// Output:
-	// &cc.Declaration{
-	// · Case: DeclarationAuto,
+	// &cc.AutoDeclaration{
+	// · Token: example.c:1:1: '__auto_type' "__auto_type",
 	// · Declarator: &cc.Declarator{
 	// · · DirectDeclarator: &cc.DirectDeclarator{
 	// · · · Case: DirectDeclaratorIdent,
 	// · · · Token: example.c:1:13: identifier "x",
 	// · · },
 	// · },
+	// · Token2: example.c:1:15: '=' "=",
 	// · Initializer: &cc.Initializer{
 	// · · AssignmentExpression: &cc.PrimaryExpression{
 	// · · · Case: PrimaryExpressionIdent,
@@ -1527,8 +1510,6 @@ func ExampleDeclaration_auto() {
 	// · · },
 	// · · Case: InitializerExpr,
 	// · },
-	// · Token: example.c:1:1: '__auto_type' "__auto_type",
-	// · Token2: example.c:1:15: '=' "=",
 	// · Token3: example.c:1:18: ';' ";",
 	// }
 }
@@ -1536,8 +1517,7 @@ func ExampleDeclaration_auto() {
 func ExampleDeclaration_case0() {
 	fmt.Println(exampleAST(253, "int f(i) int i; {}"))
 	// Output:
-	// &cc.Declaration{
-	// · Case: DeclarationDecl,
+	// &cc.CommonDeclaration{
 	// · DeclarationSpecifiers: []*cc.StorageClassSpecifier{ // len 3
 	// · · 0: &cc.StorageClassSpecifier{
 	// · · · Case: StorageClassSpecifierStatic,
@@ -1578,8 +1558,7 @@ func ExampleDeclaration_case0() {
 	// · },
 	// · Token: example.c:1:17: ';' ";",
 	// }
-	// &cc.Declaration{
-	// · Case: DeclarationDecl,
+	// &cc.CommonDeclaration{
 	// · DeclarationSpecifiers: []*cc.TypeSpecifier{ // len 1
 	// · · 0: &cc.TypeSpecifier{
 	// · · · Case: TypeSpecifierInt,
@@ -1604,8 +1583,7 @@ func ExampleDeclaration_case0() {
 func ExampleDeclaration_case1() {
 	fmt.Println(exampleAST(254, "int f(i, j) int i; int j; {}"))
 	// Output:
-	// &cc.Declaration{
-	// · Case: DeclarationDecl,
+	// &cc.CommonDeclaration{
 	// · DeclarationSpecifiers: []*cc.StorageClassSpecifier{ // len 3
 	// · · 0: &cc.StorageClassSpecifier{
 	// · · · Case: StorageClassSpecifierStatic,
@@ -1646,8 +1624,7 @@ func ExampleDeclaration_case1() {
 	// · },
 	// · Token: example.c:1:27: ';' ";",
 	// }
-	// &cc.Declaration{
-	// · Case: DeclarationDecl,
+	// &cc.CommonDeclaration{
 	// · DeclarationSpecifiers: []*cc.TypeSpecifier{ // len 1
 	// · · 0: &cc.TypeSpecifier{
 	// · · · Case: TypeSpecifierInt,
@@ -1667,8 +1644,7 @@ func ExampleDeclaration_case1() {
 	// · },
 	// · Token: example.c:1:18: ';' ";",
 	// }
-	// &cc.Declaration{
-	// · Case: DeclarationDecl,
+	// &cc.CommonDeclaration{
 	// · DeclarationSpecifiers: []*cc.TypeSpecifier{ // len 1
 	// · · 0: &cc.TypeSpecifier{
 	// · · · Case: TypeSpecifierInt,
@@ -2429,9 +2405,8 @@ func ExampleExternalDeclaration_funcDef() {
 	// &cc.FunctionDefinition{
 	// · CompoundStatement: &cc.CompoundStatement{
 	// · · Lbrace: example.c:1:9: '{' "{",
-	// · · List: []*cc.Declaration{ // len 1
-	// · · · 0: &cc.Declaration{
-	// · · · · Case: DeclarationDecl,
+	// · · List: []*cc.CommonDeclaration{ // len 1
+	// · · · 0: &cc.CommonDeclaration{
 	// · · · · DeclarationSpecifiers: []*cc.StorageClassSpecifier{ // len 3
 	// · · · · · 0: &cc.StorageClassSpecifier{
 	// · · · · · · Case: StorageClassSpecifierStatic,
@@ -2498,8 +2473,7 @@ func ExampleExternalDeclaration_funcDef() {
 func ExampleExternalDeclaration_decl() {
 	fmt.Println(exampleAST(249, "register int i __asm__(\"r0\");"))
 	// Output:
-	// &cc.Declaration{
-	// · Case: DeclarationDecl,
+	// &cc.CommonDeclaration{
 	// · DeclarationSpecifiers: []*cc.StorageClassSpecifier{ // len 2
 	// · · 0: &cc.StorageClassSpecifier{
 	// · · · Case: StorageClassSpecifierRegister,
@@ -2548,8 +2522,7 @@ func ExampleExternalDeclaration_asmStmt() {
 func ExampleExternalDeclaration_empty() {
 	fmt.Println(exampleAST(251, ";"))
 	// Output:
-	// &cc.Declaration{
-	// · Case: DeclarationDecl,
+	// &cc.CommonDeclaration{
 	// · Token: example.c:1:1: ';' ";",
 	// }
 }
@@ -2560,9 +2533,8 @@ func ExampleFunctionDefinition_case0() {
 	// &cc.FunctionDefinition{
 	// · CompoundStatement: &cc.CompoundStatement{
 	// · · Lbrace: example.c:1:9: '{' "{",
-	// · · List: []*cc.Declaration{ // len 1
-	// · · · 0: &cc.Declaration{
-	// · · · · Case: DeclarationDecl,
+	// · · List: []*cc.CommonDeclaration{ // len 1
+	// · · · 0: &cc.CommonDeclaration{
 	// · · · · DeclarationSpecifiers: []*cc.StorageClassSpecifier{ // len 3
 	// · · · · · 0: &cc.StorageClassSpecifier{
 	// · · · · · · Case: StorageClassSpecifierStatic,
@@ -3170,8 +3142,7 @@ func ExampleIterationStatement_forDecl() {
 	// Output:
 	// &cc.IterationStatement{
 	// · Case: IterationStatementForDecl,
-	// · Declaration: &cc.Declaration{
-	// · · Case: DeclarationDecl,
+	// · Declaration: &cc.CommonDeclaration{
 	// · · DeclarationSpecifiers: []*cc.TypeSpecifier{ // len 1
 	// · · · 0: &cc.TypeSpecifier{
 	// · · · · Case: TypeSpecifierInt,
@@ -4911,8 +4882,7 @@ func ExampleExternalDeclaration_case0() {
 	ast := exampleASTRaw("int i;")
 	fmt.Println(ast.Declarations[0])
 	// Output:
-	// &cc.Declaration{
-	// · Case: DeclarationDecl,
+	// &cc.CommonDeclaration{
 	// · DeclarationSpecifiers: []*cc.TypeSpecifier{ // len 1
 	// · · 0: &cc.TypeSpecifier{
 	// · · · Case: TypeSpecifierInt,
@@ -4939,8 +4909,7 @@ func ExampleExternalDeclaration_case1() {
 	fmt.Println(ast.Declarations[0])
 	fmt.Println(ast.Declarations[1])
 	// Output:
-	// &cc.Declaration{
-	// · Case: DeclarationDecl,
+	// &cc.CommonDeclaration{
 	// · DeclarationSpecifiers: []*cc.TypeSpecifier{ // len 1
 	// · · 0: &cc.TypeSpecifier{
 	// · · · Case: TypeSpecifierInt,
@@ -4960,8 +4929,7 @@ func ExampleExternalDeclaration_case1() {
 	// · },
 	// · Token: example.c:1:6: ';' ";",
 	// }
-	// &cc.Declaration{
-	// · Case: DeclarationDecl,
+	// &cc.CommonDeclaration{
 	// · DeclarationSpecifiers: []*cc.TypeSpecifier{ // len 1
 	// · · 0: &cc.TypeSpecifier{
 	// · · · Case: TypeSpecifierInt,
