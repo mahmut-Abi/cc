@@ -476,8 +476,9 @@ func (n *AST) check() error {
 
 //  AsmStatement:
 //          Asm ';'
-func (n *AsmStatement) check(c *ctx) {
+func (n *AsmStatement) check(c *ctx) Type {
 	n.Asm.check(c)
+	return nil
 }
 
 //  Asm:
@@ -546,8 +547,9 @@ func (n *AsmQualifier) check(c *ctx) {
 
 //  FunctionDefinition:
 //          DeclarationSpecifiers Declarator DeclarationList CompoundStatement
-func (n *FunctionDefinition) check(c *ctx) {
+func (n *FunctionDefinition) check(c *ctx) Type {
 	c.checkFunctionDefinition(n.scope, n.DeclarationSpecifiers, n.Declarator, n.DeclarationList, n.CompoundStatement)
+	return nil
 }
 
 func (c *ctx) checkFunctionDefinition(sc *Scope, ds *DeclarationSpecifiers, d *Declarator, dl *DeclarationList, cs *CompoundStatement) {
@@ -631,28 +633,9 @@ func (n *CompoundStatement) check(c *ctx) (r Type) {
 	return r
 }
 
-func (n *BlockItem) check(c *ctx) (r Type) {
-	if n == nil {
-		return Invalid
-	}
-
-	switch n.Case {
-	case BlockItemDecl: // Declaration
-		n.Declaration.check(c)
-	case BlockItemLabel:
-		n.LabelDeclaration.check(c)
-	case BlockItemStmt: // Statement
-		return n.Statement.check(c)
-	case BlockItemFuncDef: // DeclarationSpecifiers Declarator CompoundStatement
-		c.checkFunctionDefinition(n.CompoundStatement.LexicalScope(), n.DeclarationSpecifiers, n.Declarator, nil, n.CompoundStatement)
-	default:
-		c.errors.add(errorf("internal error: %v", n.Case))
-	}
-	return nil
-}
-
-func (n *LabelDeclaration) check(c *ctx) {
+func (n *LabelDeclaration) check(c *ctx) Type {
 	//TODO
+	return nil
 }
 
 func (n *Statement) check(c *ctx) (r Type) {
@@ -905,7 +888,7 @@ func (n *ExpressionStatement) check(c *ctx) (r Type) {
 	return r
 }
 
-func (n *Declaration) check(c *ctx) {
+func (n *Declaration) check(c *ctx) Type {
 	switch n.Case {
 	case DeclarationDecl: // DeclarationSpecifiers InitDeclaratorList AttributeSpecifierList ';'
 		var isExtern, isStatic, isAtomic, isThreadLocal, isConst, isVolatile, isInline, isRegister, isAuto, isNoreturn, isRestrict bool
@@ -933,6 +916,7 @@ func (n *Declaration) check(c *ctx) {
 	default:
 		c.errors.add(errorf("internal error: %v", n.Case))
 	}
+	return nil
 }
 
 //  StaticAssertDeclaration:

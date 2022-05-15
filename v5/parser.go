@@ -545,7 +545,7 @@ func (p *parser) injectFuncTokens(lbrace Token, nm string) {
 //  block-item-list:
 // 	block-item
 // 	block-item-list block-item
-func (p *parser) blockItemListOpt() (r []*BlockItem) {
+func (p *parser) blockItemListOpt() (r []BlockItem) {
 	for {
 		switch p.rune(false) {
 		case '}', eof:
@@ -561,11 +561,11 @@ func (p *parser) blockItemListOpt() (r []*BlockItem) {
 // 	statement
 // 	label-declaration
 // 	declaration-specifiers declarator compound-statement
-func (p *parser) blockItem() *BlockItem {
+func (p *parser) blockItem() BlockItem {
 again:
 	switch ch := p.rune(true); {
 	case p.isStatement(ch) || p.isExpression(ch) || ch == rune(TYPENAME) && p.peek(1, false).Ch == ':':
-		return &BlockItem{Case: BlockItemStmt, Statement: p.statement(false)}
+		return p.statement(false)
 	case p.isDeclarationSpecifier(ch, true):
 		r0 := p.rune(false)
 		ds, ok := p.declarationSpecifiers()
@@ -574,12 +574,9 @@ again:
 		}
 
 		if r0 == rune(ATTRIBUTE) && p.rune(false) == ';' {
-			return &BlockItem{
-				Case: BlockItemStmt,
-				Statement: &Statement{
-					Case:                StatementExpr,
-					ExpressionStatement: &ExpressionStatement{declarationSpecifiers: ds, AttributeSpecifierList: p.attributeSpecifierListOpt(), Token: p.shift(false)},
-				},
+			return &Statement{
+				Case:                StatementExpr,
+				ExpressionStatement: &ExpressionStatement{declarationSpecifiers: ds, AttributeSpecifierList: p.attributeSpecifierListOpt(), Token: p.shift(false)},
 			}
 		}
 
@@ -589,14 +586,16 @@ again:
 		}
 		switch p.rune(false) {
 		case '{':
-			return &BlockItem{Case: BlockItemFuncDef, DeclarationSpecifiers: ds, Declarator: d, CompoundStatement: p.compoundStatement(true, d)}
+			fd := &FunctionDefinition{DeclarationSpecifiers: ds, Declarator: d, CompoundStatement: p.compoundStatement(true, d)}
+			fd.scope = fd.CompoundStatement.LexicalScope()
+			return fd
 		default:
-			return &BlockItem{Case: BlockItemDecl, Declaration: p.declaration(ds, d, true)}
+			return p.declaration(ds, d, true)
 		}
 	case ch == rune(LABEL):
-		return &BlockItem{Case: BlockItemLabel, LabelDeclaration: p.labelDeclaration()}
+		return p.labelDeclaration()
 	case ch == rune(STATICASSERT), ch == rune(AUTOTYPE):
-		return &BlockItem{Case: BlockItemDecl, Declaration: p.declaration(nil, nil, false)}
+		return p.declaration(nil, nil, false)
 	default:
 		t := p.shift(false)
 		p.cpp.eh("%v: unexpected %v, expected block item", t.Position(), runeName(t.Ch))

@@ -1438,13 +1438,13 @@ func testTranslate(t *testing.T, cfg *Config, dir string, blacklist map[string]s
 			}()
 
 			func() {
-				defer func() {
-					if e := recover(); e != nil && err == nil {
-						err = fmt.Errorf("%v: PANIC: %v", apth, e)
-						trc("%v: PANIC: %v\n%s", apth, e, debug.Stack())
-						os.Exit(1)
-					}
-				}()
+				//defer func() {
+				//	if e := recover(); e != nil && err == nil {
+				//		err = fmt.Errorf("%v: PANIC: %v", apth, e)
+				//		trc("%v: PANIC: %v\n%s", apth, e, debug.Stack())
+				//		//os.Exit(1)
+				//	}
+				//}()
 
 				if _, err = Translate(
 					cfg,

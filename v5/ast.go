@@ -812,33 +812,6 @@ func (n *AttributeValueList) Position() (r token.Position) {
 	return n.AttributeValue.Position()
 }
 
-// BlockItemCase represents case numbers of production BlockItem
-type BlockItemCase int
-
-// Values of type BlockItemCase
-const (
-	BlockItemDecl BlockItemCase = iota
-	BlockItemLabel
-	BlockItemStmt
-	BlockItemFuncDef
-)
-
-// String implements fmt.Stringer
-func (n BlockItemCase) String() string {
-	switch n {
-	case BlockItemDecl:
-		return "BlockItemDecl"
-	case BlockItemLabel:
-		return "BlockItemLabel"
-	case BlockItemStmt:
-		return "BlockItemStmt"
-	case BlockItemFuncDef:
-		return "BlockItemFuncDef"
-	default:
-		return fmt.Sprintf("BlockItemCase(%v)", int(n))
-	}
-}
-
 // BlockItem represents data reduced by productions:
 //
 //	BlockItem:
@@ -846,46 +819,17 @@ func (n BlockItemCase) String() string {
 //	|       LabelDeclaration                                    // Case BlockItemLabel
 //	|       Statement                                           // Case BlockItemStmt
 //	|       DeclarationSpecifiers Declarator CompoundStatement  // Case BlockItemFuncDef
-type BlockItem struct {
-	Case                  BlockItemCase `PrettyPrint:"stringer,zero"`
-	CompoundStatement     *CompoundStatement
-	Declaration           *Declaration
-	DeclarationSpecifiers *DeclarationSpecifiers
-	Declarator            *Declarator
-	LabelDeclaration      *LabelDeclaration
-	Statement             *Statement
+type BlockItem interface {
+	Node
+	fmt.Stringer
+	isBlockItem()
+	check(c *ctx) Type
 }
 
-// String implements fmt.Stringer.
-func (n *BlockItem) String() string { return PrettyString(n) }
-
-// Position reports the position of the first component of n, if available.
-func (n *BlockItem) Position() (r token.Position) {
-	if n == nil {
-		return r
-	}
-
-	switch n.Case {
-	case 0:
-		return n.Declaration.Position()
-	case 3:
-		if p := n.DeclarationSpecifiers.Position(); p.IsValid() {
-			return p
-		}
-
-		if p := n.Declarator.Position(); p.IsValid() {
-			return p
-		}
-
-		return n.CompoundStatement.Position()
-	case 1:
-		return n.LabelDeclaration.Position()
-	case 2:
-		return n.Statement.Position()
-	default:
-		panic("internal error")
-	}
-}
+func (*Declaration) isBlockItem()        {}
+func (*Statement) isBlockItem()          {}
+func (*LabelDeclaration) isBlockItem()   {}
+func (*FunctionDefinition) isBlockItem() {}
 
 // CastExpressionCase represents case numbers of production CastExpression
 type CastExpressionCase int
@@ -962,7 +906,7 @@ func (n *CastExpression) Position() (r token.Position) {
 type CompoundStatement struct {
 	lexicalScoper
 	Lbrace Token
-	List   []*BlockItem
+	List   []BlockItem
 	Rbrace Token
 }
 
@@ -2399,7 +2343,7 @@ type ExternalDeclaration interface {
 	Node
 	fmt.Stringer
 	isExternalDeclaration()
-	check(c *ctx)
+	check(c *ctx) Type
 }
 
 func (*FunctionDefinition) isExternalDeclaration() {}

@@ -448,6 +448,7 @@ func extractPos(s string) (p token.Position, ok bool) {
 
 var (
 	reflExternalDecl = reflect.TypeOf((*ExternalDeclaration)(nil)).Elem()
+	reflBlockItem    = reflect.TypeOf((*BlockItem)(nil)).Elem()
 )
 
 func typeNameEqual(t reflect.Type, typ string) bool {
@@ -457,6 +458,8 @@ func typeNameEqual(t reflect.Type, typ string) bool {
 	switch typ {
 	case "ExternalDeclaration":
 		return t.Implements(reflExternalDecl) || reflect.PointerTo(t).Implements(reflExternalDecl)
+	case "BlockItem":
+		return t.Implements(reflBlockItem) || reflect.PointerTo(t).Implements(reflBlockItem)
 	}
 	return false
 }
