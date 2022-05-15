@@ -505,7 +505,7 @@ func (p *parser) compoundStatement(isFnScope bool, d *Declarator) (r *CompoundSt
 	if isFnScope && d != nil && !p.cpp.cfg.doNotInjectFunc {
 		p.injectFuncTokens(lbrace, d.Name())
 	}
-	return &CompoundStatement{Token: lbrace, BlockItems: p.blockItemListOpt(), Token2: p.must('}'), lexicalScoper: newLexicalScoper(p.scope)}
+	return &CompoundStatement{Lbrace: lbrace, List: p.blockItemListOpt(), Rbrace: p.must('}'), lexicalScoper: newLexicalScoper(p.scope)}
 }
 
 var funcTokensText = [][]byte{

@@ -950,7 +950,8 @@ func ExampleBlockItem_funcDef() {
 	// &cc.BlockItem{
 	// · Case: BlockItemFuncDef,
 	// · CompoundStatement: &cc.CompoundStatement{
-	// · · BlockItems: []*cc.BlockItem{ // len 1
+	// · · Lbrace: example.c:1:19: '{' "{",
+	// · · List: []*cc.BlockItem{ // len 1
 	// · · · 0: &cc.BlockItem{
 	// · · · · Case: BlockItemDecl,
 	// · · · · Declaration: &cc.Declaration{
@@ -1004,8 +1005,7 @@ func ExampleBlockItem_funcDef() {
 	// · · · · },
 	// · · · },
 	// · · },
-	// · · Token: example.c:1:19: '{' "{",
-	// · · Token2: example.c:1:20: '}' "}",
+	// · · Rbrace: example.c:1:20: '}' "}",
 	// · },
 	// · DeclarationSpecifiers: &cc.DeclarationSpecifiers{
 	// · · Case: DeclarationSpecifiersTypeSpec,
@@ -1265,7 +1265,8 @@ func ExampleCompoundStatement_case0() {
 	fmt.Println(exampleAST(225, "int f() { __label__ L; int i; }"))
 	// Output:
 	// &cc.CompoundStatement{
-	// · BlockItems: []*cc.BlockItem{ // len 3
+	// · Lbrace: example.c:1:9: '{' "{",
+	// · List: []*cc.BlockItem{ // len 3
 	// · · 0: &cc.BlockItem{
 	// · · · Case: BlockItemDecl,
 	// · · · Declaration: &cc.Declaration{
@@ -1354,8 +1355,7 @@ func ExampleCompoundStatement_case0() {
 	// · · · },
 	// · · },
 	// · },
-	// · Token: example.c:1:9: '{' "{",
-	// · Token2: example.c:1:31: '}' "}",
+	// · Rbrace: example.c:1:31: '}' "}",
 	// }
 }
 
@@ -2366,7 +2366,8 @@ func ExampleExternalDeclaration_funcDef() {
 	// Output:
 	// &cc.FunctionDefinition{
 	// · CompoundStatement: &cc.CompoundStatement{
-	// · · BlockItems: []*cc.BlockItem{ // len 1
+	// · · Lbrace: example.c:1:9: '{' "{",
+	// · · List: []*cc.BlockItem{ // len 1
 	// · · · 0: &cc.BlockItem{
 	// · · · · Case: BlockItemDecl,
 	// · · · · Declaration: &cc.Declaration{
@@ -2420,8 +2421,7 @@ func ExampleExternalDeclaration_funcDef() {
 	// · · · · },
 	// · · · },
 	// · · },
-	// · · Token: example.c:1:9: '{' "{",
-	// · · Token2: example.c:1:10: '}' "}",
+	// · · Rbrace: example.c:1:10: '}' "}",
 	// · },
 	// · DeclarationSpecifiers: &cc.DeclarationSpecifiers{
 	// · · Case: DeclarationSpecifiersTypeSpec,
@@ -2512,7 +2512,8 @@ func ExampleFunctionDefinition_case0() {
 	// Output:
 	// &cc.FunctionDefinition{
 	// · CompoundStatement: &cc.CompoundStatement{
-	// · · BlockItems: []*cc.BlockItem{ // len 1
+	// · · Lbrace: example.c:1:9: '{' "{",
+	// · · List: []*cc.BlockItem{ // len 1
 	// · · · 0: &cc.BlockItem{
 	// · · · · Case: BlockItemDecl,
 	// · · · · Declaration: &cc.Declaration{
@@ -2566,8 +2567,7 @@ func ExampleFunctionDefinition_case0() {
 	// · · · · },
 	// · · · },
 	// · · },
-	// · · Token: example.c:1:9: '{' "{",
-	// · · Token2: example.c:1:10: '}' "}",
+	// · · Rbrace: example.c:1:10: '}' "}",
 	// · },
 	// · DeclarationSpecifiers: &cc.DeclarationSpecifiers{
 	// · · Case: DeclarationSpecifiersTypeSpec,
@@ -3916,7 +3916,8 @@ func ExamplePrimaryExpression_stmt() {
 	// &cc.PrimaryExpression{
 	// · Case: PrimaryExpressionStmt,
 	// · CompoundStatement: &cc.CompoundStatement{
-	// · · BlockItems: []*cc.BlockItem{ // len 1
+	// · · Lbrace: example.c:1:10: '{' "{",
+	// · · List: []*cc.BlockItem{ // len 1
 	// · · · 0: &cc.BlockItem{
 	// · · · · Case: BlockItemStmt,
 	// · · · · Statement: &cc.Statement{
@@ -3936,8 +3937,7 @@ func ExamplePrimaryExpression_stmt() {
 	// · · · · },
 	// · · · },
 	// · · },
-	// · · Token: example.c:1:10: '{' "{",
-	// · · Token2: example.c:1:15: '}' "}",
+	// · · Rbrace: example.c:1:15: '}' "}",
 	// · },
 	// · Token: example.c:1:9: '(' "(",
 	// · Token2: example.c:1:16: ')' ")",
@@ -4302,7 +4302,8 @@ func ExampleStatement_compound() {
 	// &cc.Statement{
 	// · Case: StatementCompound,
 	// · CompoundStatement: &cc.CompoundStatement{
-	// · · BlockItems: []*cc.BlockItem{ // len 1
+	// · · Lbrace: example.c:1:11: '{' "{",
+	// · · List: []*cc.BlockItem{ // len 1
 	// · · · 0: &cc.BlockItem{
 	// · · · · Case: BlockItemStmt,
 	// · · · · Statement: &cc.Statement{
@@ -4322,8 +4323,7 @@ func ExampleStatement_compound() {
 	// · · · · },
 	// · · · },
 	// · · },
-	// · · Token: example.c:1:11: '{' "{",
-	// · · Token2: example.c:1:18: '}' "}",
+	// · · Rbrace: example.c:1:18: '}' "}",
 	// · },
 	// }
 }

@@ -961,9 +961,9 @@ func (n *CastExpression) Position() (r token.Position) {
 //	        '{' BlockItemList '}'
 type CompoundStatement struct {
 	lexicalScoper
-	BlockItems []*BlockItem
-	Token      Token
-	Token2     Token
+	Lbrace Token
+	List   []*BlockItem
+	Rbrace Token
 }
 
 // String implements fmt.Stringer.
@@ -974,18 +974,17 @@ func (n *CompoundStatement) Position() (r token.Position) {
 	if n == nil {
 		return r
 	}
-
-	if p := n.Token.Position(); p.IsValid() {
+	if p := n.Lbrace.Position(); p.IsValid() {
 		return p
 	}
 
-	for _, v := range n.BlockItems {
+	for _, v := range n.List {
 		if p := v.Position(); p.IsValid() {
 			return p
 		}
 	}
 
-	return n.Token2.Position()
+	return n.Rbrace.Position()
 }
 
 // ConditionalExpressionCase represents case numbers of production ConditionalExpression
