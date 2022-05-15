@@ -1397,27 +1397,27 @@ func (p *parser) assignmentExpression(checkTypeName bool) ExpressionNode {
 		p.cpp.eh("%v: unexpected EOF", p.toks[0].Position())
 		return nil
 	case '=':
-		r = &AssignmentExpression{Case: AssignmentExpressionAssign, UnaryExpression: u, Token: p.shift(false), AssignmentExpression: p.assignmentExpression(checkTypeName)}
+		r = &AssignmentExpression{Lhs: u, Op: AssignmentOperationAssign, Token: p.shift(false), Rhs: p.assignmentExpression(checkTypeName)}
 	case rune(MULASSIGN):
-		r = &AssignmentExpression{Case: AssignmentExpressionMul, UnaryExpression: u, Token: p.shift(false), AssignmentExpression: p.assignmentExpression(checkTypeName)}
+		r = &AssignmentExpression{Lhs: u, Op: AssignmentOperationMul, Token: p.shift(false), Rhs: p.assignmentExpression(checkTypeName)}
 	case rune(DIVASSIGN):
-		r = &AssignmentExpression{Case: AssignmentExpressionDiv, UnaryExpression: u, Token: p.shift(false), AssignmentExpression: p.assignmentExpression(checkTypeName)}
+		r = &AssignmentExpression{Lhs: u, Op: AssignmentOperationDiv, Token: p.shift(false), Rhs: p.assignmentExpression(checkTypeName)}
 	case rune(MODASSIGN):
-		r = &AssignmentExpression{Case: AssignmentExpressionMod, UnaryExpression: u, Token: p.shift(false), AssignmentExpression: p.assignmentExpression(checkTypeName)}
+		r = &AssignmentExpression{Lhs: u, Op: AssignmentOperationMod, Token: p.shift(false), Rhs: p.assignmentExpression(checkTypeName)}
 	case rune(ADDASSIGN):
-		r = &AssignmentExpression{Case: AssignmentExpressionAdd, UnaryExpression: u, Token: p.shift(false), AssignmentExpression: p.assignmentExpression(checkTypeName)}
+		r = &AssignmentExpression{Lhs: u, Op: AssignmentOperationAdd, Token: p.shift(false), Rhs: p.assignmentExpression(checkTypeName)}
 	case rune(SUBASSIGN):
-		r = &AssignmentExpression{Case: AssignmentExpressionSub, UnaryExpression: u, Token: p.shift(false), AssignmentExpression: p.assignmentExpression(checkTypeName)}
+		r = &AssignmentExpression{Lhs: u, Op: AssignmentOperationSub, Token: p.shift(false), Rhs: p.assignmentExpression(checkTypeName)}
 	case rune(LSHASSIGN):
-		r = &AssignmentExpression{Case: AssignmentExpressionLsh, UnaryExpression: u, Token: p.shift(false), AssignmentExpression: p.assignmentExpression(checkTypeName)}
+		r = &AssignmentExpression{Lhs: u, Op: AssignmentOperationLsh, Token: p.shift(false), Rhs: p.assignmentExpression(checkTypeName)}
 	case rune(RSHASSIGN):
-		r = &AssignmentExpression{Case: AssignmentExpressionRsh, UnaryExpression: u, Token: p.shift(false), AssignmentExpression: p.assignmentExpression(checkTypeName)}
+		r = &AssignmentExpression{Lhs: u, Op: AssignmentOperationRsh, Token: p.shift(false), Rhs: p.assignmentExpression(checkTypeName)}
 	case rune(ANDASSIGN):
-		r = &AssignmentExpression{Case: AssignmentExpressionAnd, UnaryExpression: u, Token: p.shift(false), AssignmentExpression: p.assignmentExpression(checkTypeName)}
+		r = &AssignmentExpression{Lhs: u, Op: AssignmentOperationAnd, Token: p.shift(false), Rhs: p.assignmentExpression(checkTypeName)}
 	case rune(XORASSIGN):
-		r = &AssignmentExpression{Case: AssignmentExpressionXor, UnaryExpression: u, Token: p.shift(false), AssignmentExpression: p.assignmentExpression(checkTypeName)}
+		r = &AssignmentExpression{Lhs: u, Op: AssignmentOperationXor, Token: p.shift(false), Rhs: p.assignmentExpression(checkTypeName)}
 	case rune(ORASSIGN):
-		r = &AssignmentExpression{Case: AssignmentExpressionOr, UnaryExpression: u, Token: p.shift(false), AssignmentExpression: p.assignmentExpression(checkTypeName)}
+		r = &AssignmentExpression{Lhs: u, Op: AssignmentOperationOr, Token: p.shift(false), Rhs: p.assignmentExpression(checkTypeName)}
 	default:
 		return lhs
 	}

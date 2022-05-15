@@ -313,15 +313,15 @@ func ExampleAssignmentExpression_assign() {
 	fmt.Println(exampleAST(75, "int f() { x = y; }"))
 	// Output:
 	// &cc.AssignmentExpression{
-	// · AssignmentExpression: &cc.PrimaryExpression{
-	// · · Case: PrimaryExpressionIdent,
-	// · · Token: example.c:1:15: identifier "y",
-	// · },
-	// · Case: AssignmentExpressionAssign,
-	// · Token: example.c:1:13: '=' "=",
-	// · UnaryExpression: &cc.PrimaryExpression{
+	// · Lhs: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:11: identifier "x",
+	// · },
+	// · Op: AssignmentOperationAssign,
+	// · Token: example.c:1:13: '=' "=",
+	// · Rhs: &cc.PrimaryExpression{
+	// · · Case: PrimaryExpressionIdent,
+	// · · Token: example.c:1:15: identifier "y",
 	// · },
 	// }
 }
@@ -330,15 +330,15 @@ func ExampleAssignmentExpression_mul() {
 	fmt.Println(exampleAST(76, "int f() { x *= y; }"))
 	// Output:
 	// &cc.AssignmentExpression{
-	// · AssignmentExpression: &cc.PrimaryExpression{
-	// · · Case: PrimaryExpressionIdent,
-	// · · Token: example.c:1:16: identifier "y",
-	// · },
-	// · Case: AssignmentExpressionMul,
-	// · Token: example.c:1:13: '*=' "*=",
-	// · UnaryExpression: &cc.PrimaryExpression{
+	// · Lhs: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:11: identifier "x",
+	// · },
+	// · Op: AssignmentOperationMul,
+	// · Token: example.c:1:13: '*=' "*=",
+	// · Rhs: &cc.PrimaryExpression{
+	// · · Case: PrimaryExpressionIdent,
+	// · · Token: example.c:1:16: identifier "y",
 	// · },
 	// }
 }
@@ -347,15 +347,15 @@ func ExampleAssignmentExpression_div() {
 	fmt.Println(exampleAST(77, "int f() { x /= y; }"))
 	// Output:
 	// &cc.AssignmentExpression{
-	// · AssignmentExpression: &cc.PrimaryExpression{
-	// · · Case: PrimaryExpressionIdent,
-	// · · Token: example.c:1:16: identifier "y",
-	// · },
-	// · Case: AssignmentExpressionDiv,
-	// · Token: example.c:1:13: '/=' "/=",
-	// · UnaryExpression: &cc.PrimaryExpression{
+	// · Lhs: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:11: identifier "x",
+	// · },
+	// · Op: AssignmentOperationDiv,
+	// · Token: example.c:1:13: '/=' "/=",
+	// · Rhs: &cc.PrimaryExpression{
+	// · · Case: PrimaryExpressionIdent,
+	// · · Token: example.c:1:16: identifier "y",
 	// · },
 	// }
 }
@@ -364,15 +364,15 @@ func ExampleAssignmentExpression_mod() {
 	fmt.Println(exampleAST(78, "int f() { x %= y; }"))
 	// Output:
 	// &cc.AssignmentExpression{
-	// · AssignmentExpression: &cc.PrimaryExpression{
-	// · · Case: PrimaryExpressionIdent,
-	// · · Token: example.c:1:16: identifier "y",
-	// · },
-	// · Case: AssignmentExpressionMod,
-	// · Token: example.c:1:13: '%=' "%=",
-	// · UnaryExpression: &cc.PrimaryExpression{
+	// · Lhs: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:11: identifier "x",
+	// · },
+	// · Op: AssignmentOperationMod,
+	// · Token: example.c:1:13: '%=' "%=",
+	// · Rhs: &cc.PrimaryExpression{
+	// · · Case: PrimaryExpressionIdent,
+	// · · Token: example.c:1:16: identifier "y",
 	// · },
 	// }
 }
@@ -381,15 +381,15 @@ func ExampleAssignmentExpression_add() {
 	fmt.Println(exampleAST(79, "int f() { x += y; }"))
 	// Output:
 	// &cc.AssignmentExpression{
-	// · AssignmentExpression: &cc.PrimaryExpression{
-	// · · Case: PrimaryExpressionIdent,
-	// · · Token: example.c:1:16: identifier "y",
-	// · },
-	// · Case: AssignmentExpressionAdd,
-	// · Token: example.c:1:13: '+=' "+=",
-	// · UnaryExpression: &cc.PrimaryExpression{
+	// · Lhs: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:11: identifier "x",
+	// · },
+	// · Op: AssignmentOperationAdd,
+	// · Token: example.c:1:13: '+=' "+=",
+	// · Rhs: &cc.PrimaryExpression{
+	// · · Case: PrimaryExpressionIdent,
+	// · · Token: example.c:1:16: identifier "y",
 	// · },
 	// }
 }
@@ -398,15 +398,15 @@ func ExampleAssignmentExpression_sub() {
 	fmt.Println(exampleAST(80, "int f() { x -= y; }"))
 	// Output:
 	// &cc.AssignmentExpression{
-	// · AssignmentExpression: &cc.PrimaryExpression{
-	// · · Case: PrimaryExpressionIdent,
-	// · · Token: example.c:1:16: identifier "y",
-	// · },
-	// · Case: AssignmentExpressionSub,
-	// · Token: example.c:1:13: '-=' "-=",
-	// · UnaryExpression: &cc.PrimaryExpression{
+	// · Lhs: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:11: identifier "x",
+	// · },
+	// · Op: AssignmentOperationSub,
+	// · Token: example.c:1:13: '-=' "-=",
+	// · Rhs: &cc.PrimaryExpression{
+	// · · Case: PrimaryExpressionIdent,
+	// · · Token: example.c:1:16: identifier "y",
 	// · },
 	// }
 }
@@ -415,15 +415,15 @@ func ExampleAssignmentExpression_lsh() {
 	fmt.Println(exampleAST(81, "int f() { x <<= y; }"))
 	// Output:
 	// &cc.AssignmentExpression{
-	// · AssignmentExpression: &cc.PrimaryExpression{
-	// · · Case: PrimaryExpressionIdent,
-	// · · Token: example.c:1:17: identifier "y",
-	// · },
-	// · Case: AssignmentExpressionLsh,
-	// · Token: example.c:1:13: '<<=' "<<=",
-	// · UnaryExpression: &cc.PrimaryExpression{
+	// · Lhs: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:11: identifier "x",
+	// · },
+	// · Op: AssignmentOperationLsh,
+	// · Token: example.c:1:13: '<<=' "<<=",
+	// · Rhs: &cc.PrimaryExpression{
+	// · · Case: PrimaryExpressionIdent,
+	// · · Token: example.c:1:17: identifier "y",
 	// · },
 	// }
 }
@@ -432,15 +432,15 @@ func ExampleAssignmentExpression_rsh() {
 	fmt.Println(exampleAST(82, "int f() { x >>= y; }"))
 	// Output:
 	// &cc.AssignmentExpression{
-	// · AssignmentExpression: &cc.PrimaryExpression{
-	// · · Case: PrimaryExpressionIdent,
-	// · · Token: example.c:1:17: identifier "y",
-	// · },
-	// · Case: AssignmentExpressionRsh,
-	// · Token: example.c:1:13: '>>=' ">>=",
-	// · UnaryExpression: &cc.PrimaryExpression{
+	// · Lhs: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:11: identifier "x",
+	// · },
+	// · Op: AssignmentOperationRsh,
+	// · Token: example.c:1:13: '>>=' ">>=",
+	// · Rhs: &cc.PrimaryExpression{
+	// · · Case: PrimaryExpressionIdent,
+	// · · Token: example.c:1:17: identifier "y",
 	// · },
 	// }
 }
@@ -449,15 +449,15 @@ func ExampleAssignmentExpression_and() {
 	fmt.Println(exampleAST(83, "int f() { x &= y; }"))
 	// Output:
 	// &cc.AssignmentExpression{
-	// · AssignmentExpression: &cc.PrimaryExpression{
-	// · · Case: PrimaryExpressionIdent,
-	// · · Token: example.c:1:16: identifier "y",
-	// · },
-	// · Case: AssignmentExpressionAnd,
-	// · Token: example.c:1:13: '&=' "&=",
-	// · UnaryExpression: &cc.PrimaryExpression{
+	// · Lhs: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:11: identifier "x",
+	// · },
+	// · Op: AssignmentOperationAnd,
+	// · Token: example.c:1:13: '&=' "&=",
+	// · Rhs: &cc.PrimaryExpression{
+	// · · Case: PrimaryExpressionIdent,
+	// · · Token: example.c:1:16: identifier "y",
 	// · },
 	// }
 }
@@ -466,15 +466,15 @@ func ExampleAssignmentExpression_xor() {
 	fmt.Println(exampleAST(84, "int f() { x ^= y; }"))
 	// Output:
 	// &cc.AssignmentExpression{
-	// · AssignmentExpression: &cc.PrimaryExpression{
-	// · · Case: PrimaryExpressionIdent,
-	// · · Token: example.c:1:16: identifier "y",
-	// · },
-	// · Case: AssignmentExpressionXor,
-	// · Token: example.c:1:13: '^=' "^=",
-	// · UnaryExpression: &cc.PrimaryExpression{
+	// · Lhs: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:11: identifier "x",
+	// · },
+	// · Op: AssignmentOperationXor,
+	// · Token: example.c:1:13: '^=' "^=",
+	// · Rhs: &cc.PrimaryExpression{
+	// · · Case: PrimaryExpressionIdent,
+	// · · Token: example.c:1:16: identifier "y",
 	// · },
 	// }
 }
@@ -483,15 +483,15 @@ func ExampleAssignmentExpression_or() {
 	fmt.Println(exampleAST(85, "int f() { x |= y; }"))
 	// Output:
 	// &cc.AssignmentExpression{
-	// · AssignmentExpression: &cc.PrimaryExpression{
-	// · · Case: PrimaryExpressionIdent,
-	// · · Token: example.c:1:16: identifier "y",
-	// · },
-	// · Case: AssignmentExpressionOr,
-	// · Token: example.c:1:13: '|=' "|=",
-	// · UnaryExpression: &cc.PrimaryExpression{
+	// · Lhs: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:11: identifier "x",
+	// · },
+	// · Op: AssignmentOperationOr,
+	// · Token: example.c:1:13: '|=' "|=",
+	// · Rhs: &cc.PrimaryExpression{
+	// · · Case: PrimaryExpressionIdent,
+	// · · Token: example.c:1:16: identifier "y",
 	// · },
 	// }
 }
@@ -3075,15 +3075,15 @@ func ExampleIterationStatement_for() {
 	// &cc.IterationStatement{
 	// · Case: IterationStatementFor,
 	// · ExpressionList: &cc.AssignmentExpression{
-	// · · AssignmentExpression: &cc.PrimaryExpression{
-	// · · · Case: PrimaryExpressionInt,
-	// · · · Token: example.c:1:20: integer constant "0",
-	// · · },
-	// · · Case: AssignmentExpressionAssign,
-	// · · Token: example.c:1:18: '=' "=",
-	// · · UnaryExpression: &cc.PrimaryExpression{
+	// · · Lhs: &cc.PrimaryExpression{
 	// · · · Case: PrimaryExpressionIdent,
 	// · · · Token: example.c:1:16: identifier "i",
+	// · · },
+	// · · Op: AssignmentOperationAssign,
+	// · · Token: example.c:1:18: '=' "=",
+	// · · Rhs: &cc.PrimaryExpression{
+	// · · · Case: PrimaryExpressionInt,
+	// · · · Token: example.c:1:20: integer constant "0",
 	// · · },
 	// · },
 	// · ExpressionList2: &cc.BinaryExpression{

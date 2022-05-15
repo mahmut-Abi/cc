@@ -2604,61 +2604,42 @@ func (n *AssignmentExpression) check(c *ctx, mode flags) (r Type) {
 		}
 	}()
 
-	switch n.Case {
-	case AssignmentExpressionCond: // ConditionalExpression
-		n.typ = n.ConditionalExpression.check(c, mode)
+	n.typ = n.Lhs.check(c, mode)
+	c.assignTo(n.Lhs, n.Op == AssignmentOperationAssign)
+	a := n.Type()
+	b := n.Rhs.check(c, mode)
+	if !isModifiableLvalue(a) {
+		c.errors.add(errorf("%v: left operand shall be a modifiable lvalue", n.Lhs.Position()))
+		return n.Type()
+	}
+
+	switch {
 	case
-		AssignmentExpressionAssign, // UnaryExpression '=' AssignmentExpression
-		AssignmentExpressionMul,    // UnaryExpression "*=" AssignmentExpression
-		AssignmentExpressionDiv,    // UnaryExpression "/=" AssignmentExpression
-		AssignmentExpressionMod,    // UnaryExpression "%=" AssignmentExpression
-		AssignmentExpressionAdd,    // UnaryExpression "+=" AssignmentExpression
-		AssignmentExpressionSub,    // UnaryExpression "-=" AssignmentExpression
-		AssignmentExpressionLsh,    // UnaryExpression "<<=" AssignmentExpression
-		AssignmentExpressionRsh,    // UnaryExpression ">>=" AssignmentExpression
-		AssignmentExpressionAnd,    // UnaryExpression "&=" AssignmentExpression
-		AssignmentExpressionXor,    // UnaryExpression "^=" AssignmentExpression
-		AssignmentExpressionOr:     // UnaryExpression "|=" AssignmentExpression
+		// — the left operand has qualified or unqualified arithmetic type and the
+		// right has arithmetic type;
+		IsArithmeticType(a) && IsArithmeticType(b),
 
-		n.typ = n.UnaryExpression.check(c, mode)
-		c.assignTo(n.UnaryExpression, n.Case == AssignmentExpressionAssign)
-		a := n.Type()
-		b := n.AssignmentExpression.check(c, mode)
-		if !isModifiableLvalue(a) {
-			c.errors.add(errorf("%v: left operand shall be a modifiable lvalue", n.UnaryExpression.Position()))
-			break
-		}
+		// — the left operand has a qualified or unqualified version of a structure or
+		// union type compatible with the type of the right;
+		a.Kind() == Struct && b.Kind() == Struct || a.Kind() == Union && b.Kind() == Union,
 
-		switch {
-		case
-			// — the left operand has qualified or unqualified arithmetic type and the
-			// right has arithmetic type;
-			IsArithmeticType(a) && IsArithmeticType(b),
+		// — both operands are pointers to qualified or unqualified versions of
+		// compatible types, and the type pointed to by the left has all the qualifiers
+		// of the type pointed to by the right;
+		//
+		// — one operand is a pointer to an object or incomplete type and the other is
+		// a pointer to a qualified or unqualified version of void, and the type
+		// pointed to by the left has all the qualifiers of the type pointed to by the
+		// right;
+		isPointerType(a) && isPointerType(b),
 
-			// — the left operand has a qualified or unqualified version of a structure or
-			// union type compatible with the type of the right;
-			a.Kind() == Struct && b.Kind() == Struct || a.Kind() == Union && b.Kind() == Union,
+		// — the left operand is a pointer and the right is a null pointer constant; or
+		isPointerType(a) && IsIntegerType(b),
 
-			// — both operands are pointers to qualified or unqualified versions of
-			// compatible types, and the type pointed to by the left has all the qualifiers
-			// of the type pointed to by the right;
-			//
-			// — one operand is a pointer to an object or incomplete type and the other is
-			// a pointer to a qualified or unqualified version of void, and the type
-			// pointed to by the left has all the qualifiers of the type pointed to by the
-			// right;
-			isPointerType(a) && isPointerType(b),
+		// — the left operand has type _Bool and the right is a pointer.
+		a.Kind() == Bool && isPointerType(b):
 
-			// — the left operand is a pointer and the right is a null pointer constant; or
-			isPointerType(a) && IsIntegerType(b),
-
-			// — the left operand has type _Bool and the right is a pointer.
-			a.Kind() == Bool && isPointerType(b):
-
-			// ok
-		}
-	default:
-		c.errors.add(errorf("internal error: %v", n.Case))
+		// ok
 	}
 	return n.Type()
 }

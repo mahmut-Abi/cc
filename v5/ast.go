@@ -442,56 +442,21 @@ func (n *AsmStatement) Position() (r token.Position) {
 	return n.Token.Position()
 }
 
-// AssignmentExpressionCase represents case numbers of production AssignmentExpression
-type AssignmentExpressionCase int
+type AssignmentOperation int
 
-// Values of type AssignmentExpressionCase
 const (
-	AssignmentExpressionCond AssignmentExpressionCase = iota
-	AssignmentExpressionAssign
-	AssignmentExpressionMul
-	AssignmentExpressionDiv
-	AssignmentExpressionMod
-	AssignmentExpressionAdd
-	AssignmentExpressionSub
-	AssignmentExpressionLsh
-	AssignmentExpressionRsh
-	AssignmentExpressionAnd
-	AssignmentExpressionXor
-	AssignmentExpressionOr
+	AssignmentOperationAssign = AssignmentOperation(iota)
+	AssignmentOperationMul
+	AssignmentOperationDiv
+	AssignmentOperationMod
+	AssignmentOperationAdd
+	AssignmentOperationSub
+	AssignmentOperationLsh
+	AssignmentOperationRsh
+	AssignmentOperationAnd
+	AssignmentOperationXor
+	AssignmentOperationOr
 )
-
-// String implements fmt.Stringer
-func (n AssignmentExpressionCase) String() string {
-	switch n {
-	case AssignmentExpressionCond:
-		return "AssignmentExpressionCond"
-	case AssignmentExpressionAssign:
-		return "AssignmentExpressionAssign"
-	case AssignmentExpressionMul:
-		return "AssignmentExpressionMul"
-	case AssignmentExpressionDiv:
-		return "AssignmentExpressionDiv"
-	case AssignmentExpressionMod:
-		return "AssignmentExpressionMod"
-	case AssignmentExpressionAdd:
-		return "AssignmentExpressionAdd"
-	case AssignmentExpressionSub:
-		return "AssignmentExpressionSub"
-	case AssignmentExpressionLsh:
-		return "AssignmentExpressionLsh"
-	case AssignmentExpressionRsh:
-		return "AssignmentExpressionRsh"
-	case AssignmentExpressionAnd:
-		return "AssignmentExpressionAnd"
-	case AssignmentExpressionXor:
-		return "AssignmentExpressionXor"
-	case AssignmentExpressionOr:
-		return "AssignmentExpressionOr"
-	default:
-		return fmt.Sprintf("AssignmentExpressionCase(%v)", int(n))
-	}
-}
 
 // AssignmentExpression represents data reduced by productions:
 //
@@ -511,11 +476,10 @@ func (n AssignmentExpressionCase) String() string {
 type AssignmentExpression struct {
 	typer
 	valuer
-	AssignmentExpression  ExpressionNode
-	Case                  AssignmentExpressionCase `PrettyPrint:"stringer,zero"`
-	ConditionalExpression ExpressionNode
-	Token                 Token
-	UnaryExpression       ExpressionNode
+	Lhs   ExpressionNode
+	Op    AssignmentOperation `PrettyPrint:"stringer,zero"`
+	Token Token
+	Rhs   ExpressionNode
 }
 
 // String implements fmt.Stringer.
@@ -527,22 +491,15 @@ func (n *AssignmentExpression) Position() (r token.Position) {
 		return r
 	}
 
-	switch n.Case {
-	case 0:
-		return n.ConditionalExpression.Position()
-	case 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11:
-		if p := n.UnaryExpression.Position(); p.IsValid() {
-			return p
-		}
-
-		if p := n.Token.Position(); p.IsValid() {
-			return p
-		}
-
-		return n.AssignmentExpression.Position()
-	default:
-		panic("internal error")
+	if p := n.Lhs.Position(); p.IsValid() {
+		return p
 	}
+
+	if p := n.Token.Position(); p.IsValid() {
+		return p
+	}
+
+	return n.Rhs.Position()
 }
 
 // AtomicTypeSpecifier represents data reduced by production:

@@ -1111,30 +1111,28 @@ func (n *ExpressionList) eval(c *ctx, mode flags) (r Value) {
 
 func (n *AssignmentExpression) eval(c *ctx, mode flags) (r Value) {
 	if mode.has(addrOf) {
-		c.errors.add(errorf("TODO %v %v", n.Case, mode.has(addrOf)))
+		c.errors.add(errorf("TODO %v %v", n.Op, mode.has(addrOf)))
 		return n.Value()
 	}
 
-	switch n.Case {
-	case AssignmentExpressionCond: // ConditionalExpression
-		n.val = n.ConditionalExpression.eval(c, mode)
-	case AssignmentExpressionAssign: // UnaryExpression '=' AssignmentExpression
-		n.val = c.convert(n.AssignmentExpression.eval(c, mode), n.UnaryExpression.Type())
-	case AssignmentExpressionMul, // UnaryExpression "*=" AssignmentExpression
-		AssignmentExpressionDiv, // UnaryExpression "/=" AssignmentExpression
-		AssignmentExpressionMod, // UnaryExpression "%=" AssignmentExpression
-		AssignmentExpressionAdd, // UnaryExpression "+=" AssignmentExpression
-		AssignmentExpressionSub, // UnaryExpression "-=" AssignmentExpression
-		AssignmentExpressionLsh, // UnaryExpression "<<=" AssignmentExpression
-		AssignmentExpressionRsh, // UnaryExpression ">>=" AssignmentExpression
-		AssignmentExpressionAnd, // UnaryExpression "&=" AssignmentExpression
-		AssignmentExpressionXor, // UnaryExpression "^=" AssignmentExpression
-		AssignmentExpressionOr:  // UnaryExpression "|=" AssignmentExpression
+	switch n.Op {
+	case AssignmentOperationAssign:
+		n.val = c.convert(n.Rhs.eval(c, mode), n.Lhs.Type())
+	case AssignmentOperationMul,
+		AssignmentOperationDiv,
+		AssignmentOperationMod,
+		AssignmentOperationAdd,
+		AssignmentOperationSub,
+		AssignmentOperationLsh,
+		AssignmentOperationRsh,
+		AssignmentOperationAnd,
+		AssignmentOperationXor,
+		AssignmentOperationOr:
 
-		n.UnaryExpression.eval(c, mode)
-		n.AssignmentExpression.eval(c, mode)
+		n.Lhs.eval(c, mode)
+		n.Rhs.eval(c, mode)
 	default:
-		c.errors.add(errorf("internal error: %v", n.Case))
+		c.errors.add(errorf("internal error: %v", n.Op))
 	}
 	return n.Value()
 }
