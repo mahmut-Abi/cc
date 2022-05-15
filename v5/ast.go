@@ -887,28 +887,6 @@ func (n *BlockItem) Position() (r token.Position) {
 	}
 }
 
-// BlockItemList represents data reduced by productions:
-//
-//	BlockItemList:
-//	        BlockItem
-//	|       BlockItemList BlockItem
-type BlockItemList struct {
-	BlockItem     *BlockItem
-	BlockItemList *BlockItemList
-}
-
-// String implements fmt.Stringer.
-func (n *BlockItemList) String() string { return PrettyString(n) }
-
-// Position reports the position of the first component of n, if available.
-func (n *BlockItemList) Position() (r token.Position) {
-	if n == nil {
-		return r
-	}
-
-	return n.BlockItem.Position()
-}
-
 // CastExpressionCase represents case numbers of production CastExpression
 type CastExpressionCase int
 
@@ -983,9 +961,9 @@ func (n *CastExpression) Position() (r token.Position) {
 //	        '{' BlockItemList '}'
 type CompoundStatement struct {
 	lexicalScoper
-	BlockItemList *BlockItemList
-	Token         Token
-	Token2        Token
+	BlockItems []*BlockItem
+	Token      Token
+	Token2     Token
 }
 
 // String implements fmt.Stringer.
@@ -1001,8 +979,10 @@ func (n *CompoundStatement) Position() (r token.Position) {
 		return p
 	}
 
-	if p := n.BlockItemList.Position(); p.IsValid() {
-		return p
+	for _, v := range n.BlockItems {
+		if p := v.Position(); p.IsValid() {
+			return p
+		}
 	}
 
 	return n.Token2.Position()

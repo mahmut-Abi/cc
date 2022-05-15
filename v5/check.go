@@ -624,8 +624,8 @@ func (n *CompoundStatement) check(c *ctx) (r Type) {
 	}
 
 	r = c.voidT
-	for l := n.BlockItemList; l != nil; l = l.BlockItemList {
-		r = l.BlockItem.check(c)
+	for _, l := range n.BlockItems {
+		r = l.check(c)
 	}
 	c.checkScope(n.LexicalScope())
 	return r

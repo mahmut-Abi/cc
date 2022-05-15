@@ -505,7 +505,7 @@ func (p *parser) compoundStatement(isFnScope bool, d *Declarator) (r *CompoundSt
 	if isFnScope && d != nil && !p.cpp.cfg.doNotInjectFunc {
 		p.injectFuncTokens(lbrace, d.Name())
 	}
-	return &CompoundStatement{Token: lbrace, BlockItemList: p.blockItemListOpt(), Token2: p.must('}'), lexicalScoper: newLexicalScoper(p.scope)}
+	return &CompoundStatement{Token: lbrace, BlockItems: p.blockItemListOpt(), Token2: p.must('}'), lexicalScoper: newLexicalScoper(p.scope)}
 }
 
 var funcTokensText = [][]byte{
@@ -545,21 +545,13 @@ func (p *parser) injectFuncTokens(lbrace Token, nm string) {
 //  block-item-list:
 // 	block-item
 // 	block-item-list block-item
-func (p *parser) blockItemListOpt() (r *BlockItemList) {
-	var prev *BlockItemList
+func (p *parser) blockItemListOpt() (r []*BlockItem) {
 	for {
 		switch p.rune(false) {
 		case '}', eof:
 			return r
 		default:
-			bil := &BlockItemList{BlockItem: p.blockItem()}
-			switch {
-			case r == nil:
-				r = bil
-			default:
-				prev.BlockItemList = bil
-			}
-			prev = bil
+			r = append(r, p.blockItem())
 		}
 	}
 }
