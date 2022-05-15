@@ -1933,27 +1933,6 @@ func (n *EnumeratorList) Position() (r token.Position) {
 	return n.Enumerator.Position()
 }
 
-// ExpressionListCase represents case numbers of production ExpressionList
-type ExpressionListCase int
-
-// Values of type ExpressionListCase
-const (
-	ExpressionListAssign ExpressionListCase = iota
-	ExpressionListComma
-)
-
-// String implements fmt.Stringer
-func (n ExpressionListCase) String() string {
-	switch n {
-	case ExpressionListAssign:
-		return "ExpressionListAssign"
-	case ExpressionListComma:
-		return "ExpressionListComma"
-	default:
-		return fmt.Sprintf("ExpressionListCase(%v)", int(n))
-	}
-}
-
 // ExpressionList represents data reduced by productions:
 //
 //	ExpressionList:
@@ -1962,9 +1941,8 @@ func (n ExpressionListCase) String() string {
 type ExpressionList struct {
 	typer
 	valuer
-	AssignmentExpression ExpressionNode
-	ExpressionList       *ExpressionList
-	Token                Token
+	List   []ExpressionNode
+	Tokens []Token
 }
 
 // String implements fmt.Stringer.
@@ -1976,7 +1954,20 @@ func (n *ExpressionList) Position() (r token.Position) {
 		return r
 	}
 
-	return n.AssignmentExpression.Position()
+	for i := range n.List {
+		if i < len(n.List) {
+			if p := n.List[i].Position(); p.IsValid() {
+				return p
+			}
+		}
+		if i < len(n.Tokens) {
+			if p := n.Tokens[i].Position(); p.IsValid() {
+				return p
+			}
+		}
+	}
+
+	return r
 }
 
 // ExpressionStatement represents data reduced by production:

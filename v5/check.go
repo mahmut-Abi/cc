@@ -3344,11 +3344,11 @@ func isName(n Node) string {
 	for {
 		switch x := n.(type) {
 		case *ExpressionList:
-			if x.ExpressionList != nil {
+			if len(x.List) != 1 {
 				return ""
 			}
 
-			n = x.AssignmentExpression
+			n = x.List[0]
 		case *PrimaryExpression:
 			if x.Case == PrimaryExpressionIdent {
 				return x.Token.SrcStr()
@@ -3734,21 +3734,20 @@ func (n *PrimaryExpression) intConst2(c *ctx, s string, val uint64, list ...Kind
 //          AssignmentExpression
 //  |       ExpressionList ',' AssignmentExpression
 func (n *ExpressionList) check(c *ctx, mode flags) (r Type) {
-	if n == nil {
+	if len(n.List) == 0 {
 		return Invalid
 	}
 
-	n0 := n
 	defer func() {
 		if r == nil || r == Invalid {
 			c.errors.add(errorf("TODO %T missed/failed type check", n))
 		}
 	}()
 
-	for ; n != nil; n = n.ExpressionList {
-		n0.typ = n.AssignmentExpression.check(c, mode)
+	for _, n := range n.List {
+		n.check(c, mode)
 	}
-	return n0.Type()
+	return n.List[len(n.List)-1].Type()
 }
 
 //  ConstantExpression:

@@ -1098,16 +1098,15 @@ func (n *PrimaryExpression) eval(c *ctx, mode flags) (r Value) {
 }
 
 func (n *ExpressionList) eval(c *ctx, mode flags) (r Value) {
-	if n == nil {
+	if len(n.List) == 0 {
 		return Unknown
 	}
 
-	n0 := n
-	for ; n != nil; n = n.ExpressionList {
-		n0.typ = n.AssignmentExpression.Type()
-		n0.val = n.AssignmentExpression.eval(c, mode)
+	for _, n := range n.List {
+		_ = n.Type()
+		_ = n.eval(c, mode)
 	}
-	return n0.Value()
+	return n.List[len(n.List)-1].Value()
 }
 
 func (n *AssignmentExpression) eval(c *ctx, mode flags) (r Value) {

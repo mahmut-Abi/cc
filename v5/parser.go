@@ -973,19 +973,17 @@ func (p *parser) asmIndexOpt() *AsmIndex {
 // 	assignment-expression
 // 	expression , assignment-expression
 func (p *parser) expression(opt bool) ExpressionNode {
-	var r, prev *ExpressionList
+	var r *ExpressionList
 	if p.isExpression(p.rune(false)) {
 		ae := p.assignmentExpression(true)
 		if p.rune(false) != ',' {
 			return ae
 		}
 
-		r = &ExpressionList{AssignmentExpression: ae}
-		prev = r
+		r = &ExpressionList{List: []ExpressionNode{ae}}
 		for p.rune(false) == ',' {
-			el := &ExpressionList{Token: p.shift(false), AssignmentExpression: p.assignmentExpression(true)}
-			prev.ExpressionList = el
-			prev = el
+			r.Tokens = append(r.Tokens, p.shift(false))
+			r.List = append(r.List, p.assignmentExpression(true))
 		}
 		return r
 	}

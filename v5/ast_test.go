@@ -2364,16 +2364,18 @@ func ExampleExpressionList_comma() {
 	fmt.Println(exampleAST(87, "int f() { x, y; };"))
 	// Output:
 	// &cc.ExpressionList{
-	// · AssignmentExpression: &cc.PrimaryExpression{
-	// · · Case: PrimaryExpressionIdent,
-	// · · Token: example.c:1:11: identifier "x",
-	// · },
-	// · ExpressionList: &cc.ExpressionList{
-	// · · AssignmentExpression: &cc.PrimaryExpression{
+	// · List: []*cc.PrimaryExpression{ // len 2
+	// · · 0: &cc.PrimaryExpression{
+	// · · · Case: PrimaryExpressionIdent,
+	// · · · Token: example.c:1:11: identifier "x",
+	// · · },
+	// · · 1: &cc.PrimaryExpression{
 	// · · · Case: PrimaryExpressionIdent,
 	// · · · Token: example.c:1:14: identifier "y",
 	// · · },
-	// · · Token: example.c:1:12: ',' ",",
+	// · },
+	// · Tokens: []cc.Token{ // len 1
+	// · · 0: example.c:1:12: ',' ",",
 	// · },
 	// }
 }
