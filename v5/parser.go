@@ -564,10 +564,7 @@ again:
 		}
 
 		if r0 == rune(ATTRIBUTE) && p.rune(false) == ';' {
-			return &Statement{
-				Case:                StatementExpr,
-				ExpressionStatement: &ExpressionStatement{declarationSpecifiers: ds, AttributeSpecifierList: p.attributeSpecifierListOpt(), Token: p.shift(false)},
-			}
+			return &ExpressionStatement{declarationSpecifiers: ds, AttributeSpecifierList: p.attributeSpecifierListOpt(), Token: p.shift(false)}
 		}
 
 		var d *Declarator
@@ -613,7 +610,7 @@ func (p *parser) labelDeclaration() (r *LabelDeclaration) {
 // 	iteration-statement
 // 	jump-statement
 //	asm-statement
-func (p *parser) statement(newBlock bool) *Statement {
+func (p *parser) statement(newBlock bool) Statement {
 	if newBlock {
 		p.newScope()
 
@@ -623,12 +620,12 @@ func (p *parser) statement(newBlock bool) *Statement {
 	case ch == rune(IDENTIFIER):
 		switch p.peek(1, false).Ch {
 		case ':':
-			return &Statement{Case: StatementLabeled, LabeledStatement: p.labeledStatement()}
+			return p.labeledStatement()
 		default:
-			return &Statement{Case: StatementExpr, ExpressionStatement: p.expressionStatement()}
+			return p.expressionStatement()
 		}
 	case p.isExpression(ch) || ch == ';' || ch == rune(ATTRIBUTE):
-		return &Statement{Case: StatementExpr, ExpressionStatement: p.expressionStatement()}
+		return p.expressionStatement()
 	}
 
 	switch p.rune(true) {
@@ -636,32 +633,32 @@ func (p *parser) statement(newBlock bool) *Statement {
 		p.cpp.eh("%v: unexpected EOF", p.toks[0].Position())
 		return nil
 	case '{':
-		return &Statement{Case: StatementCompound, CompoundStatement: p.compoundStatement(false, nil)}
+		return p.compoundStatement(false, nil)
 	case rune(ASM):
-		return &Statement{Case: StatementAsm, AsmStatement: p.asmStatement()}
+		return p.asmStatement()
 	case
 		rune(DO),
 		rune(FOR),
 		rune(WHILE):
 
-		return &Statement{Case: StatementIteration, IterationStatement: p.iterationStatement()}
+		return p.iterationStatement()
 	case
 		rune(BREAK),
 		rune(CONTINUE),
 		rune(GOTO),
 		rune(RETURN):
 
-		return &Statement{Case: StatementJump, JumpStatement: p.jumpStatement()}
+		return p.jumpStatement()
 	case
 		rune(IF),
 		rune(SWITCH):
 
-		return &Statement{Case: StatementSelection, SelectionStatement: p.selectionStatement()}
+		return p.selectionStatement()
 	case
 		rune(CASE),
 		rune(DEFAULT):
 
-		return &Statement{Case: StatementLabeled, LabeledStatement: p.labeledStatement()}
+		return p.labeledStatement()
 	default:
 		t := p.shift(false)
 		p.cpp.eh("%v: unexpected %v, expected statement", t.Position(), runeName(t.Ch))

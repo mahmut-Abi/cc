@@ -826,12 +826,19 @@ type BlockItem interface {
 	check(c *ctx) Type
 }
 
-func (*Statement) isBlockItem()               {}
 func (*LabelDeclaration) isBlockItem()        {}
 func (*FunctionDefinition) isBlockItem()      {}
 func (*CommonDeclaration) isBlockItem()       {}
 func (*StaticAssertDeclaration) isBlockItem() {}
 func (*AutoDeclaration) isBlockItem()         {}
+
+func (*LabeledStatement) isBlockItem()    {}
+func (*CompoundStatement) isBlockItem()   {}
+func (*ExpressionStatement) isBlockItem() {}
+func (*SelectionStatement) isBlockItem()  {}
+func (*IterationStatement) isBlockItem()  {}
+func (*JumpStatement) isBlockItem()       {}
+func (*AsmStatement) isBlockItem()        {}
 
 // CastExpressionCase represents case numbers of production CastExpression
 type CastExpressionCase int
@@ -2805,7 +2812,7 @@ type IterationStatement struct {
 	ExpressionList  ExpressionNode
 	ExpressionList2 ExpressionNode
 	ExpressionList3 ExpressionNode
-	Statement       *Statement
+	Statement       Statement
 	Token           Token
 	Token2          Token
 	Token3          Token
@@ -3106,7 +3113,7 @@ type LabeledStatement struct {
 	Case                LabeledStatementCase `PrettyPrint:"stringer,zero"`
 	ConstantExpression  ExpressionNode
 	ConstantExpression2 ExpressionNode
-	Statement           *Statement
+	Statement           Statement
 	Token               Token
 	Token2              Token
 	Token3              Token
@@ -3975,8 +3982,8 @@ type SelectionStatement struct {
 	switchCases    int
 	Case           SelectionStatementCase `PrettyPrint:"stringer,zero"`
 	ExpressionList ExpressionNode
-	Statement      *Statement
-	Statement2     *Statement
+	Statement      Statement
+	Statement2     Statement
 	Token          Token
 	Token2         Token
 	Token3         Token
@@ -4184,42 +4191,6 @@ func (n *SpecifierQualifierList) Position() (r token.Position) {
 	}
 }
 
-// StatementCase represents case numbers of production Statement
-type StatementCase int
-
-// Values of type StatementCase
-const (
-	StatementLabeled StatementCase = iota
-	StatementCompound
-	StatementExpr
-	StatementSelection
-	StatementIteration
-	StatementJump
-	StatementAsm
-)
-
-// String implements fmt.Stringer
-func (n StatementCase) String() string {
-	switch n {
-	case StatementLabeled:
-		return "StatementLabeled"
-	case StatementCompound:
-		return "StatementCompound"
-	case StatementExpr:
-		return "StatementExpr"
-	case StatementSelection:
-		return "StatementSelection"
-	case StatementIteration:
-		return "StatementIteration"
-	case StatementJump:
-		return "StatementJump"
-	case StatementAsm:
-		return "StatementAsm"
-	default:
-		return fmt.Sprintf("StatementCase(%v)", int(n))
-	}
-}
-
 // Statement represents data reduced by productions:
 //
 //	Statement:
@@ -4230,45 +4201,20 @@ func (n StatementCase) String() string {
 //	|       IterationStatement   // Case StatementIteration
 //	|       JumpStatement        // Case StatementJump
 //	|       AsmStatement         // Case StatementAsm
-type Statement struct {
-	AsmStatement        *AsmStatement
-	Case                StatementCase `PrettyPrint:"stringer,zero"`
-	CompoundStatement   *CompoundStatement
-	ExpressionStatement *ExpressionStatement
-	IterationStatement  *IterationStatement
-	JumpStatement       *JumpStatement
-	LabeledStatement    *LabeledStatement
-	SelectionStatement  *SelectionStatement
+type Statement interface {
+	Node
+	fmt.Stringer
+	isStatement()
+	BlockItem
 }
 
-// String implements fmt.Stringer.
-func (n *Statement) String() string { return PrettyString(n) }
-
-// Position reports the position of the first component of n, if available.
-func (n *Statement) Position() (r token.Position) {
-	if n == nil {
-		return r
-	}
-
-	switch n.Case {
-	case 6:
-		return n.AsmStatement.Position()
-	case 1:
-		return n.CompoundStatement.Position()
-	case 2:
-		return n.ExpressionStatement.Position()
-	case 4:
-		return n.IterationStatement.Position()
-	case 5:
-		return n.JumpStatement.Position()
-	case 0:
-		return n.LabeledStatement.Position()
-	case 3:
-		return n.SelectionStatement.Position()
-	default:
-		panic("internal error")
-	}
-}
+func (*LabeledStatement) isStatement()    {}
+func (*CompoundStatement) isStatement()   {}
+func (*ExpressionStatement) isStatement() {}
+func (*SelectionStatement) isStatement()  {}
+func (*IterationStatement) isStatement()  {}
+func (*JumpStatement) isStatement()       {}
+func (*AsmStatement) isStatement()        {}
 
 // StaticAssertDeclaration represents data reduced by production:
 //

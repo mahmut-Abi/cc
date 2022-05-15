@@ -451,6 +451,7 @@ var (
 	reflBlockItem            = reflect.TypeOf((*BlockItem)(nil)).Elem()
 	reflDeclarationSpecifier = reflect.TypeOf((*DeclarationSpecifier)(nil)).Elem()
 	reflDeclaration          = reflect.TypeOf((*Declaration)(nil)).Elem()
+	reflStatement            = reflect.TypeOf((*Statement)(nil)).Elem()
 )
 
 func typeNameEqual(t reflect.Type, typ string) bool {
@@ -466,6 +467,8 @@ func typeNameEqual(t reflect.Type, typ string) bool {
 		return t.Implements(reflDeclarationSpecifier) || reflect.PointerTo(t).Implements(reflDeclarationSpecifier)
 	case "Declaration":
 		return t.Implements(reflDeclaration) || reflect.PointerTo(t).Implements(reflDeclaration)
+	case "Statement":
+		return t.Implements(reflStatement) || reflect.PointerTo(t).Implements(reflStatement)
 	}
 	return false
 }

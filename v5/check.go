@@ -630,32 +630,6 @@ func (n *LabelDeclaration) check(c *ctx) Type {
 	return nil
 }
 
-func (n *Statement) check(c *ctx) (r Type) {
-	if n == nil {
-		return Invalid
-	}
-
-	switch n.Case {
-	case StatementLabeled: // LabeledStatement
-		return n.LabeledStatement.check(c)
-	case StatementCompound: // CompoundStatement
-		return n.CompoundStatement.check(c)
-	case StatementExpr: // ExpressionStatement
-		return n.ExpressionStatement.check(c)
-	case StatementSelection: // SelectionStatement
-		return n.SelectionStatement.check(c)
-	case StatementIteration: // IterationStatement
-		return n.IterationStatement.check(c)
-	case StatementJump: // JumpStatement
-		return n.JumpStatement.check(c)
-	case StatementAsm: // AsmStatement
-		n.AsmStatement.check(c)
-	default:
-		c.errors.add(errorf("internal error: %v", n.Case))
-	}
-	return Invalid
-}
-
 func (n *LabeledStatement) check(c *ctx) (r Type) {
 	if n == nil {
 		return nil
