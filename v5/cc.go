@@ -2,11 +2,6 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-//go:generate rm -f ast.go
-//go:generate yy -o /dev/null -position -astImport "\"fmt\"\n\n\"modernc.org/token\"" -prettyString PrettyString -kind Case -noListKind -noPrivateHelpers -forceOptPos parser.yy
-//go:generate sed -i "s/\\*.*Expression$/ExpressionNode/" ast.go
-//go:generate sed -i "s/\\*ExpressionList$/ExpressionNode/" ast.go
-//go:generate patch ast.go ast.patch
 //go:generate stringer -output stringer.go -linecomment -type=tokCh,Kind,Linkage,StorageDuration
 //go:generate sh -c "go test -run ^Example |fe"
 
