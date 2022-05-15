@@ -34,7 +34,7 @@ func (f flags) add(g flags) flags { return f | g }
 func (f flags) del(g flags) flags { return f &^ g }
 func (f flags) has(g flags) bool  { return f&g != 0 }
 
-type ExpressionNode interface {
+type Expression interface {
 	Node
 	Type() Type
 	Value() Value
@@ -1274,7 +1274,7 @@ func (n *Designator) index(c *ctx) (lo, hi int64) {
 	return -1, -1
 }
 
-func arrayIndex(c *ctx, n ExpressionNode) int64 {
+func arrayIndex(c *ctx, n Expression) int64 {
 	if n == nil {
 		return -1
 	}
@@ -1288,7 +1288,7 @@ func arrayIndex(c *ctx, n ExpressionNode) int64 {
 	return v
 }
 
-func int64Value(c *ctx, n ExpressionNode) (int64, bool) {
+func int64Value(c *ctx, n Expression) (int64, bool) {
 	if n == nil {
 		return 0, false
 	}
@@ -1606,7 +1606,7 @@ func (n *DirectDeclarator) check(c *ctx, t Type) (r Type) {
 	return t //TODO-
 }
 
-func arraySize(c *ctx, n ExpressionNode) int64 {
+func arraySize(c *ctx, n Expression) int64 {
 	if n == nil {
 		return -1
 	}
@@ -1977,7 +1977,7 @@ func (n *AttributeValue) check(c *ctx, attr *Attributes) {
 //  ArgumentExpressionList:
 //          AssignmentExpression
 //  |       ArgumentExpressionList ',' AssignmentExpression
-func (n *ArgumentExpressionList) check(c *ctx, mode flags) (r []ExpressionNode) {
+func (n *ArgumentExpressionList) check(c *ctx, mode flags) (r []Expression) {
 	for ; n != nil; n = n.ArgumentExpressionList {
 		n.AssignmentExpression.check(c, mode)
 		n.AssignmentExpression.eval(c, mode)

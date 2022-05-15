@@ -1491,13 +1491,13 @@ type ArrayType struct {
 	c     *ctx
 	elem  typer
 	elems int64
-	expr  ExpressionNode
+	expr  Expression
 	namer
 	ptr Type
 	vectorSizer
 }
 
-func (c *ctx) newArrayType(elem Type, elems int64, expr ExpressionNode) (r *ArrayType) {
+func (c *ctx) newArrayType(elem Type, elems int64, expr Expression) (r *ArrayType) {
 	r = &ArrayType{c: c, elem: newTyper(elem), elems: elems, expr: expr}
 	return r
 }

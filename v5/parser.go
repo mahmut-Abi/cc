@@ -972,7 +972,7 @@ func (p *parser) asmIndexOpt() *AsmIndex {
 //  expression:
 // 	assignment-expression
 // 	expression , assignment-expression
-func (p *parser) expression(opt bool) ExpressionNode {
+func (p *parser) expression(opt bool) Expression {
 	var r *ExpressionList
 	if p.isExpression(p.rune(false)) {
 		ae := p.assignmentExpression(true)
@@ -980,7 +980,7 @@ func (p *parser) expression(opt bool) ExpressionNode {
 			return ae
 		}
 
-		r = &ExpressionList{List: []ExpressionNode{ae}}
+		r = &ExpressionList{List: []Expression{ae}}
 		for p.rune(false) == ',' {
 			r.Tokens = append(r.Tokens, p.shift(false))
 			r.List = append(r.List, p.assignmentExpression(true))
@@ -1389,7 +1389,7 @@ func (p *parser) designator() (r *Designator) {
 //
 //  assignment-operator: one of
 // 	= *= /= %= += -= <<= >>= &= ^= |=
-func (p *parser) assignmentExpression(checkTypeName bool) ExpressionNode {
+func (p *parser) assignmentExpression(checkTypeName bool) Expression {
 	lhs, u := p.conditionalExpression(checkTypeName)
 	var r *AssignmentExpression
 	switch p.rune(false) {
@@ -1432,7 +1432,7 @@ func (p *parser) assignmentExpression(checkTypeName bool) ExpressionNode {
 //  conditional-expression:
 // 	logical-OR-expression
 // 	logical-OR-expression ? expression : conditional-expression
-func (p *parser) conditionalExpression(checkTypeName bool) (r, u ExpressionNode) {
+func (p *parser) conditionalExpression(checkTypeName bool) (r, u Expression) {
 	lhs, u := p.logicalOrExpression(checkTypeName)
 	switch p.rune(false) {
 	case eof:
@@ -1452,7 +1452,7 @@ func (p *parser) conditionalExpression(checkTypeName bool) (r, u ExpressionNode)
 //  logical-OR-expression:
 // 	logical-AND-expression
 // 	logical-OR-expression || logical-AND-expression
-func (p *parser) logicalOrExpression(checkTypeName bool) (r, u ExpressionNode) {
+func (p *parser) logicalOrExpression(checkTypeName bool) (r, u Expression) {
 	r, u = p.logicalAndExpression(checkTypeName)
 	var s *BinaryExpression
 	for {
@@ -1476,7 +1476,7 @@ func (p *parser) logicalOrExpression(checkTypeName bool) (r, u ExpressionNode) {
 //  logical-AND-expression:
 // 	inclusive-OR-expression
 // 	logical-AND-expression && inclusive-OR-expression
-func (p *parser) logicalAndExpression(checkTypeName bool) (r, u ExpressionNode) {
+func (p *parser) logicalAndExpression(checkTypeName bool) (r, u Expression) {
 	r, u = p.inclusiveOrExpression(checkTypeName)
 	var s *BinaryExpression
 	for {
@@ -1500,7 +1500,7 @@ func (p *parser) logicalAndExpression(checkTypeName bool) (r, u ExpressionNode) 
 //  inclusive-OR-expression:
 // 	exclusive-OR-expression
 // 	inclusive-OR-expression | exclusive-OR-expression
-func (p *parser) inclusiveOrExpression(checkTypeName bool) (r, u ExpressionNode) {
+func (p *parser) inclusiveOrExpression(checkTypeName bool) (r, u Expression) {
 	r, u = p.exclusiveOrExpression(checkTypeName)
 	var s *BinaryExpression
 	for {
@@ -1524,7 +1524,7 @@ func (p *parser) inclusiveOrExpression(checkTypeName bool) (r, u ExpressionNode)
 //  exclusive-OR-expression:
 // 	AND-expression
 // 	exclusive-OR-expression ^ AND-expression
-func (p *parser) exclusiveOrExpression(checkTypeName bool) (r, u ExpressionNode) {
+func (p *parser) exclusiveOrExpression(checkTypeName bool) (r, u Expression) {
 	r, u = p.andExpression(checkTypeName)
 	var s *BinaryExpression
 	for {
@@ -1548,7 +1548,7 @@ func (p *parser) exclusiveOrExpression(checkTypeName bool) (r, u ExpressionNode)
 //  AND-expression:
 // 	equality-expression
 // 	AND-expression & equality-expression
-func (p *parser) andExpression(checkTypeName bool) (r, u ExpressionNode) {
+func (p *parser) andExpression(checkTypeName bool) (r, u Expression) {
 	r, u = p.equalityExpression(checkTypeName)
 	var s *BinaryExpression
 	for {
@@ -1573,7 +1573,7 @@ func (p *parser) andExpression(checkTypeName bool) (r, u ExpressionNode) {
 // 	relational-expression
 // 	equality-expression == relational-expression
 // 	equality-expression != relational-expression
-func (p *parser) equalityExpression(checkTypeName bool) (r, u ExpressionNode) {
+func (p *parser) equalityExpression(checkTypeName bool) (r, u Expression) {
 	r, u = p.relationalExpression(checkTypeName)
 	var s *BinaryExpression
 	for {
@@ -1603,7 +1603,7 @@ func (p *parser) equalityExpression(checkTypeName bool) (r, u ExpressionNode) {
 // 	relational-expression >  shift-expression
 // 	relational-expression <= shift-expression
 // 	relational-expression >= shift-expression
-func (p *parser) relationalExpression(checkTypeName bool) (r, u ExpressionNode) {
+func (p *parser) relationalExpression(checkTypeName bool) (r, u Expression) {
 	r, u = p.shiftExpression(checkTypeName)
 	var s *BinaryExpression
 	for {
@@ -1637,7 +1637,7 @@ func (p *parser) relationalExpression(checkTypeName bool) (r, u ExpressionNode) 
 // 	additive-expression
 // 	shift-expression << additive-expression
 // 	shift-expression >> additive-expression
-func (p *parser) shiftExpression(checkTypeName bool) (r, u ExpressionNode) {
+func (p *parser) shiftExpression(checkTypeName bool) (r, u Expression) {
 	r, u = p.additiveExpression(checkTypeName)
 	var s *BinaryExpression
 	for {
@@ -1665,7 +1665,7 @@ func (p *parser) shiftExpression(checkTypeName bool) (r, u ExpressionNode) {
 // 	multiplicative-expression
 // 	additive-expression + multiplicative-expression
 // 	additive-expression - multiplicative-expression
-func (p *parser) additiveExpression(checkTypeName bool) (r, u ExpressionNode) {
+func (p *parser) additiveExpression(checkTypeName bool) (r, u Expression) {
 	r, u = p.multiplicativeExpression(checkTypeName)
 	var s *BinaryExpression
 	for {
@@ -1694,7 +1694,7 @@ func (p *parser) additiveExpression(checkTypeName bool) (r, u ExpressionNode) {
 // 	multiplicative-expression * cast-expression
 // 	multiplicative-expression / cast-expression
 // 	multiplicative-expression % cast-expression
-func (p *parser) multiplicativeExpression(checkTypeName bool) (r, u ExpressionNode) {
+func (p *parser) multiplicativeExpression(checkTypeName bool) (r, u Expression) {
 	r, u = p.castExpression(checkTypeName)
 	var s *BinaryExpression
 	for {
@@ -1724,7 +1724,7 @@ func (p *parser) multiplicativeExpression(checkTypeName bool) (r, u ExpressionNo
 //  cast-expression:
 // 	unary-expression
 // 	( type-name ) cast-expression
-func (p *parser) castExpression(checkTypeName bool) (r, u ExpressionNode) {
+func (p *parser) castExpression(checkTypeName bool) (r, u Expression) {
 	switch p.rune(false) {
 	case eof:
 		p.cpp.eh("%v: unexpected EOF", p.toks[0].Position())
@@ -2018,7 +2018,7 @@ func (p *parser) isSpecifierQualifer(ch rune, typenameOk bool) bool {
 //
 //  unary-operator: one of
 // 	& * + - ~ !
-func (p *parser) unaryExpression(lp Token, tn *TypeName, rp Token, checkTypeName bool) ExpressionNode {
+func (p *parser) unaryExpression(lp Token, tn *TypeName, rp Token, checkTypeName bool) Expression {
 	if tn != nil {
 		return p.postfixExpression(lp, tn, rp, checkTypeName)
 	}
@@ -2129,7 +2129,7 @@ func (p *parser) unaryExpression(lp Token, tn *TypeName, rp Token, checkTypeName
 // 	( type-name ) { initializer-list }
 // 	( type-name ) { initializer-list , }
 // 	__builtin_types_compatible_p ( type-name , type-name )
-func (p *parser) postfixExpression(lp Token, tn *TypeName, rp Token, checkTypeName bool) (r ExpressionNode) {
+func (p *parser) postfixExpression(lp Token, tn *TypeName, rp Token, checkTypeName bool) (r Expression) {
 	var r0 *PostfixExpression
 	switch {
 	case tn != nil:
