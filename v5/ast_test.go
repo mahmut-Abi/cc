@@ -1803,8 +1803,8 @@ func ExampleDesignation_case0() {
 	fmt.Println(exampleAST(207, "int a[] = { [42] = 314 };"))
 	// Output:
 	// &cc.Designation{
-	// · DesignatorList: &cc.DesignatorList{
-	// · · Designator: &cc.Designator{
+	// · Designators: []*cc.Designator{ // len 1
+	// · · 0: &cc.Designator{
 	// · · · Case: DesignatorIndex,
 	// · · · ConstantExpression: &cc.ConstantExpression{
 	// · · · · ConditionalExpression: &cc.PrimaryExpression{
@@ -1879,52 +1879,46 @@ func ExampleDesignator_field2() {
 	// }
 }
 
-func ExampleDesignatorList_case0() {
+func ExampleDesignator_case0() {
 	fmt.Println(exampleAST(208, "int a[] = { [42] = 314 };"))
 	// Output:
-	// &cc.DesignatorList{
-	// · Designator: &cc.Designator{
-	// · · Case: DesignatorIndex,
-	// · · ConstantExpression: &cc.ConstantExpression{
-	// · · · ConditionalExpression: &cc.PrimaryExpression{
-	// · · · · Case: PrimaryExpressionInt,
-	// · · · · Token: example.c:1:14: integer constant "42",
-	// · · · },
+	// &cc.Designator{
+	// · Case: DesignatorIndex,
+	// · ConstantExpression: &cc.ConstantExpression{
+	// · · ConditionalExpression: &cc.PrimaryExpression{
+	// · · · Case: PrimaryExpressionInt,
+	// · · · Token: example.c:1:14: integer constant "42",
 	// · · },
-	// · · Token: example.c:1:13: '[' "[",
-	// · · Token2: example.c:1:16: ']' "]",
 	// · },
+	// · Token: example.c:1:13: '[' "[",
+	// · Token2: example.c:1:16: ']' "]",
 	// }
 }
 
-func ExampleDesignatorList_case1() {
+func ExampleDesignator_case1() {
 	fmt.Println(exampleAST(209, "int a[100][] = { [42][12] = 314 };"))
 	// Output:
-	// &cc.DesignatorList{
-	// · Designator: &cc.Designator{
-	// · · Case: DesignatorIndex,
-	// · · ConstantExpression: &cc.ConstantExpression{
-	// · · · ConditionalExpression: &cc.PrimaryExpression{
-	// · · · · Case: PrimaryExpressionInt,
-	// · · · · Token: example.c:1:19: integer constant "42",
-	// · · · },
-	// · · },
-	// · · Token: example.c:1:18: '[' "[",
-	// · · Token2: example.c:1:21: ']' "]",
-	// · },
-	// · DesignatorList: &cc.DesignatorList{
-	// · · Designator: &cc.Designator{
-	// · · · Case: DesignatorIndex,
-	// · · · ConstantExpression: &cc.ConstantExpression{
-	// · · · · ConditionalExpression: &cc.PrimaryExpression{
-	// · · · · · Case: PrimaryExpressionInt,
-	// · · · · · Token: example.c:1:23: integer constant "12",
-	// · · · · },
-	// · · · },
-	// · · · Token: example.c:1:22: '[' "[",
-	// · · · Token2: example.c:1:25: ']' "]",
+	// &cc.Designator{
+	// · Case: DesignatorIndex,
+	// · ConstantExpression: &cc.ConstantExpression{
+	// · · ConditionalExpression: &cc.PrimaryExpression{
+	// · · · Case: PrimaryExpressionInt,
+	// · · · Token: example.c:1:19: integer constant "42",
 	// · · },
 	// · },
+	// · Token: example.c:1:18: '[' "[",
+	// · Token2: example.c:1:21: ']' "]",
+	// }
+	// &cc.Designator{
+	// · Case: DesignatorIndex,
+	// · ConstantExpression: &cc.ConstantExpression{
+	// · · ConditionalExpression: &cc.PrimaryExpression{
+	// · · · Case: PrimaryExpressionInt,
+	// · · · Token: example.c:1:23: integer constant "12",
+	// · · },
+	// · },
+	// · Token: example.c:1:22: '[' "[",
+	// · Token2: example.c:1:25: ']' "]",
 	// }
 }
 
@@ -2931,8 +2925,8 @@ func ExampleInitializerList_case0() {
 	// Output:
 	// &cc.InitializerList{
 	// · Designation: &cc.Designation{
-	// · · DesignatorList: &cc.DesignatorList{
-	// · · · Designator: &cc.Designator{
+	// · · Designators: []*cc.Designator{ // len 1
+	// · · · 0: &cc.Designator{
 	// · · · · Case: DesignatorIndex,
 	// · · · · ConstantExpression: &cc.ConstantExpression{
 	// · · · · · ConditionalExpression: &cc.PrimaryExpression{
@@ -2961,8 +2955,8 @@ func ExampleInitializerList_case1() {
 	// Output:
 	// &cc.InitializerList{
 	// · Designation: &cc.Designation{
-	// · · DesignatorList: &cc.DesignatorList{
-	// · · · Designator: &cc.Designator{
+	// · · Designators: []*cc.Designator{ // len 1
+	// · · · 0: &cc.Designator{
 	// · · · · Case: DesignatorIndex,
 	// · · · · ConstantExpression: &cc.ConstantExpression{
 	// · · · · · ConditionalExpression: &cc.PrimaryExpression{
@@ -2985,8 +2979,8 @@ func ExampleInitializerList_case1() {
 	// · },
 	// · InitializerList: &cc.InitializerList{
 	// · · Designation: &cc.Designation{
-	// · · · DesignatorList: &cc.DesignatorList{
-	// · · · · Designator: &cc.Designator{
+	// · · · Designators: []*cc.Designator{ // len 1
+	// · · · · 0: &cc.Designator{
 	// · · · · · Case: DesignatorIndex,
 	// · · · · · ConstantExpression: &cc.ConstantExpression{
 	// · · · · · · ConditionalExpression: &cc.PrimaryExpression{

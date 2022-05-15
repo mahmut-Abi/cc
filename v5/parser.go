@@ -1299,7 +1299,7 @@ func (p *parser) initializerList() (r *InitializerList) {
 func (p *parser) designation() (r *Designation) {
 	p.rune(false)
 	dl, last := p.designatorList()
-	r = &Designation{DesignatorList: dl}
+	r = &Designation{Designators: dl}
 	if last != DesignatorField2 {
 		r.Token = p.must('=')
 	}
@@ -1309,34 +1309,27 @@ func (p *parser) designation() (r *Designation) {
 //  designator-list:
 // 	designator
 // 	designator-list designator
-func (p *parser) designatorList() (r *DesignatorList, last DesignatorCase) {
-	var prev *DesignatorList
+func (p *parser) designatorList() (r []*Designator, last DesignatorCase) {
 	for {
-		var dl *DesignatorList
+		var dl *Designator
 		switch p.rune(true) {
 		case eof:
 			p.cpp.eh("%v: unexpected EOF", p.toks[0].Position())
 			return nil, 0
 		case '[', '.':
-			dl = &DesignatorList{Designator: p.designator()}
+			dl = p.designator()
 		case rune(IDENTIFIER):
 			switch p.peek(1, false).Ch {
 			case ':':
-				dl = &DesignatorList{Designator: p.designator()}
+				dl = p.designator()
 			default:
 				return r, last
 			}
 		default:
 			return r, last
 		}
-		last = dl.Designator.Case
-		switch {
-		case r == nil:
-			r = dl
-		default:
-			prev.DesignatorList = dl
-		}
-		prev = dl
+		last = dl.Case
+		r = append(r, dl)
 	}
 }
 

@@ -1160,8 +1160,8 @@ func (n *Declarator) IsParam() bool { return n.isParam }
 //	Designation:
 //	        DesignatorList '='
 type Designation struct {
-	DesignatorList *DesignatorList
-	Token          Token
+	Designators []*Designator
+	Token       Token
 }
 
 // String implements fmt.Stringer.
@@ -1173,8 +1173,10 @@ func (n *Designation) Position() (r token.Position) {
 		return r
 	}
 
-	if p := n.DesignatorList.Position(); p.IsValid() {
-		return p
+	for _, v := range n.Designators {
+		if p := v.Position(); p.IsValid() {
+			return p
+		}
 	}
 
 	return n.Token.Position()
@@ -1270,28 +1272,6 @@ func (n *Designator) Position() (r token.Position) {
 	default:
 		panic("internal error")
 	}
-}
-
-// DesignatorList represents data reduced by productions:
-//
-//	DesignatorList:
-//	        Designator
-//	|       DesignatorList Designator
-type DesignatorList struct {
-	Designator     *Designator
-	DesignatorList *DesignatorList
-}
-
-// String implements fmt.Stringer.
-func (n *DesignatorList) String() string { return PrettyString(n) }
-
-// Position reports the position of the first component of n, if available.
-func (n *DesignatorList) Position() (r token.Position) {
-	if n == nil {
-		return r
-	}
-
-	return n.Designator.Position()
 }
 
 // DirectAbstractDeclaratorCase represents case numbers of production DirectAbstractDeclarator

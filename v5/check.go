@@ -1168,13 +1168,13 @@ func (n *InitializerList) checkArray(c *ctx, t *ArrayType, off int64, outer bool
 					return n
 				}
 
-				dl := n.Designation.DesignatorList
-				lo, hi = dl.Designator.index(c)
+				dl := n.Designation
+				lo, hi = dl.Designators[0].index(c)
 				if lo < 0 {
 					return nil
 				}
 
-				if dl := dl.DesignatorList; dl != nil {
+				if len(dl.Designators) != 1 {
 					//TODO if n = n.checkDesignatorList(dl, c, f.Type(), off+f.Offset()); n == nil { return nil }
 					c.errors.add(errorf("TODO %T", n))
 					return nil
@@ -1195,19 +1195,19 @@ func (n *InitializerList) checkArray(c *ctx, t *ArrayType, off int64, outer bool
 					return n
 				}
 
-				dl := n.Designation.DesignatorList
-				lo, hi = dl.Designator.index(c)
+				dl := n.Designation
+				lo, hi = dl.Designators[0].index(c)
 				if lo < 0 {
 					return nil
 				}
 
 				if lo >= t.elems {
-					c.errors.add(errorf("%v: index %v out of range for array of %v elements", dl.Designator.Position(), lo, t.elems))
+					c.errors.add(errorf("%v: index %v out of range for array of %v elements", dl.Designators[0].Position(), lo, t.elems))
 					return nil
 				}
 
 				if hi >= t.elems {
-					c.errors.add(errorf("%v: index %v out of range for array of %v elements", dl.Designator.Position(), hi, t.elems))
+					c.errors.add(errorf("%v: index %v out of range for array of %v elements", dl.Designators[0].Position(), hi, t.elems))
 					return nil
 				}
 
@@ -1218,8 +1218,8 @@ func (n *InitializerList) checkArray(c *ctx, t *ArrayType, off int64, outer bool
 					n.Initializer.nelems = hi - lo + 1
 				}
 
-				if dl := dl.DesignatorList; dl != nil {
-					if n = n.checkDesignatorList(dl, c, elemT, off+lo*elemT.Size(), hi >= 0); n == nil {
+				if len(dl.Designators) > 1 {
+					if n = n.checkDesignatorList(dl.Designators[1:], c, elemT, off+lo*elemT.Size(), hi >= 0); n == nil {
 						return nil
 					}
 				}
@@ -1372,8 +1372,8 @@ func (n *InitializerList) checkStruct(c *ctx, t *StructType, off int64, outer bo
 				return n
 			}
 
-			dl := n.Designation.DesignatorList
-			nm := dl.Designator.name(c)
+			dl := n.Designation
+			nm := dl.Designators[0].name(c)
 			if nm == "" {
 				return nil
 			}
@@ -1383,8 +1383,8 @@ func (n *InitializerList) checkStruct(c *ctx, t *StructType, off int64, outer bo
 				return nil
 			}
 
-			if dl := dl.DesignatorList; dl != nil {
-				if n = n.checkDesignatorList(dl, c, f.Type(), off+f.Offset(), false); n == nil {
+			if len(dl.Designators) > 1 {
+				if n = n.checkDesignatorList(dl.Designators[1:], c, f.Type(), off+f.Offset(), false); n == nil {
 					return nil
 				}
 			}
@@ -1401,39 +1401,39 @@ func (n *InitializerList) checkStruct(c *ctx, t *StructType, off int64, outer bo
 	return n
 }
 
-func (n *InitializerList) checkDesignatorList(dl *DesignatorList, c *ctx, t Type, off int64, ranged bool) *InitializerList {
-	for ; dl != nil; dl = dl.DesignatorList {
+func (n *InitializerList) checkDesignatorList(list []*Designator, c *ctx, t Type, off int64, ranged bool) *InitializerList {
+	for _, dl := range list {
 		switch x := t.(type) {
 		case *StructType:
-			nm := dl.Designator.name(c)
+			nm := dl.name(c)
 			if nm == "" {
 				return nil
 			}
 
 			f := x.FieldByName(nm)
 			if f == nil {
-				c.errors.add(errorf("%v: type %s has no member %s", dl.Designator.Position(), t, nm))
+				c.errors.add(errorf("%v: type %s has no member %s", dl.Position(), t, nm))
 				return nil
 			}
 
 			t = f.Type()
 			off += f.Offset()
 		case *UnionType:
-			nm := dl.Designator.name(c)
+			nm := dl.name(c)
 			if nm == "" {
 				return nil
 			}
 
 			f := x.FieldByName(nm)
 			if f == nil {
-				c.errors.add(errorf("%v: type %s has no member %s", dl.Designator.Position(), t, nm))
+				c.errors.add(errorf("%v: type %s has no member %s", dl.Position(), t, nm))
 				return nil
 			}
 
 			t = f.Type()
 			off += f.Offset()
 		case *ArrayType:
-			lo, hi := dl.Designator.index(c)
+			lo, hi := dl.index(c)
 			if lo < 0 {
 				return nil
 			}
@@ -1511,8 +1511,8 @@ func (n *InitializerList) checkUnion(c *ctx, t *UnionType, off int64, outer bool
 			return n
 		}
 
-		dl := n.Designation.DesignatorList
-		nm := dl.Designator.name(c)
+		dl := n.Designation
+		nm := dl.Designators[0].name(c)
 		if nm == "" {
 			return nil
 		}
@@ -1522,8 +1522,8 @@ func (n *InitializerList) checkUnion(c *ctx, t *UnionType, off int64, outer bool
 			return nil
 		}
 
-		if dl := dl.DesignatorList; dl != nil {
-			return n.checkDesignatorList(dl, c, f.Type(), off+f.Offset(), false)
+		if len(dl.Designators) > 1 {
+			return n.checkDesignatorList(dl.Designators[1:], c, f.Type(), off+f.Offset(), false)
 		}
 	}
 
