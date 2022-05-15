@@ -461,8 +461,8 @@ func typeNameEqual(t reflect.Type, typ string) bool {
 	return false
 }
 
-func findNode(typ string, n Node, depth int, out *Node, pdepth *int) {
-	if depth >= *pdepth {
+func findNode(typ string, n Node, depth int, maxdepth int, fnc func(n Node, depth int)) {
+	if depth >= maxdepth {
 		return
 	}
 
@@ -478,8 +478,7 @@ func findNode(typ string, n Node, depth int, out *Node, pdepth *int) {
 
 	t := reflect.TypeOf(elem.Interface())
 	if typeNameEqual(t, typ) {
-		*pdepth = depth
-		*out = n
+		fnc(n, depth)
 		return
 	}
 
@@ -491,11 +490,11 @@ func findNode(typ string, n Node, depth int, out *Node, pdepth *int) {
 
 		fv := elem.FieldByIndex([]int{i})
 		if x, ok := fv.Interface().(Node); ok {
-			findNode(typ, x, depth+1, out, pdepth)
+			findNode(typ, x, depth+1, maxdepth, fnc)
 		} else if fv.Kind() == reflect.Slice {
 			for j := 0; j < fv.Len(); j++ {
 				if x, ok := fv.Index(j).Interface().(Node); ok {
-					findNode(typ, x, depth+1, out, pdepth)
+					findNode(typ, x, depth+1, maxdepth, fnc)
 				}
 			}
 		}

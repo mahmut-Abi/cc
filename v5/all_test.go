@@ -106,7 +106,7 @@ func exampleASTRaw(src string) *AST {
 
 // exampleAST produces the AST used in examples documentation,
 // and find a node related to the example based on its name.
-func exampleAST(rule int, src string) (r interface{}) {
+func exampleAST(rule int, src string) (r string) {
 	defer func() {
 		if err := recover(); err != nil {
 			r = fmt.Sprintf("%v (%v:)", err, origin(5))
@@ -127,10 +127,14 @@ func exampleAST(rule int, src string) (r interface{}) {
 	typ = typ[i+1+len("Example"):]
 	i = strings.LastIndexByte(typ, '_')
 	typ = typ[:i]
-	var node Node
-	depth := mathutil.MaxInt
-	findNode(typ, ast, 0, &node, &depth)
-	return node
+	var buf bytes.Buffer
+	findNode(typ, ast, 0, mathutil.MaxInt, func(n Node, depth int) {
+		fmt.Fprintln(&buf, n)
+	})
+	if buf.Len() == 0 {
+		buf.WriteString("<nil>\n")
+	}
+	return buf.String()
 }
 
 func TestMain(m *testing.M) {
@@ -966,19 +970,18 @@ func TestStrCatSep(t *testing.T) {
 		}
 
 		// trc("%q -> %q", v.src, nodeSource2(ast.TranslationUnit))
-		var n Node
-		depth := mathutil.MaxInt
-		findNode("PrimaryExpression", ast, 0, &n, &depth)
-		tok := n.(*PrimaryExpression).Token
-		if g, e := tok.SrcStr(), v.lit; g != e {
-			t.Errorf("%v: %q %q", i, g, e)
-		}
-		if g, e := string(tok.Sep()), v.sep; g != e {
-			t.Errorf("%v: %q %q", i, g, e)
-		}
-		if g, e := string(ast.EOF.Sep()), v.trailingSep; g != e {
-			t.Errorf("%v: %q %q", i, g, e)
-		}
+		findNode("PrimaryExpression", ast, 0, mathutil.MaxInt, func(n Node, depth int) {
+			tok := n.(*PrimaryExpression).Token
+			if g, e := tok.SrcStr(), v.lit; g != e {
+				t.Errorf("%v: %q %q", i, g, e)
+			}
+			if g, e := string(tok.Sep()), v.sep; g != e {
+				t.Errorf("%v: %q %q", i, g, e)
+			}
+			if g, e := string(ast.EOF.Sep()), v.trailingSep; g != e {
+				t.Errorf("%v: %q %q", i, g, e)
+			}
+		})
 	}
 }
 
