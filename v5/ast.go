@@ -4849,31 +4849,6 @@ func (n *StructOrUnionSpecifier) Position() (r token.Position) {
 	}
 }
 
-// TranslationUnit represents data reduced by productions:
-//
-//	TranslationUnit:
-//	        ExternalDeclaration
-//	|       TranslationUnit ExternalDeclaration
-type TranslationUnit struct {
-	ExternalDeclaration ExternalDeclaration
-}
-
-// String implements fmt.Stringer.
-func (n *TranslationUnit) String() string { return PrettyString(n) }
-
-// Position reports the position of the first component of n, if available.
-func (n *TranslationUnit) Position() (r token.Position) {
-	if n == nil {
-		return r
-	}
-
-	if n.ExternalDeclaration == nil {
-		return r
-	}
-
-	return n.ExternalDeclaration.Position()
-}
-
 // TypeName represents data reduced by production:
 //
 //	TypeName:

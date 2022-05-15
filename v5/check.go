@@ -443,7 +443,7 @@ type AST struct {
 	Macros                map[string]*Macro
 	Scope                 *Scope // File scope.
 	SizeT                 Type   // Valid only after Translate
-	TranslationUnits      []*TranslationUnit
+	Declarations          []ExternalDeclaration
 	Void                  Type // Valid only after Translate
 	kinds                 map[Kind]Type
 	predefinedDeclarator0 *Declarator // `int __predefined_declarator`
@@ -455,8 +455,8 @@ func (n *AST) Position() (r token.Position) {
 		return r
 	}
 
-	for _, tu := range n.TranslationUnits {
-		if p := tu.Position(); p.IsValid() {
+	for _, d := range n.Declarations {
+		if p := d.Position(); p.IsValid() {
 			return p
 		}
 	}
@@ -466,10 +466,8 @@ func (n *AST) Position() (r token.Position) {
 
 func (n *AST) check() error {
 	c := newCtx(n)
-	for _, l := range n.TranslationUnits {
-		if l.ExternalDeclaration != nil {
-			l.ExternalDeclaration.check(c)
-		}
+	for _, d := range n.Declarations {
+		d.check(c)
 	}
 	c.checkScope(n.Scope)
 	n.SizeT = c.sizeT(n.EOF)

@@ -4717,87 +4717,82 @@ func ExampleStructOrUnionSpecifier_tag() {
 	// }
 }
 
-func ExampleTranslationUnit_case0() {
-	fmt.Println(exampleAST(246, "int i;"))
+func ExampleExternalDeclaration_case0() {
+	ast := exampleASTRaw("int i;")
+	fmt.Println(ast.Declarations[0])
 	// Output:
-	// &cc.TranslationUnit{
-	// · ExternalDeclaration: &cc.Declaration{
-	// · · Case: DeclarationDecl,
-	// · · DeclarationSpecifiers: &cc.DeclarationSpecifiers{
-	// · · · Case: DeclarationSpecifiersTypeSpec,
-	// · · · TypeSpecifier: &cc.TypeSpecifier{
-	// · · · · Case: TypeSpecifierInt,
-	// · · · · Token: example.c:1:1: 'int' "int",
-	// · · · },
+	// &cc.Declaration{
+	// · Case: DeclarationDecl,
+	// · DeclarationSpecifiers: &cc.DeclarationSpecifiers{
+	// · · Case: DeclarationSpecifiersTypeSpec,
+	// · · TypeSpecifier: &cc.TypeSpecifier{
+	// · · · Case: TypeSpecifierInt,
+	// · · · Token: example.c:1:1: 'int' "int",
 	// · · },
-	// · · InitDeclaratorList: &cc.InitDeclaratorList{
-	// · · · InitDeclarator: &cc.InitDeclarator{
-	// · · · · Case: InitDeclaratorDecl,
-	// · · · · Declarator: &cc.Declarator{
-	// · · · · · DirectDeclarator: &cc.DirectDeclarator{
-	// · · · · · · Case: DirectDeclaratorIdent,
-	// · · · · · · Token: example.c:1:5: identifier "i",
-	// · · · · · },
+	// · },
+	// · InitDeclaratorList: &cc.InitDeclaratorList{
+	// · · InitDeclarator: &cc.InitDeclarator{
+	// · · · Case: InitDeclaratorDecl,
+	// · · · Declarator: &cc.Declarator{
+	// · · · · DirectDeclarator: &cc.DirectDeclarator{
+	// · · · · · Case: DirectDeclaratorIdent,
+	// · · · · · Token: example.c:1:5: identifier "i",
 	// · · · · },
 	// · · · },
 	// · · },
-	// · · Token: example.c:1:6: ';' ";",
 	// · },
+	// · Token: example.c:1:6: ';' ";",
 	// }
 }
 
-func ExampleTranslationUnit_case1() {
+func ExampleExternalDeclaration_case1() {
 	ast := exampleASTRaw("int i; int j;")
-	fmt.Println(ast.TranslationUnits[0])
-	fmt.Println(ast.TranslationUnits[1])
+	fmt.Println(ast.Declarations[0])
+	fmt.Println(ast.Declarations[1])
 	// Output:
-	// &cc.TranslationUnit{
-	// · ExternalDeclaration: &cc.Declaration{
-	// · · Case: DeclarationDecl,
-	// · · DeclarationSpecifiers: &cc.DeclarationSpecifiers{
-	// · · · Case: DeclarationSpecifiersTypeSpec,
-	// · · · TypeSpecifier: &cc.TypeSpecifier{
-	// · · · · Case: TypeSpecifierInt,
-	// · · · · Token: example.c:1:1: 'int' "int",
-	// · · · },
+	// &cc.Declaration{
+	// · Case: DeclarationDecl,
+	// · DeclarationSpecifiers: &cc.DeclarationSpecifiers{
+	// · · Case: DeclarationSpecifiersTypeSpec,
+	// · · TypeSpecifier: &cc.TypeSpecifier{
+	// · · · Case: TypeSpecifierInt,
+	// · · · Token: example.c:1:1: 'int' "int",
 	// · · },
-	// · · InitDeclaratorList: &cc.InitDeclaratorList{
-	// · · · InitDeclarator: &cc.InitDeclarator{
-	// · · · · Case: InitDeclaratorDecl,
-	// · · · · Declarator: &cc.Declarator{
-	// · · · · · DirectDeclarator: &cc.DirectDeclarator{
-	// · · · · · · Case: DirectDeclaratorIdent,
-	// · · · · · · Token: example.c:1:5: identifier "i",
-	// · · · · · },
+	// · },
+	// · InitDeclaratorList: &cc.InitDeclaratorList{
+	// · · InitDeclarator: &cc.InitDeclarator{
+	// · · · Case: InitDeclaratorDecl,
+	// · · · Declarator: &cc.Declarator{
+	// · · · · DirectDeclarator: &cc.DirectDeclarator{
+	// · · · · · Case: DirectDeclaratorIdent,
+	// · · · · · Token: example.c:1:5: identifier "i",
 	// · · · · },
 	// · · · },
 	// · · },
-	// · · Token: example.c:1:6: ';' ";",
 	// · },
+	// · Token: example.c:1:6: ';' ";",
 	// }
-	// &cc.TranslationUnit{
-	// · ExternalDeclaration: &cc.Declaration{
-	// · · Case: DeclarationDecl,
-	// · · DeclarationSpecifiers: &cc.DeclarationSpecifiers{
-	// · · · Case: DeclarationSpecifiersTypeSpec,
-	// · · · TypeSpecifier: &cc.TypeSpecifier{
-	// · · · · Case: TypeSpecifierInt,
-	// · · · · Token: example.c:1:8: 'int' "int",
-	// · · · },
+	// &cc.Declaration{
+	// · Case: DeclarationDecl,
+	// · DeclarationSpecifiers: &cc.DeclarationSpecifiers{
+	// · · Case: DeclarationSpecifiersTypeSpec,
+	// · · TypeSpecifier: &cc.TypeSpecifier{
+	// · · · Case: TypeSpecifierInt,
+	// · · · Token: example.c:1:8: 'int' "int",
 	// · · },
-	// · · InitDeclaratorList: &cc.InitDeclaratorList{
-	// · · · InitDeclarator: &cc.InitDeclarator{
-	// · · · · Case: InitDeclaratorDecl,
-	// · · · · Declarator: &cc.Declarator{
-	// · · · · · DirectDeclarator: &cc.DirectDeclarator{
-	// · · · · · · Case: DirectDeclaratorIdent,
-	// · · · · · · Token: example.c:1:12: identifier "j",
-	// · · · · · },
+	// · },
+	// · InitDeclaratorList: &cc.InitDeclaratorList{
+	// · · InitDeclarator: &cc.InitDeclarator{
+	// · · · Case: InitDeclaratorDecl,
+	// · · · Declarator: &cc.Declarator{
+	// · · · · DirectDeclarator: &cc.DirectDeclarator{
+	// · · · · · Case: DirectDeclaratorIdent,
+	// · · · · · Token: example.c:1:12: identifier "j",
 	// · · · · },
 	// · · · },
 	// · · },
-	// · · Token: example.c:1:13: ';' ";",
 	// · },
+	// · Token: example.c:1:13: ';' ";",
 	// }
 }
 
