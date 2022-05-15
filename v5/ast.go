@@ -1058,7 +1058,7 @@ func (n DeclarationCase) String() string {
 type Declaration struct {
 	AttributeSpecifierList  *AttributeSpecifierList
 	Case                    DeclarationCase `PrettyPrint:"stringer,zero"`
-	DeclarationSpecifiers   []*DeclarationSpecifier
+	DeclarationSpecifiers   DeclarationSpecifiers
 	Declarator              *Declarator
 	InitDeclaratorList      *InitDeclaratorList
 	Initializer             *Initializer
@@ -1119,39 +1119,6 @@ func (n *Declaration) Position() (r token.Position) {
 	}
 }
 
-// DeclarationSpecifiersCase represents case numbers of production DeclarationSpecifiers
-type DeclarationSpecifiersCase int
-
-// Values of type DeclarationSpecifiersCase
-const (
-	DeclarationSpecifiersStorage DeclarationSpecifiersCase = iota
-	DeclarationSpecifiersTypeSpec
-	DeclarationSpecifiersTypeQual
-	DeclarationSpecifiersFunc
-	DeclarationSpecifiersAlignSpec
-	DeclarationSpecifiersAttr
-)
-
-// String implements fmt.Stringer
-func (n DeclarationSpecifiersCase) String() string {
-	switch n {
-	case DeclarationSpecifiersStorage:
-		return "DeclarationSpecifiersStorage"
-	case DeclarationSpecifiersTypeSpec:
-		return "DeclarationSpecifiersTypeSpec"
-	case DeclarationSpecifiersTypeQual:
-		return "DeclarationSpecifiersTypeQual"
-	case DeclarationSpecifiersFunc:
-		return "DeclarationSpecifiersFunc"
-	case DeclarationSpecifiersAlignSpec:
-		return "DeclarationSpecifiersAlignSpec"
-	case DeclarationSpecifiersAttr:
-		return "DeclarationSpecifiersAttr"
-	default:
-		return fmt.Sprintf("DeclarationSpecifiersCase(%v)", int(n))
-	}
-}
-
 // DeclarationSpecifier represents data reduced by productions:
 //
 //	DeclarationSpecifiers:
@@ -1161,44 +1128,28 @@ func (n DeclarationSpecifiersCase) String() string {
 //	|       FunctionSpecifier DeclarationSpecifiers      // Case DeclarationSpecifiersFunc
 //	|       AlignmentSpecifier DeclarationSpecifiers     // Case DeclarationSpecifiersAlignSpec
 //	|       "__attribute__"                              // Case DeclarationSpecifiersAttr
-type DeclarationSpecifier struct {
-	AttributeSpecifierList *AttributeSpecifierList
-	typer
-	isTypedef             bool
-	AlignmentSpecifier    *AlignmentSpecifier
-	Case                  DeclarationSpecifiersCase `PrettyPrint:"stringer,zero"`
-	FunctionSpecifier     *FunctionSpecifier
-	StorageClassSpecifier *StorageClassSpecifier
-	Token                 Token
-	TypeQualifier         *TypeQualifier
-	TypeSpecifier         *TypeSpecifier
+type DeclarationSpecifier interface {
+	Node
+	fmt.Stringer
+	isDeclarationSpecifier()
 }
 
-// String implements fmt.Stringer.
-func (n *DeclarationSpecifier) String() string { return PrettyString(n) }
+func (*StorageClassSpecifier) isDeclarationSpecifier()  {}
+func (*TypeSpecifier) isDeclarationSpecifier()          {}
+func (*TypeQualifier) isDeclarationSpecifier()          {}
+func (*FunctionSpecifier) isDeclarationSpecifier()      {}
+func (*AlignmentSpecifier) isDeclarationSpecifier()     {}
+func (*AttributeSpecifierList) isDeclarationSpecifier() {}
 
-// Position reports the position of the first component of n, if available.
-func (n *DeclarationSpecifier) Position() (r token.Position) {
-	if n == nil {
-		return r
-	}
+type DeclarationSpecifiers []DeclarationSpecifier
 
-	switch n.Case {
-	case 4:
-		return n.AlignmentSpecifier.Position()
-	case 3:
-		return n.FunctionSpecifier.Position()
-	case 0:
-		return n.StorageClassSpecifier.Position()
-	case 5:
-		return n.Token.Position()
-	case 2:
-		return n.TypeQualifier.Position()
-	case 1:
-		return n.TypeSpecifier.Position()
-	default:
-		panic("internal error")
+func (list DeclarationSpecifiers) IsTypedef() bool {
+	for _, d := range list {
+		if s, ok := d.(*StorageClassSpecifier); ok && s.Case == StorageClassSpecifierTypedef {
+			return true
+		}
 	}
+	return false
 }
 
 // Declarator represents data reduced by production:
@@ -2268,7 +2219,7 @@ func (n *ExpressionList) Position() (r token.Position) {
 //	        ExpressionList ';'
 type ExpressionStatement struct {
 	AttributeSpecifierList *AttributeSpecifierList
-	declarationSpecifiers  []*DeclarationSpecifier
+	declarationSpecifiers  DeclarationSpecifiers
 	ExpressionList         ExpressionNode
 	Token                  Token
 }
@@ -2317,7 +2268,7 @@ type FunctionDefinition struct {
 	scope                 *Scope
 	CompoundStatement     *CompoundStatement
 	Declarations          []*Declaration
-	DeclarationSpecifiers []*DeclarationSpecifier
+	DeclarationSpecifiers DeclarationSpecifiers
 	Declarator            *Declarator
 }
 
@@ -3457,7 +3408,7 @@ type ParameterDeclaration struct {
 	typer
 	AbstractDeclarator    *AbstractDeclarator
 	Case                  ParameterDeclarationCase `PrettyPrint:"stringer,zero"`
-	DeclarationSpecifiers []*DeclarationSpecifier
+	DeclarationSpecifiers DeclarationSpecifiers
 	Declarator            *Declarator
 }
 

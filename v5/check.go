@@ -552,7 +552,7 @@ func (n *FunctionDefinition) check(c *ctx) Type {
 	return nil
 }
 
-func (c *ctx) checkFunctionDefinition(sc *Scope, ds []*DeclarationSpecifier, d *Declarator, dl []*Declaration, cs *CompoundStatement) {
+func (c *ctx) checkFunctionDefinition(sc *Scope, ds DeclarationSpecifiers, d *Declarator, dl []*Declaration, cs *CompoundStatement) {
 	d.check(c, checkDeclarationSpecifiers(c, ds, &d.isExtern, &d.isStatic, &d.isAtomic, &d.isThreadLocal, &d.isConst, &d.isVolatile, &d.isInline, &d.isRegister, &d.isAuto, &d.isNoreturn, &d.isRestrict, &d.alignas))
 	if x, ok := d.Type().(*FunctionType); ok {
 		x.hasImplicitResult = true
@@ -1817,7 +1817,7 @@ func ts2String(a []TypeSpecifierCase) string {
 //  |       FunctionSpecifier DeclarationSpecifiers      // Case DeclarationSpecifiersFunc
 //  |       AlignmentSpecifier DeclarationSpecifiers     // Case DeclarationSpecifiersAlignSpec
 //  |       "__attribute__"                              // Case DeclarationSpecifiersAttr
-func checkDeclarationSpecifiers(c *ctx, list []*DeclarationSpecifier, isExtern, isStatic, isAtomic, isThreadLocal, isConst, isVolatile, isInline, isRegister, isAuto, isNoreturn, isRestrict *bool, alignas *int) (r Type) {
+func checkDeclarationSpecifiers(c *ctx, list DeclarationSpecifiers, isExtern, isStatic, isAtomic, isThreadLocal, isConst, isVolatile, isInline, isRegister, isAuto, isNoreturn, isRestrict *bool, alignas *int) (r Type) {
 	if len(list) == 0 {
 		return c.intT
 	}
@@ -1826,7 +1826,7 @@ func checkDeclarationSpecifiers(c *ctx, list []*DeclarationSpecifier, isExtern, 
 	var attr *Attributes
 	var ts []TypeSpecifierCase
 
-	defer func(n *DeclarationSpecifier) {
+	defer func(n DeclarationSpecifier) {
 		if r == nil || r == Invalid {
 			//panic(todo("%v: %v %v", n.Position(), ts, TypeString(r)))
 			c.errors.add(errorf("TODO %T missed/failed type check: %v", n, ts))
@@ -1840,31 +1840,30 @@ func checkDeclarationSpecifiers(c *ctx, list []*DeclarationSpecifier, isExtern, 
 		if attr != nil {
 			r = r.setAttr(attr)
 		}
-		n.typ = r
 	}(list[0])
 
 	var attrs []*Attributes
 	for _, n := range list {
-		switch n.Case {
-		case DeclarationSpecifiersStorage: // StorageClassSpecifier DeclarationSpecifiers
-			n.StorageClassSpecifier.check(c, isExtern, isStatic, isThreadLocal, isRegister, isAuto)
-		case DeclarationSpecifiersTypeSpec: // TypeSpecifier DeclarationSpecifiers
-			ts = append(ts, n.TypeSpecifier.Case)
-			r = n.TypeSpecifier.check(c, isAtomic)
-		case DeclarationSpecifiersTypeQual: // TypeQualifier DeclarationSpecifiers
-			n.TypeQualifier.check(c, isConst, isVolatile, isAtomic, isRestrict)
-		case DeclarationSpecifiersFunc: // FunctionSpecifier DeclarationSpecifiers
-			n.FunctionSpecifier.check(c, isInline, isNoreturn)
-		case DeclarationSpecifiersAlignSpec: // AlignmentSpecifier DeclarationSpecifiers
-			if v := n.AlignmentSpecifier.check(c).Align(); v > 0 {
+		switch n := n.(type) {
+		case *StorageClassSpecifier:
+			n.check(c, isExtern, isStatic, isThreadLocal, isRegister, isAuto)
+		case *TypeSpecifier:
+			ts = append(ts, n.Case)
+			r = n.check(c, isAtomic)
+		case *TypeQualifier:
+			n.check(c, isConst, isVolatile, isAtomic, isRestrict)
+		case *FunctionSpecifier:
+			n.check(c, isInline, isNoreturn)
+		case *AlignmentSpecifier:
+			if v := n.check(c).Align(); v > 0 {
 				*alignas = v
 			}
-		case DeclarationSpecifiersAttr:
-			if attr := n.AttributeSpecifierList.check(c); attr != nil {
+		case *AttributeSpecifierList:
+			if attr := n.check(c); attr != nil {
 				attrs = append(attrs, attr)
 			}
 		default:
-			c.errors.add(errorf("internal error: %v", n.Case))
+			c.errors.add(errorf("internal error: %T", n))
 		}
 	}
 	switch len(attrs) {

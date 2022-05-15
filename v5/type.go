@@ -190,6 +190,10 @@ func (t typer) Type() Type {
 	return Invalid
 }
 
+func (t *typer) setType(v Type) {
+	t.typ = v
+}
+
 // Type is the representation of a C type.
 //
 // The dynamic type of a Type is one of
