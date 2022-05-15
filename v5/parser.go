@@ -1741,10 +1741,10 @@ func (p *parser) castExpression(checkTypeName bool) (r, u ExpressionNode) {
 				return nil, nil
 			case '{':
 				u = p.unaryExpression(lparen, tn, rparen, checkTypeName)
-				return &CastExpression{Case: CastExpressionUnary, UnaryExpression: u}, u
+				return u, u
 			default:
-				r := &CastExpression{Case: CastExpressionCast, Token: lparen, TypeName: tn, Token2: rparen}
-				r.CastExpression, _ = p.castExpression(checkTypeName)
+				r := &CastExpression{Lparen: lparen, TypeName: tn, Rparen: rparen}
+				r.Expr, _ = p.castExpression(checkTypeName)
 				return r, nil
 			}
 		case p.isExpression(ch) || ch == '{':

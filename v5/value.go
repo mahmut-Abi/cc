@@ -682,25 +682,11 @@ func (n *BinaryExpression) eval(c *ctx, mode flags) (r Value) {
 
 func (n *CastExpression) eval(c *ctx, mode flags) (r Value) {
 	if mode.has(addrOf) {
-		switch n.Case {
-		case CastExpressionUnary: // UnaryExpression
-			n.val = n.UnaryExpression.eval(c, mode)
-		case CastExpressionCast: // '(' TypeName ')' CastExpression
-			c.errors.add(errorf("TODO %v %v", n.Case, mode.has(addrOf)))
-		default:
-			c.errors.add(errorf("internal error: %v", n.Case))
-		}
+		c.errors.add(errorf("TODO %v", mode.has(addrOf)))
 		return n.Value()
 	}
 
-	switch n.Case {
-	case CastExpressionUnary: // UnaryExpression
-		n.val = n.UnaryExpression.eval(c, mode)
-	case CastExpressionCast: // '(' TypeName ')' CastExpression
-		n.val = c.convert(n.CastExpression.eval(c, mode), n.TypeName.Type())
-	default:
-		c.errors.add(errorf("internal error: %v", n.Case))
-	}
+	n.val = c.convert(n.Expr.eval(c, mode), n.TypeName.Type())
 	return n.Value()
 }
 

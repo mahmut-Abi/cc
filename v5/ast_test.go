@@ -1258,13 +1258,7 @@ func ExampleCastExpression_cast() {
 	fmt.Println(exampleAST(43, "int i = (__attribute__((a)) int)3.14;"))
 	// Output:
 	// &cc.CastExpression{
-	// · Case: CastExpressionCast,
-	// · CastExpression: &cc.PrimaryExpression{
-	// · · Case: PrimaryExpressionFloat,
-	// · · Token: example.c:1:33: floating point constant "3.14",
-	// · },
-	// · Token: example.c:1:9: '(' "(",
-	// · Token2: example.c:1:32: ')' ")",
+	// · Lparen: example.c:1:9: '(' "(",
 	// · TypeName: &cc.TypeName{
 	// · · SpecifierQualifierList: &cc.SpecifierQualifierList{
 	// · · · Case: SpecifierQualifierListTypeQual,
@@ -1294,6 +1288,11 @@ func ExampleCastExpression_cast() {
 	// · · · · Case: TypeQualifierAttr,
 	// · · · },
 	// · · },
+	// · },
+	// · Rparen: example.c:1:32: ')' ")",
+	// · Expr: &cc.PrimaryExpression{
+	// · · Case: PrimaryExpressionFloat,
+	// · · Token: example.c:1:33: floating point constant "3.14",
 	// · },
 	// }
 }

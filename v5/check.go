@@ -2687,13 +2687,6 @@ func (c *ctx) assignTo(n Node, unread bool) {
 		default:
 			c.errors.add(errorf("internal error: %v", x.Case))
 		}
-	case *CastExpression:
-		switch x.Case {
-		case CastExpressionUnary: // UnaryExpression
-			c.assignTo(x.UnaryExpression, unread)
-		default:
-			c.errors.add(errorf("internal error: %v", x.Case))
-		}
 	default:
 		c.errors.add(errorf("internal error: %T", x))
 	}
@@ -2912,15 +2905,8 @@ func (n *CastExpression) check(c *ctx, mode flags) (r Type) {
 		}
 	}()
 
-	switch n.Case {
-	case CastExpressionUnary: // UnaryExpression
-		n.typ = n.UnaryExpression.check(c, mode)
-	case CastExpressionCast: // '(' TypeName ')' CastExpression
-		n.typ = n.TypeName.check(c)
-		n.CastExpression.check(c, mode.add(decay))
-	default:
-		c.errors.add(errorf("internal error: %v", n.Case))
-	}
+	n.typ = n.TypeName.check(c)
+	n.Expr.check(c, mode.add(decay))
 	return n.Type()
 }
 
@@ -3114,14 +3100,7 @@ func (c *ctx) takeAddr(n Node) {
 			c.errors.add(errorf("internal error: %v", x.Case))
 		}
 	case *CastExpression:
-		switch x.Case {
-		case CastExpressionUnary: // UnaryExpression
-			c.takeAddr(x.UnaryExpression)
-		case CastExpressionCast: // '(' TypeName ')' CastExpression
-			c.takeAddr(x.CastExpression)
-		default:
-			c.errors.add(errorf("internal error: %v", x.Case))
-		}
+		c.takeAddr(x.Expr)
 	case *UnaryExpression:
 		switch x.Case {
 		case UnaryExpressionDeref: // '*' CastExpression

@@ -720,27 +720,6 @@ func (*IterationStatement) isBlockItem()  {}
 func (*JumpStatement) isBlockItem()       {}
 func (*AsmStatement) isBlockItem()        {}
 
-// CastExpressionCase represents case numbers of production CastExpression
-type CastExpressionCase int
-
-// Values of type CastExpressionCase
-const (
-	CastExpressionUnary CastExpressionCase = iota
-	CastExpressionCast
-)
-
-// String implements fmt.Stringer
-func (n CastExpressionCase) String() string {
-	switch n {
-	case CastExpressionUnary:
-		return "CastExpressionUnary"
-	case CastExpressionCast:
-		return "CastExpressionCast"
-	default:
-		return fmt.Sprintf("CastExpressionCase(%v)", int(n))
-	}
-}
-
 // CastExpression represents data reduced by productions:
 //
 //	CastExpression:
@@ -749,12 +728,10 @@ func (n CastExpressionCase) String() string {
 type CastExpression struct {
 	typer
 	valuer
-	Case            CastExpressionCase `PrettyPrint:"stringer,zero"`
-	CastExpression  ExpressionNode
-	Token           Token
-	Token2          Token
-	TypeName        *TypeName
-	UnaryExpression ExpressionNode
+	Lparen   Token
+	TypeName *TypeName
+	Rparen   Token
+	Expr     ExpressionNode
 }
 
 // String implements fmt.Stringer.
@@ -766,26 +743,19 @@ func (n *CastExpression) Position() (r token.Position) {
 		return r
 	}
 
-	switch n.Case {
-	case 1:
-		if p := n.Token.Position(); p.IsValid() {
-			return p
-		}
-
-		if p := n.TypeName.Position(); p.IsValid() {
-			return p
-		}
-
-		if p := n.Token2.Position(); p.IsValid() {
-			return p
-		}
-
-		return n.CastExpression.Position()
-	case 0:
-		return n.UnaryExpression.Position()
-	default:
-		panic("internal error")
+	if p := n.Lparen.Position(); p.IsValid() {
+		return p
 	}
+
+	if p := n.TypeName.Position(); p.IsValid() {
+		return p
+	}
+
+	if p := n.Rparen.Position(); p.IsValid() {
+		return p
+	}
+
+	return n.Expr.Position()
 }
 
 // CompoundStatement represents data reduced by production:
