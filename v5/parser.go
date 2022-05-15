@@ -444,30 +444,20 @@ func (p *parser) functionDefinition(ds *DeclarationSpecifiers, d *Declarator) (r
 		p.fnScope = nil
 	}()
 	d.isFuncDef = true
-	return &FunctionDefinition{DeclarationSpecifiers: ds, Declarator: d, DeclarationList: p.declarationListOpt(), CompoundStatement: p.compoundStatement(true, d)}
+	return &FunctionDefinition{DeclarationSpecifiers: ds, Declarator: d, Declarations: p.declarationListOpt(), CompoundStatement: p.compoundStatement(true, d)}
 }
 
 //  declaration-list:
 // 	declaration
 // 	declaration-list declaration
-func (p *parser) declarationListOpt() (r *DeclarationList) {
-	var prev *DeclarationList
+func (p *parser) declarationListOpt() (r []*Declaration) {
 	for {
 		switch p.rune(false) {
 		case '{', eof:
 			return r
 		}
-
-		dl := &DeclarationList{Declaration: p.declaration(nil, nil, false)}
-		switch {
-		case r == nil:
-			r = dl
-		default:
-			prev.DeclarationList = dl
-		}
-		prev = dl
+		r = append(r, p.declaration(nil, nil, false))
 	}
-	return r
 }
 
 // [0], 6.8.2 Compound statement

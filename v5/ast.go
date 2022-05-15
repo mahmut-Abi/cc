@@ -1117,28 +1117,6 @@ func (n *Declaration) Position() (r token.Position) {
 	}
 }
 
-// DeclarationList represents data reduced by productions:
-//
-//	DeclarationList:
-//	        Declaration
-//	|       DeclarationList Declaration
-type DeclarationList struct {
-	Declaration     *Declaration
-	DeclarationList *DeclarationList
-}
-
-// String implements fmt.Stringer.
-func (n *DeclarationList) String() string { return PrettyString(n) }
-
-// Position reports the position of the first component of n, if available.
-func (n *DeclarationList) Position() (r token.Position) {
-	if n == nil {
-		return r
-	}
-
-	return n.Declaration.Position()
-}
-
 // DeclarationSpecifiersCase represents case numbers of production DeclarationSpecifiers
 type DeclarationSpecifiersCase int
 
@@ -2357,7 +2335,7 @@ func (*AsmStatement) isExternalDeclaration()       {}
 type FunctionDefinition struct {
 	scope                 *Scope
 	CompoundStatement     *CompoundStatement
-	DeclarationList       *DeclarationList
+	Declarations          []*Declaration
 	DeclarationSpecifiers *DeclarationSpecifiers
 	Declarator            *Declarator
 }
@@ -2379,8 +2357,10 @@ func (n *FunctionDefinition) Position() (r token.Position) {
 		return p
 	}
 
-	if p := n.DeclarationList.Position(); p.IsValid() {
-		return p
+	for _, d := range n.Declarations {
+		if p := d.Position(); p.IsValid() {
+			return p
+		}
 	}
 
 	return n.CompoundStatement.Position()

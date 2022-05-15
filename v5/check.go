@@ -548,11 +548,11 @@ func (n *AsmQualifier) check(c *ctx) {
 //  FunctionDefinition:
 //          DeclarationSpecifiers Declarator DeclarationList CompoundStatement
 func (n *FunctionDefinition) check(c *ctx) Type {
-	c.checkFunctionDefinition(n.scope, n.DeclarationSpecifiers, n.Declarator, n.DeclarationList, n.CompoundStatement)
+	c.checkFunctionDefinition(n.scope, n.DeclarationSpecifiers, n.Declarator, n.Declarations, n.CompoundStatement)
 	return nil
 }
 
-func (c *ctx) checkFunctionDefinition(sc *Scope, ds *DeclarationSpecifiers, d *Declarator, dl *DeclarationList, cs *CompoundStatement) {
+func (c *ctx) checkFunctionDefinition(sc *Scope, ds *DeclarationSpecifiers, d *Declarator, dl []*Declaration, cs *CompoundStatement) {
 	d.check(c, ds.check(c, &d.isExtern, &d.isStatic, &d.isAtomic, &d.isThreadLocal, &d.isConst, &d.isVolatile, &d.isInline, &d.isRegister, &d.isAuto, &d.isNoreturn, &d.isRestrict, &d.alignas))
 	if x, ok := d.Type().(*FunctionType); ok {
 		x.hasImplicitResult = true
@@ -564,7 +564,20 @@ func (c *ctx) checkFunctionDefinition(sc *Scope, ds *DeclarationSpecifiers, d *D
 			break
 		}
 
-		m := dl.check(c)
+		m := map[string]*Declarator{}
+		for _, n := range dl {
+			n.check(c)
+			for l := n.InitDeclaratorList; l != nil; l = l.InitDeclaratorList {
+				d := l.InitDeclarator.Declarator
+				nm := d.Name()
+				if x := m[nm]; x != nil {
+					c.errors.add(errorf("%v: %s redeclared, previous declaration at %v:", d.Position(), nm, x.Position()))
+					continue
+				}
+
+				m[nm] = d
+			}
+		}
 		for _, param := range d.DirectDeclarator.IdentifierList.parameters {
 			switch d := m[param.name.SrcStr()]; {
 			case d == nil:
@@ -593,29 +606,6 @@ func (c *ctx) checkFunctionDefinition(sc *Scope, ds *DeclarationSpecifiers, d *D
 	sc0, c.fnScope = c.fnScope, sc
 	defer func() { c.fnScope = sc0 }()
 	cs.check(c)
-}
-
-//  DeclarationList:
-//          Declaration
-//  |       DeclarationList Declaration
-func (n *DeclarationList) check(c *ctx) (m map[string]*Declarator) {
-	for ; n != nil; n = n.DeclarationList {
-		n.Declaration.check(c)
-		if m == nil {
-			m = map[string]*Declarator{}
-		}
-		for l := n.Declaration.InitDeclaratorList; l != nil; l = l.InitDeclaratorList {
-			d := l.InitDeclarator.Declarator
-			nm := d.Name()
-			if x := m[nm]; x != nil {
-				c.errors.add(errorf("%v: %s redeclared, previous declaration at %v:", d.Position(), nm, x.Position()))
-				continue
-			}
-
-			m[nm] = d
-		}
-	}
-	return m
 }
 
 //  CompoundStatement:
