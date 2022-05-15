@@ -438,7 +438,7 @@ again:
 //
 //  function-definition:
 // 	declaration-specifiers declarator declaration-list_opt compound-statement
-func (p *parser) functionDefinition(ds *DeclarationSpecifiers, d *Declarator) (r *FunctionDefinition) {
+func (p *parser) functionDefinition(ds []*DeclarationSpecifier, d *Declarator) (r *FunctionDefinition) {
 	defer func() {
 		r.scope = p.fnScope
 		p.fnScope = nil
@@ -1039,7 +1039,7 @@ func (p *parser) isExpression(ch rune) bool {
 // 	declaration-specifiers init-declarator-list_opt attribute-specifier-list_opt;
 //	static-assert-declaration
 //	__auto_type ident = initializer ;
-func (p *parser) declaration(ds *DeclarationSpecifiers, d *Declarator, declare bool) (r *Declaration) {
+func (p *parser) declaration(ds []*DeclarationSpecifier, d *Declarator, declare bool) (r *Declaration) {
 	switch p.rune(false) {
 	case rune(STATICASSERT):
 		return &Declaration{Case: DeclarationAssert, StaticAssertDeclaration: p.staticAssertDeclaration()}
@@ -1061,7 +1061,7 @@ func (p *parser) declaration(ds *DeclarationSpecifiers, d *Declarator, declare b
 		return r
 	}
 
-	if ds == nil {
+	if len(ds) == 0 {
 		var ok bool
 		if ds, ok = p.declarationSpecifiers(); !ok {
 			return nil
@@ -1160,7 +1160,7 @@ func (p *parser) attributeValue() (r *AttributeValue) {
 //  init-declarator-list:
 // 	init-declarator
 // 	init-declarator-list , init-declarator
-func (p *parser) initDeclaratorListOpt(ds *DeclarationSpecifiers, d *Declarator, declare bool) (r *InitDeclaratorList) {
+func (p *parser) initDeclaratorListOpt(ds []*DeclarationSpecifier, d *Declarator, declare bool) (r *InitDeclaratorList) {
 	switch {
 	case d == nil:
 		switch p.rune(false) {
@@ -1194,7 +1194,7 @@ func (p *parser) initDeclaratorListOpt(ds *DeclarationSpecifiers, d *Declarator,
 //  init-declarator:
 // 	declarator asm-register-var_opt
 // 	declarator asm-register-var_opt = initializer
-func (p *parser) initDeclarator(ds *DeclarationSpecifiers, d *Declarator, declare bool) (r *InitDeclarator) {
+func (p *parser) initDeclarator(ds []*DeclarationSpecifier, d *Declarator, declare bool) (r *InitDeclarator) {
 	if d == nil {
 		d = p.declarator(nil, ds, declare)
 	}
@@ -2319,13 +2319,13 @@ func (p *parser) genericAssociation() (r *GenericAssociation) {
 //
 //  declarator:
 // 	pointer_opt direct-declarator
-func (p *parser) declarator(ptr *Pointer, ds *DeclarationSpecifiers, declare bool) (r *Declarator) {
+func (p *parser) declarator(ptr *Pointer, ds []*DeclarationSpecifier, declare bool) (r *Declarator) {
 	if ptr == nil {
 		ptr = p.pointer(true)
 	}
 	r = &Declarator{Pointer: ptr, DirectDeclarator: p.directDeclarator(declare), lexicalScoper: newLexicalScoper(p.scope)}
-	if ds != nil {
-		r.isTypename = ds.isTypedef
+	if len(ds) != 0 {
+		r.isTypename = ds[0].isTypedef
 	}
 	if declare {
 		r.visible = visible(p.seq) // [0]6.2.1,7
@@ -2829,8 +2829,8 @@ func (p *parser) pointer(opt bool) (r *Pointer) {
 // 	type-qualifier declaration-specifiers_opt
 // 	function-specifier declaration-specifiers_opt
 //	alignment-specifier declaration-specifiers_opt
-func (p *parser) declarationSpecifiers() (r *DeclarationSpecifiers, ok bool) {
-	var ds, prev *DeclarationSpecifiers
+func (p *parser) declarationSpecifiers() (r []*DeclarationSpecifier, ok bool) {
+	var ds, first *DeclarationSpecifier
 	var isTypedef bool
 	acceptTypeName := true
 	for {
@@ -2839,47 +2839,44 @@ func (p *parser) declarationSpecifiers() (r *DeclarationSpecifiers, ok bool) {
 			p.cpp.eh("%v: unexpected EOF", p.toks[0].Position())
 			return nil, false
 		case p.isTypeSpecifier(ch, false):
-			ds = &DeclarationSpecifiers{Case: DeclarationSpecifiersTypeSpec, TypeSpecifier: p.typeSpecifier()}
+			ds = &DeclarationSpecifier{Case: DeclarationSpecifiersTypeSpec, TypeSpecifier: p.typeSpecifier()}
 			acceptTypeName = false
 		case ch == rune(IDENTIFIER):
 			if !acceptTypeName || !p.checkTypeName(&p.toks[0]) {
 				return r, true
 			}
 
-			ds = &DeclarationSpecifiers{Case: DeclarationSpecifiersTypeSpec, TypeSpecifier: p.typeSpecifier()}
+			ds = &DeclarationSpecifier{Case: DeclarationSpecifiersTypeSpec, TypeSpecifier: p.typeSpecifier()}
 			acceptTypeName = false
 		case ch == rune(ATOMIC):
 			switch p.peek(1, false).Ch {
 			case '(':
-				ds = &DeclarationSpecifiers{Case: DeclarationSpecifiersTypeSpec, TypeSpecifier: p.typeSpecifier()}
+				ds = &DeclarationSpecifier{Case: DeclarationSpecifiersTypeSpec, TypeSpecifier: p.typeSpecifier()}
 				acceptTypeName = false
 			default:
-				ds = &DeclarationSpecifiers{Case: DeclarationSpecifiersTypeQual, TypeQualifier: p.typeQualifier(false)}
+				ds = &DeclarationSpecifier{Case: DeclarationSpecifiersTypeQual, TypeQualifier: p.typeQualifier(false)}
 			}
 		case ch == rune(TYPEDEF):
 			isTypedef = true
 			fallthrough
 		case p.isStorageClassSpecifier(ch):
-			ds = &DeclarationSpecifiers{Case: DeclarationSpecifiersStorage, StorageClassSpecifier: p.storageClassSpecifier()}
+			ds = &DeclarationSpecifier{Case: DeclarationSpecifiersStorage, StorageClassSpecifier: p.storageClassSpecifier()}
 		case p.isTypeQualifier(ch):
-			ds = &DeclarationSpecifiers{Case: DeclarationSpecifiersTypeQual, TypeQualifier: p.typeQualifier(false)}
+			ds = &DeclarationSpecifier{Case: DeclarationSpecifiersTypeQual, TypeQualifier: p.typeQualifier(false)}
 		case p.in(ch, rune(INLINE), rune(NORETURN)):
-			ds = &DeclarationSpecifiers{Case: DeclarationSpecifiersFunc, FunctionSpecifier: p.functionSpecifier()}
+			ds = &DeclarationSpecifier{Case: DeclarationSpecifiersFunc, FunctionSpecifier: p.functionSpecifier()}
 		case ch == rune(ATTRIBUTE):
-			ds = &DeclarationSpecifiers{Case: DeclarationSpecifiersAttr, AttributeSpecifierList: p.attributeSpecifierListOpt()}
+			ds = &DeclarationSpecifier{Case: DeclarationSpecifiersAttr, AttributeSpecifierList: p.attributeSpecifierListOpt()}
 		case ch == rune(ALIGNAS):
-			ds = &DeclarationSpecifiers{Case: DeclarationSpecifiersAlignSpec, AlignmentSpecifier: p.alignmentSpecifier()}
+			ds = &DeclarationSpecifier{Case: DeclarationSpecifiersAlignSpec, AlignmentSpecifier: p.alignmentSpecifier()}
 		default:
 			return r, true
 		}
-		switch {
-		case r == nil:
-			r = ds
-		default:
-			prev.DeclarationSpecifiers = ds
+		if first == nil {
+			first = ds
 		}
-		prev = ds
-		r.isTypedef = isTypedef
+		r = append(r, ds)
+		first.isTypedef = isTypedef
 	}
 }
 

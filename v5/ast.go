@@ -1058,7 +1058,7 @@ func (n DeclarationCase) String() string {
 type Declaration struct {
 	AttributeSpecifierList  *AttributeSpecifierList
 	Case                    DeclarationCase `PrettyPrint:"stringer,zero"`
-	DeclarationSpecifiers   *DeclarationSpecifiers
+	DeclarationSpecifiers   []*DeclarationSpecifier
 	Declarator              *Declarator
 	InitDeclaratorList      *InitDeclaratorList
 	Initializer             *Initializer
@@ -1079,8 +1079,10 @@ func (n *Declaration) Position() (r token.Position) {
 
 	switch n.Case {
 	case 0:
-		if p := n.DeclarationSpecifiers.Position(); p.IsValid() {
-			return p
+		for _, s := range n.DeclarationSpecifiers {
+			if p := s.Position(); p.IsValid() {
+				return p
+			}
 		}
 
 		if p := n.InitDeclaratorList.Position(); p.IsValid() {
@@ -1150,7 +1152,7 @@ func (n DeclarationSpecifiersCase) String() string {
 	}
 }
 
-// DeclarationSpecifiers represents data reduced by productions:
+// DeclarationSpecifier represents data reduced by productions:
 //
 //	DeclarationSpecifiers:
 //	        StorageClassSpecifier DeclarationSpecifiers  // Case DeclarationSpecifiersStorage
@@ -1159,13 +1161,12 @@ func (n DeclarationSpecifiersCase) String() string {
 //	|       FunctionSpecifier DeclarationSpecifiers      // Case DeclarationSpecifiersFunc
 //	|       AlignmentSpecifier DeclarationSpecifiers     // Case DeclarationSpecifiersAlignSpec
 //	|       "__attribute__"                              // Case DeclarationSpecifiersAttr
-type DeclarationSpecifiers struct {
+type DeclarationSpecifier struct {
 	AttributeSpecifierList *AttributeSpecifierList
 	typer
 	isTypedef             bool
 	AlignmentSpecifier    *AlignmentSpecifier
 	Case                  DeclarationSpecifiersCase `PrettyPrint:"stringer,zero"`
-	DeclarationSpecifiers *DeclarationSpecifiers
 	FunctionSpecifier     *FunctionSpecifier
 	StorageClassSpecifier *StorageClassSpecifier
 	Token                 Token
@@ -1174,47 +1175,27 @@ type DeclarationSpecifiers struct {
 }
 
 // String implements fmt.Stringer.
-func (n *DeclarationSpecifiers) String() string { return PrettyString(n) }
+func (n *DeclarationSpecifier) String() string { return PrettyString(n) }
 
 // Position reports the position of the first component of n, if available.
-func (n *DeclarationSpecifiers) Position() (r token.Position) {
+func (n *DeclarationSpecifier) Position() (r token.Position) {
 	if n == nil {
 		return r
 	}
 
 	switch n.Case {
 	case 4:
-		if p := n.AlignmentSpecifier.Position(); p.IsValid() {
-			return p
-		}
-
-		return n.DeclarationSpecifiers.Position()
+		return n.AlignmentSpecifier.Position()
 	case 3:
-		if p := n.FunctionSpecifier.Position(); p.IsValid() {
-			return p
-		}
-
-		return n.DeclarationSpecifiers.Position()
+		return n.FunctionSpecifier.Position()
 	case 0:
-		if p := n.StorageClassSpecifier.Position(); p.IsValid() {
-			return p
-		}
-
-		return n.DeclarationSpecifiers.Position()
+		return n.StorageClassSpecifier.Position()
 	case 5:
 		return n.Token.Position()
 	case 2:
-		if p := n.TypeQualifier.Position(); p.IsValid() {
-			return p
-		}
-
-		return n.DeclarationSpecifiers.Position()
+		return n.TypeQualifier.Position()
 	case 1:
-		if p := n.TypeSpecifier.Position(); p.IsValid() {
-			return p
-		}
-
-		return n.DeclarationSpecifiers.Position()
+		return n.TypeSpecifier.Position()
 	default:
 		panic("internal error")
 	}
@@ -2287,7 +2268,7 @@ func (n *ExpressionList) Position() (r token.Position) {
 //	        ExpressionList ';'
 type ExpressionStatement struct {
 	AttributeSpecifierList *AttributeSpecifierList
-	declarationSpecifiers  *DeclarationSpecifiers
+	declarationSpecifiers  []*DeclarationSpecifier
 	ExpressionList         ExpressionNode
 	Token                  Token
 }
@@ -2336,7 +2317,7 @@ type FunctionDefinition struct {
 	scope                 *Scope
 	CompoundStatement     *CompoundStatement
 	Declarations          []*Declaration
-	DeclarationSpecifiers *DeclarationSpecifiers
+	DeclarationSpecifiers []*DeclarationSpecifier
 	Declarator            *Declarator
 }
 
@@ -2349,8 +2330,10 @@ func (n *FunctionDefinition) Position() (r token.Position) {
 		return r
 	}
 
-	if p := n.DeclarationSpecifiers.Position(); p.IsValid() {
-		return p
+	for _, s := range n.DeclarationSpecifiers {
+		if p := s.Position(); p.IsValid() {
+			return p
+		}
 	}
 
 	if p := n.Declarator.Position(); p.IsValid() {
@@ -3474,7 +3457,7 @@ type ParameterDeclaration struct {
 	typer
 	AbstractDeclarator    *AbstractDeclarator
 	Case                  ParameterDeclarationCase `PrettyPrint:"stringer,zero"`
-	DeclarationSpecifiers *DeclarationSpecifiers
+	DeclarationSpecifiers []*DeclarationSpecifier
 	Declarator            *Declarator
 }
 
@@ -3489,14 +3472,18 @@ func (n *ParameterDeclaration) Position() (r token.Position) {
 
 	switch n.Case {
 	case 1:
-		if p := n.DeclarationSpecifiers.Position(); p.IsValid() {
-			return p
+		for _, s := range n.DeclarationSpecifiers {
+			if p := s.Position(); p.IsValid() {
+				return p
+			}
 		}
 
 		return n.AbstractDeclarator.Position()
 	case 0:
-		if p := n.DeclarationSpecifiers.Position(); p.IsValid() {
-			return p
+		for _, s := range n.DeclarationSpecifiers {
+			if p := s.Position(); p.IsValid() {
+				return p
+			}
 		}
 
 		return n.Declarator.Position()
