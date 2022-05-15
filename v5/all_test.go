@@ -85,7 +85,27 @@ func walk(dir string, f func(pth string, fi os.FileInfo) error) error {
 	return nil
 }
 
-// Produce the AST used in examples documentation.
+// exampleASTRaw produce AST used in examples documentation.
+func exampleASTRaw(src string) *AST {
+	defer func() {
+		if err := recover(); err != nil {
+			r := fmt.Sprintf("%v (%v:)", err, origin(5))
+			trc("%v\n%s", r, debug.Stack())
+			fmt.Println(r)
+		}
+	}()
+
+	src = strings.Replace(src, "\\n", "\n", -1)
+	cfg := &Config{}
+	ast, _ := Parse(cfg, []Source{{Name: "example.c", Value: src}})
+	if ast == nil {
+		fmt.Println("FAIL")
+	}
+	return ast
+}
+
+// exampleAST produces the AST used in examples documentation,
+// and find a node related to the example based on its name.
 func exampleAST(rule int, src string) (r interface{}) {
 	defer func() {
 		if err := recover(); err != nil {
@@ -109,7 +129,7 @@ func exampleAST(rule int, src string) (r interface{}) {
 	typ = typ[:i]
 	var node Node
 	depth := mathutil.MaxInt
-	findNode(typ, ast.TranslationUnit, 0, &node, &depth)
+	findNode(typ, ast, 0, &node, &depth)
 	return node
 }
 
@@ -948,7 +968,7 @@ func TestStrCatSep(t *testing.T) {
 		// trc("%q -> %q", v.src, nodeSource2(ast.TranslationUnit))
 		var n Node
 		depth := mathutil.MaxInt
-		findNode("PrimaryExpression", ast.TranslationUnit, 0, &n, &depth)
+		findNode("PrimaryExpression", ast, 0, &n, &depth)
 		tok := n.(*PrimaryExpression).Token
 		if g, e := tok.SrcStr(), v.lit; g != e {
 			t.Errorf("%v: %q %q", i, g, e)

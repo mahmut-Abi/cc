@@ -4762,7 +4762,9 @@ func ExampleTranslationUnit_case0() {
 }
 
 func ExampleTranslationUnit_case1() {
-	fmt.Println(exampleAST(247, "int i; int j;"))
+	ast := exampleASTRaw("int i; int j;")
+	fmt.Println(ast.TranslationUnits[0])
+	fmt.Println(ast.TranslationUnits[1])
 	// Output:
 	// &cc.TranslationUnit{
 	// · ExternalDeclaration: &cc.ExternalDeclaration{
@@ -4790,31 +4792,31 @@ func ExampleTranslationUnit_case1() {
 	// · · · Token: example.c:1:6: ';' ";",
 	// · · },
 	// · },
-	// · TranslationUnit: &cc.TranslationUnit{
-	// · · ExternalDeclaration: &cc.ExternalDeclaration{
-	// · · · Case: ExternalDeclarationDecl,
-	// · · · Declaration: &cc.Declaration{
-	// · · · · Case: DeclarationDecl,
-	// · · · · DeclarationSpecifiers: &cc.DeclarationSpecifiers{
-	// · · · · · Case: DeclarationSpecifiersTypeSpec,
-	// · · · · · TypeSpecifier: &cc.TypeSpecifier{
-	// · · · · · · Case: TypeSpecifierInt,
-	// · · · · · · Token: example.c:1:8: 'int' "int",
-	// · · · · · },
+	// }
+	// &cc.TranslationUnit{
+	// · ExternalDeclaration: &cc.ExternalDeclaration{
+	// · · Case: ExternalDeclarationDecl,
+	// · · Declaration: &cc.Declaration{
+	// · · · Case: DeclarationDecl,
+	// · · · DeclarationSpecifiers: &cc.DeclarationSpecifiers{
+	// · · · · Case: DeclarationSpecifiersTypeSpec,
+	// · · · · TypeSpecifier: &cc.TypeSpecifier{
+	// · · · · · Case: TypeSpecifierInt,
+	// · · · · · Token: example.c:1:8: 'int' "int",
 	// · · · · },
-	// · · · · InitDeclaratorList: &cc.InitDeclaratorList{
-	// · · · · · InitDeclarator: &cc.InitDeclarator{
-	// · · · · · · Case: InitDeclaratorDecl,
-	// · · · · · · Declarator: &cc.Declarator{
-	// · · · · · · · DirectDeclarator: &cc.DirectDeclarator{
-	// · · · · · · · · Case: DirectDeclaratorIdent,
-	// · · · · · · · · Token: example.c:1:12: identifier "j",
-	// · · · · · · · },
+	// · · · },
+	// · · · InitDeclaratorList: &cc.InitDeclaratorList{
+	// · · · · InitDeclarator: &cc.InitDeclarator{
+	// · · · · · Case: InitDeclaratorDecl,
+	// · · · · · Declarator: &cc.Declarator{
+	// · · · · · · DirectDeclarator: &cc.DirectDeclarator{
+	// · · · · · · · Case: DirectDeclaratorIdent,
+	// · · · · · · · Token: example.c:1:12: identifier "j",
 	// · · · · · · },
 	// · · · · · },
 	// · · · · },
-	// · · · · Token: example.c:1:13: ';' ";",
 	// · · · },
+	// · · · Token: example.c:1:13: ';' ";",
 	// · · },
 	// · },
 	// }
@@ -5167,8 +5169,8 @@ func ExampleTypeSpecifier_typeName() {
 	fmt.Println(exampleAST(132, "typedef int T; T i;"))
 	// Output:
 	// &cc.TypeSpecifier{
-	// · Case: TypeSpecifierInt,
-	// · Token: example.c:1:9: 'int' "int",
+	// · Case: TypeSpecifierTypeName,
+	// · Token: example.c:1:16: type name "T",
 	// }
 }
 
@@ -5191,8 +5193,19 @@ func ExampleTypeSpecifier_typeofType() {
 	fmt.Println(exampleAST(134, "typedef int T; typeof(T) i;"))
 	// Output:
 	// &cc.TypeSpecifier{
-	// · Case: TypeSpecifierInt,
-	// · Token: example.c:1:9: 'int' "int",
+	// · Case: TypeSpecifierTypeofType,
+	// · Token: example.c:1:16: 'typeof' "typeof",
+	// · Token2: example.c:1:22: '(' "(",
+	// · Token3: example.c:1:24: ')' ")",
+	// · TypeName: &cc.TypeName{
+	// · · SpecifierQualifierList: &cc.SpecifierQualifierList{
+	// · · · Case: SpecifierQualifierListTypeSpec,
+	// · · · TypeSpecifier: &cc.TypeSpecifier{
+	// · · · · Case: TypeSpecifierTypeName,
+	// · · · · Token: example.c:1:23: type name "T",
+	// · · · },
+	// · · },
+	// · },
 	// }
 }
 

@@ -4903,7 +4903,6 @@ func (n *StructOrUnionSpecifier) Position() (r token.Position) {
 //	|       TranslationUnit ExternalDeclaration
 type TranslationUnit struct {
 	ExternalDeclaration *ExternalDeclaration
-	TranslationUnit     *TranslationUnit
 }
 
 // String implements fmt.Stringer.

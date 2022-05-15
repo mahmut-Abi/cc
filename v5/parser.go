@@ -359,7 +359,7 @@ func (p *parser) parse() (ast *AST, err error) {
 			EOF:                   t,
 			Macros:                p.cpp.macros,
 			Scope:                 p.scope,
-			TranslationUnit:       tu,
+			TranslationUnits:      tu,
 			predefinedDeclarator0: pd,
 		}, errors.err()
 	default:
@@ -374,21 +374,13 @@ func (p *parser) parse() (ast *AST, err error) {
 //  translation-unit:
 // 	external-declaration
 // 	translation-unit external-declaration
-func (p *parser) translationUnit() (r *TranslationUnit) {
-	var prev *TranslationUnit
+func (p *parser) translationUnit() (r []*TranslationUnit) {
 	for p.rune(false) != eof {
 		tu := &TranslationUnit{ExternalDeclaration: p.externalDeclaration()}
 		if tu.ExternalDeclaration == nil {
 			return r
 		}
-
-		switch {
-		case r == nil:
-			r = tu
-		default:
-			prev.TranslationUnit = tu
-		}
-		prev = tu
+		r = append(r, tu)
 	}
 	return r
 }

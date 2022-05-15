@@ -14,6 +14,7 @@ import (
 	"unicode/utf16"
 
 	"modernc.org/mathutil"
+	"modernc.org/token"
 )
 
 const (
@@ -442,15 +443,30 @@ type AST struct {
 	Macros                map[string]*Macro
 	Scope                 *Scope // File scope.
 	SizeT                 Type   // Valid only after Translate
-	TranslationUnit       *TranslationUnit
+	TranslationUnits      []*TranslationUnit
 	Void                  Type // Valid only after Translate
 	kinds                 map[Kind]Type
 	predefinedDeclarator0 *Declarator // `int __predefined_declarator`
 }
 
+// Position reports the position of the first component of n, if available.
+func (n *AST) Position() (r token.Position) {
+	if n == nil {
+		return r
+	}
+
+	for _, tu := range n.TranslationUnits {
+		if p := tu.Position(); p.IsValid() {
+			return p
+		}
+	}
+
+	return r
+}
+
 func (n *AST) check() error {
 	c := newCtx(n)
-	for l := n.TranslationUnit; l != nil; l = l.TranslationUnit {
+	for _, l := range n.TranslationUnits {
 		l.ExternalDeclaration.check(c)
 	}
 	c.checkScope(n.Scope)

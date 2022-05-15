@@ -474,8 +474,15 @@ func findNode(typ string, n Node, depth int, out *Node, pdepth *int) {
 			continue
 		}
 
-		if x, ok := elem.FieldByIndex([]int{i}).Interface().(Node); ok {
+		fv := elem.FieldByIndex([]int{i})
+		if x, ok := fv.Interface().(Node); ok {
 			findNode(typ, x, depth+1, out, pdepth)
+		} else if fv.Kind() == reflect.Slice {
+			for j := 0; j < fv.Len(); j++ {
+				if x, ok := fv.Index(j).Interface().(Node); ok {
+					findNode(typ, x, depth+1, out, pdepth)
+				}
+			}
 		}
 	}
 }
