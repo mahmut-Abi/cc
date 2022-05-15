@@ -2786,10 +2786,7 @@ func (n *ConditionalExpression) check(c *ctx, mode flags) (r Type) {
 	return n.Type()
 }
 
-//  LogicalOrExpression:
-//          LogicalAndExpression                           // Case LogicalOrExpressionLAnd
-//  |       LogicalOrExpression "||" LogicalAndExpression  // Case LogicalOrExpressionLOr
-func (n *LogicalOrExpression) check(c *ctx, mode flags) (r Type) {
+func (n *BinaryExpression) check(c *ctx, mode flags) (r Type) {
 	if n == nil {
 		return Invalid
 	}
@@ -2801,176 +2798,79 @@ func (n *LogicalOrExpression) check(c *ctx, mode flags) (r Type) {
 		}
 	}()
 
-	switch n.Case {
-	case LogicalOrExpressionLAnd: // LogicalAndExpression
-		n.typ = n.LogicalAndExpression.check(c, mode)
-	case LogicalOrExpressionLOr: // LogicalOrExpression "||" LogicalAndExpression
+	switch n.Op {
+	case BinaryOperationAdd:
 		mode = mode.add(decay)
-		switch a, b := n.LogicalOrExpression.check(c, mode), n.LogicalAndExpression.check(c, mode); {
+		switch a, b := n.Lhs.check(c, mode), n.Rhs.check(c, mode); {
+		case
+			// For addition, either both operands shall have arithmetic type
+			IsArithmeticType(a) && IsArithmeticType(b):
+			n.typ = UsualArithmeticConversions(a, b)
+		case
+			// or one operand shall be a pointer to an object type and the other shall have
+			// integer type.
+			isPointerType(a) && IsIntegerType(b):
+			n.typ = a
+		case IsIntegerType(a) && isPointerType(b):
+			n.typ = b
+		default:
+			c.errors.add(errorf("%v: invalid operands: %s and %s", n.Token.Position(), a, b))
+		}
+	case BinaryOperationSub:
+		mode = mode.add(decay)
+		switch a, b := n.Lhs.check(c, mode), n.Rhs.check(c, mode); {
+		case
+			// both operands have arithmetic type;
+			IsArithmeticType(a) && IsArithmeticType(b):
+			n.typ = UsualArithmeticConversions(a, b)
+		case
+			// both operands are pointers to qualified or unqualified versions of
+			// compatible object types;
+			isPointerType(a) && isPointerType(b):
+			n.typ = c.ptrDiffT(n)
+		case
+			// the left operand is a pointer to an object type and the right operand has
+			// integer type.
+			isPointerType(a) && IsIntegerType(b):
+			n.typ = a
+		default:
+			c.errors.add(errorf("%v: invalid operands: %s and %s", n.Token.Position(), a, b))
+		}
+	case BinaryOperationMul, BinaryOperationDiv:
+		mode = mode.add(decay)
+		switch a, b := n.Lhs.check(c, mode), n.Rhs.check(c, mode); {
+		case !IsArithmeticType(a) || !IsArithmeticType(b):
+			c.errors.add(errorf("%v: operands shall have arithmetic type: %s and %s", n.Token.Position(), a, b))
+		default:
+			n.typ = UsualArithmeticConversions(a, b)
+		}
+	case BinaryOperationMod:
+		mode = mode.add(decay)
+		switch a, b := n.Lhs.check(c, mode), n.Rhs.check(c, mode); {
+		case !IsIntegerType(a) || !IsIntegerType(b):
+			c.errors.add(errorf("%v: operands shall have integer type: %s and %s", n.Token.Position(), a, b))
+		default:
+			n.typ = UsualArithmeticConversions(a, b)
+		}
+	case BinaryOperationLOr, BinaryOperationLAnd:
+		mode = mode.add(decay)
+		switch a, b := n.Lhs.check(c, mode), n.Rhs.check(c, mode); {
 		case !IsScalarType(a) || !IsScalarType(b):
 			c.errors.add(errorf("%v: operands shall be scalars: %s and %s", n.Token.Position(), a, b))
 		default:
 			n.typ = c.intT
 		}
-	default:
-		c.errors.add(errorf("internal error: %v", n.Case))
-	}
-	return n.Type()
-}
-
-//  LogicalAndExpression:
-//          InclusiveOrExpression                            // Case LogicalAndExpressionOr
-//  |       LogicalAndExpression "&&" InclusiveOrExpression  // Case LogicalAndExpressionLAnd
-func (n *LogicalAndExpression) check(c *ctx, mode flags) (r Type) {
-	if n == nil {
-		return Invalid
-	}
-
-	defer func() {
-		if r == nil || r == Invalid {
-			c.errors.add(errorf("TODO %T missed/failed type check", n))
-			return
-		}
-	}()
-
-	switch n.Case {
-	case LogicalAndExpressionOr: // InclusiveOrExpression
-		n.typ = n.InclusiveOrExpression.check(c, mode)
-	case LogicalAndExpressionLAnd: // LogicalAndExpression "&&" InclusiveOrExpression
+	case BinaryOperationOr, BinaryOperationXor, BinaryOperationAnd:
 		mode = mode.add(decay)
-		switch a, b := n.LogicalAndExpression.check(c, mode), n.InclusiveOrExpression.check(c, mode); {
-		case !IsScalarType(a) || !IsScalarType(b):
-			c.errors.add(errorf("%v: operands shall be scalars: %s and %s", n.Token.Position(), a, b))
-		default:
-			n.typ = c.intT
-		}
-	default:
-		c.errors.add(errorf("internal error: %v", n.Case))
-	}
-	return n.Type()
-}
-
-//  InclusiveOrExpression:
-//          ExclusiveOrExpression                            // Case InclusiveOrExpressionXor
-//  |       InclusiveOrExpression '|' ExclusiveOrExpression  // Case InclusiveOrExpressionOr
-func (n *InclusiveOrExpression) check(c *ctx, mode flags) (r Type) {
-	if n == nil {
-		return Invalid
-	}
-
-	defer func() {
-		if r == nil || r == Invalid {
-			c.errors.add(errorf("TODO %T missed/failed type check", n))
-			return
-		}
-	}()
-
-	switch n.Case {
-	case InclusiveOrExpressionXor: // ExclusiveOrExpression
-		n.typ = n.ExclusiveOrExpression.check(c, mode)
-	case InclusiveOrExpressionOr: // InclusiveOrExpression '|' ExclusiveOrExpression
-		mode = mode.add(decay)
-		switch a, b := n.InclusiveOrExpression.check(c, mode), n.ExclusiveOrExpression.check(c, mode); {
+		switch a, b := n.Lhs.check(c, mode), n.Rhs.check(c, mode); {
 		case !IsIntegerType(a) || !IsIntegerType(b):
 			c.errors.add(errorf("%v: operands shall have integer type: %s and %s", n.Token.Position(), a, b))
 		default:
 			n.typ = UsualArithmeticConversions(a, b)
 		}
-	default:
-		c.errors.add(errorf("internal error: %v", n.Case))
-	}
-	return n.Type()
-}
-
-//  ExclusiveOrExpression:
-//          AndExpression                            // Case ExclusiveOrExpressionAnd
-//  |       ExclusiveOrExpression '^' AndExpression  // Case ExclusiveOrExpressionXor
-func (n *ExclusiveOrExpression) check(c *ctx, mode flags) (r Type) {
-	if n == nil {
-		return Invalid
-	}
-
-	defer func() {
-		if r == nil || r == Invalid {
-			c.errors.add(errorf("TODO %T missed/failed type check", n))
-			return
-		}
-	}()
-
-	switch n.Case {
-	case ExclusiveOrExpressionAnd: // AndExpression
-		n.typ = n.AndExpression.check(c, mode)
-	case ExclusiveOrExpressionXor: // ExclusiveOrExpression '^' AndExpression
+	case BinaryOperationEq, BinaryOperationNeq:
 		mode = mode.add(decay)
-		switch a, b := n.ExclusiveOrExpression.check(c, mode), n.AndExpression.check(c, mode); {
-		case !IsIntegerType(a) || !IsIntegerType(b):
-			c.errors.add(errorf("%v: operands shall have integer type: %s and %s", n.Token.Position(), a, b))
-		default:
-			n.typ = UsualArithmeticConversions(a, b)
-		}
-	default:
-		c.errors.add(errorf("internal error: %v", n.Case))
-	}
-	return n.Type()
-}
-
-//  AndExpression:
-//          EqualityExpression                    // Case AndExpressionEq
-//  |       AndExpression '&' EqualityExpression  // Case AndExpressionAnd
-func (n *AndExpression) check(c *ctx, mode flags) (r Type) {
-	if n == nil {
-		return Invalid
-	}
-
-	defer func() {
-		if r == nil || r == Invalid {
-			c.errors.add(errorf("TODO %T missed/failed type check", n))
-			return
-		}
-	}()
-
-	switch n.Case {
-	case AndExpressionEq: // EqualityExpression
-		n.typ = n.EqualityExpression.check(c, mode)
-	case AndExpressionAnd: // AndExpression '&' EqualityExpression
-		mode = mode.add(decay)
-		switch a, b := n.AndExpression.check(c, mode), n.EqualityExpression.check(c, mode); {
-		case !IsIntegerType(a) || !IsIntegerType(b):
-			c.errors.add(errorf("%v: operands shall have integer type: %s and %s", n.Token.Position(), a, b))
-		default:
-			n.typ = UsualArithmeticConversions(a, b)
-		}
-	default:
-		c.errors.add(errorf("internal error: %v", n.Case))
-	}
-	return n.Type()
-}
-
-//  EqualityExpression:
-//          RelationalExpression                          // Case EqualityExpressionRel
-//  |       EqualityExpression "==" RelationalExpression  // Case EqualityExpressionEq
-//  |       EqualityExpression "!=" RelationalExpression  // Case EqualityExpressionNeq
-func (n *EqualityExpression) check(c *ctx, mode flags) (r Type) {
-	if n == nil {
-		return Invalid
-	}
-
-	defer func() {
-		if r == nil || r == Invalid {
-			c.errors.add(errorf("TODO %T missed/failed type check", n))
-			return
-		}
-	}()
-
-	switch n.Case {
-	case EqualityExpressionRel: // RelationalExpression
-		n.typ = n.RelationalExpression.check(c, mode)
-	case
-		EqualityExpressionEq,  // EqualityExpression "==" RelationalExpression
-		EqualityExpressionNeq: // EqualityExpression "!=" RelationalExpression
-
-		mode = mode.add(decay)
-		switch a, b := n.EqualityExpression.check(c, mode), n.RelationalExpression.check(c, mode); {
+		switch a, b := n.Lhs.check(c, mode), n.Rhs.check(c, mode); {
 		case
 			// both operands have arithmetic type;
 			IsArithmeticType(a) && IsArithmeticType(b),
@@ -2989,42 +2889,10 @@ func (n *EqualityExpression) check(c *ctx, mode flags) (r Type) {
 		default:
 			c.errors.add(errorf("%v: invalid operands: %v and %v", n.Token.Position(), a, b))
 		}
-	default:
-		c.errors.add(errorf("internal error: %v", n.Case))
-	}
-	return n.Type()
-}
-
-//  RelationalExpression:
-//          ShiftExpression                            // Case RelationalExpressionShift
-//  |       RelationalExpression '<' ShiftExpression   // Case RelationalExpressionLt
-//  |       RelationalExpression '>' ShiftExpression   // Case RelationalExpressionGt
-//  |       RelationalExpression "<=" ShiftExpression  // Case RelationalExpressionLeq
-//  |       RelationalExpression ">=" ShiftExpression  // Case RelationalExpressionGeq
-func (n *RelationalExpression) check(c *ctx, mode flags) (r Type) {
-	if n == nil {
-		return Invalid
-	}
-
-	defer func() {
-		if r == nil || r == Invalid {
-			c.errors.add(errorf("TODO %T missed/failed type check", n))
-			return
-		}
-	}()
-
-	switch n.Case {
-	case RelationalExpressionShift: // ShiftExpression
-		n.typ = n.ShiftExpression.check(c, mode)
-	case
-		RelationalExpressionLt,  // RelationalExpression '<' ShiftExpression
-		RelationalExpressionGt,  // RelationalExpression '>' ShiftExpression
-		RelationalExpressionLeq, // RelationalExpression "<=" ShiftExpression
-		RelationalExpressionGeq: // RelationalExpression ">=" ShiftExpression
-
+	case BinaryOperationLt, BinaryOperationGt, BinaryOperationLeq, BinaryOperationGeq:
 		n.typ = c.intT
 		mode = mode.add(decay)
-		switch a, b := n.RelationalExpression.check(c, mode), n.ShiftExpression.check(c, mode); {
+		switch a, b := n.Lhs.check(c, mode), n.Rhs.check(c, mode); {
 		case
 			// both operands have real type;
 			IsRealType(a) && IsRealType(b),
@@ -3041,151 +2909,16 @@ func (n *RelationalExpression) check(c *ctx, mode flags) (r Type) {
 		default:
 			c.errors.add(errorf("%v: invalid operands: %s and %s", n.Token.Position(), a, b))
 		}
-	default:
-		c.errors.add(errorf("internal error: %v", n.Case))
-	}
-	return n.Type()
-}
-
-//  ShiftExpression:
-//          AdditiveExpression                       // Case ShiftExpressionAdd
-//  |       ShiftExpression "<<" AdditiveExpression  // Case ShiftExpressionLsh
-//  |       ShiftExpression ">>" AdditiveExpression  // Case ShiftExpressionRsh
-func (n *ShiftExpression) check(c *ctx, mode flags) (r Type) {
-	if n == nil {
-		return Invalid
-	}
-
-	defer func() {
-		if r == nil || r == Invalid {
-			c.errors.add(errorf("TODO %T missed/failed type check", n))
-			return
-		}
-	}()
-
-	switch n.Case {
-	case ShiftExpressionAdd: // AdditiveExpression
-		n.typ = n.AdditiveExpression.check(c, mode)
-	case
-		ShiftExpressionLsh, // ShiftExpression "<<" AdditiveExpression
-		ShiftExpressionRsh: // ShiftExpression ">>" AdditiveExpression
-
+	case BinaryOperationLsh, BinaryOperationRsh:
 		mode = mode.add(decay)
-		switch a, b := n.ShiftExpression.check(c, mode), n.AdditiveExpression.check(c, mode); {
+		switch a, b := n.Lhs.check(c, mode), n.Rhs.check(c, mode); {
 		case !IsScalarType(a) || !IsScalarType(b):
 			c.errors.add(errorf("%v: operands shall be a scalars: %s and %s", n.Token.Position(), a, b))
 		default:
 			n.typ = IntegerPromotion(a)
 		}
 	default:
-		c.errors.add(errorf("internal error: %v", n.Case))
-	}
-	return n.Type()
-}
-
-//  AdditiveExpression:
-//          MultiplicativeExpression                         // Case AdditiveExpressionMul
-//  |       AdditiveExpression '+' MultiplicativeExpression  // Case AdditiveExpressionAdd
-//  |       AdditiveExpression '-' MultiplicativeExpression  // Case AdditiveExpressionSub
-func (n *AdditiveExpression) check(c *ctx, mode flags) (r Type) {
-	if n == nil {
-		return Invalid
-	}
-
-	defer func() {
-		if r == nil || r == Invalid {
-			c.errors.add(errorf("TODO %T missed/failed type check", n))
-			return
-		}
-	}()
-
-	switch n.Case {
-	case AdditiveExpressionMul: // MultiplicativeExpression
-		n.typ = n.MultiplicativeExpression.check(c, mode)
-	case AdditiveExpressionAdd: // AdditiveExpression '+' MultiplicativeExpression
-		mode = mode.add(decay)
-		switch a, b := n.AdditiveExpression.check(c, mode), n.MultiplicativeExpression.check(c, mode); {
-		case
-			// For addition, either both operands shall have arithmetic type
-			IsArithmeticType(a) && IsArithmeticType(b):
-			n.typ = UsualArithmeticConversions(a, b)
-		case
-			// or one operand shall be a pointer to an object type and the other shall have
-			// integer type.
-			isPointerType(a) && IsIntegerType(b):
-			n.typ = a
-		case IsIntegerType(a) && isPointerType(b):
-			n.typ = b
-		default:
-			c.errors.add(errorf("%v: invalid operands: %s and %s", n.Token.Position(), a, b))
-		}
-	case AdditiveExpressionSub: // AdditiveExpression '-' MultiplicativeExpression
-		mode = mode.add(decay)
-		switch a, b := n.AdditiveExpression.check(c, mode), n.MultiplicativeExpression.check(c, mode); {
-		case
-			// both operands have arithmetic type;
-			IsArithmeticType(a) && IsArithmeticType(b):
-			n.typ = UsualArithmeticConversions(a, b)
-		case
-			// both operands are pointers to qualified or unqualified versions of
-			// compatible object types;
-			isPointerType(a) && isPointerType(b):
-			n.typ = c.ptrDiffT(n)
-		case
-			// the left operand is a pointer to an object type and the right operand has
-			// integer type.
-			isPointerType(a) && IsIntegerType(b):
-			n.typ = a
-		default:
-			c.errors.add(errorf("%v: invalid operands: %s and %s", n.Token.Position(), a, b))
-		}
-	default:
-		c.errors.add(errorf("internal error: %v", n.Case))
-	}
-	return n.Type()
-}
-
-//  MultiplicativeExpression:
-//          CastExpression                               // Case MultiplicativeExpressionCast
-//  |       MultiplicativeExpression '*' CastExpression  // Case MultiplicativeExpressionMul
-//  |       MultiplicativeExpression '/' CastExpression  // Case MultiplicativeExpressionDiv
-//  |       MultiplicativeExpression '%' CastExpression  // Case MultiplicativeExpressionMod
-func (n *MultiplicativeExpression) check(c *ctx, mode flags) (r Type) {
-	if n == nil {
-		return Invalid
-	}
-
-	defer func() {
-		if r == nil || r == Invalid {
-			c.errors.add(errorf("TODO %T missed/failed type check", n))
-			return
-		}
-	}()
-
-	switch n.Case {
-	case MultiplicativeExpressionCast: // CastExpression
-		n.typ = n.CastExpression.check(c, mode)
-	case
-		MultiplicativeExpressionMul, // MultiplicativeExpression '*' CastExpression
-		MultiplicativeExpressionDiv: // MultiplicativeExpression '/' CastExpression
-
-		mode = mode.add(decay)
-		switch a, b := n.MultiplicativeExpression.check(c, mode), n.CastExpression.check(c, mode); {
-		case !IsArithmeticType(a) || !IsArithmeticType(b):
-			c.errors.add(errorf("%v: operands shall have arithmetic type: %s and %s", n.Token.Position(), a, b))
-		default:
-			n.typ = UsualArithmeticConversions(a, b)
-		}
-	case MultiplicativeExpressionMod: // MultiplicativeExpression '%' CastExpression
-		mode = mode.add(decay)
-		switch a, b := n.MultiplicativeExpression.check(c, mode), n.CastExpression.check(c, mode); {
-		case !IsIntegerType(a) || !IsIntegerType(b):
-			c.errors.add(errorf("%v: operands shall have integer type: %s and %s", n.Token.Position(), a, b))
-		default:
-			n.typ = UsualArithmeticConversions(a, b)
-		}
-	default:
-		c.errors.add(errorf("internal error: %v", n.Case))
+		c.errors.add(errorf("internal error: %v", n.Token.SrcStr()))
 	}
 	return n.Type()
 }

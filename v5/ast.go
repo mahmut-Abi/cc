@@ -66,70 +66,55 @@ func (n *AbstractDeclarator) Position() (r token.Position) {
 	}
 }
 
-// AdditiveExpressionCase represents case numbers of production AdditiveExpression
-type AdditiveExpressionCase int
+type BinaryOperation int
 
-// Values of type AdditiveExpressionCase
 const (
-	AdditiveExpressionMul AdditiveExpressionCase = iota
-	AdditiveExpressionAdd
-	AdditiveExpressionSub
+	BinaryOperationAdd = BinaryOperation(iota + 1)
+	BinaryOperationSub
+	BinaryOperationMul
+	BinaryOperationDiv
+	BinaryOperationMod
+	BinaryOperationOr
+	BinaryOperationAnd
+	BinaryOperationXor
+	BinaryOperationLsh
+	BinaryOperationRsh
+	BinaryOperationEq
+	BinaryOperationNeq
+	BinaryOperationLt
+	BinaryOperationGt
+	BinaryOperationLeq
+	BinaryOperationGeq
+	BinaryOperationLOr
+	BinaryOperationLAnd
 )
 
-// String implements fmt.Stringer
-func (n AdditiveExpressionCase) String() string {
-	switch n {
-	case AdditiveExpressionMul:
-		return "AdditiveExpressionMul"
-	case AdditiveExpressionAdd:
-		return "AdditiveExpressionAdd"
-	case AdditiveExpressionSub:
-		return "AdditiveExpressionSub"
-	default:
-		return fmt.Sprintf("AdditiveExpressionCase(%v)", int(n))
-	}
-}
-
-// AdditiveExpression represents data reduced by productions:
-//
-//	AdditiveExpression:
-//	        MultiplicativeExpression                         // Case AdditiveExpressionMul
-//	|       AdditiveExpression '+' MultiplicativeExpression  // Case AdditiveExpressionAdd
-//	|       AdditiveExpression '-' MultiplicativeExpression  // Case AdditiveExpressionSub
-type AdditiveExpression struct {
+type BinaryExpression struct {
 	typer
 	valuer
-	AdditiveExpression       ExpressionNode
-	Case                     AdditiveExpressionCase `PrettyPrint:"stringer,zero"`
-	MultiplicativeExpression ExpressionNode
-	Token                    Token
+	Lhs   ExpressionNode
+	Op    BinaryOperation `PrettyPrint:"stringer,zero"`
+	Token Token
+	Rhs   ExpressionNode
 }
 
 // String implements fmt.Stringer.
-func (n *AdditiveExpression) String() string { return PrettyString(n) }
+func (n *BinaryExpression) String() string { return PrettyString(n) }
 
 // Position reports the position of the first component of n, if available.
-func (n *AdditiveExpression) Position() (r token.Position) {
+func (n *BinaryExpression) Position() (r token.Position) {
 	if n == nil {
 		return r
 	}
-
-	switch n.Case {
-	case 1, 2:
-		if p := n.AdditiveExpression.Position(); p.IsValid() {
-			return p
-		}
-
-		if p := n.Token.Position(); p.IsValid() {
-			return p
-		}
-
-		return n.MultiplicativeExpression.Position()
-	case 0:
-		return n.MultiplicativeExpression.Position()
-	default:
-		panic("internal error")
+	if p := n.Lhs.Position(); p.IsValid() {
+		return p
 	}
+
+	if p := n.Token.Position(); p.IsValid() {
+		return p
+	}
+
+	return n.Rhs.Position()
 }
 
 // AlignmentSpecifierCase represents case numbers of production AlignmentSpecifier
@@ -205,68 +190,6 @@ func (n *AlignmentSpecifier) Position() (r token.Position) {
 		}
 
 		return n.Token3.Position()
-	default:
-		panic("internal error")
-	}
-}
-
-// AndExpressionCase represents case numbers of production AndExpression
-type AndExpressionCase int
-
-// Values of type AndExpressionCase
-const (
-	AndExpressionEq AndExpressionCase = iota
-	AndExpressionAnd
-)
-
-// String implements fmt.Stringer
-func (n AndExpressionCase) String() string {
-	switch n {
-	case AndExpressionEq:
-		return "AndExpressionEq"
-	case AndExpressionAnd:
-		return "AndExpressionAnd"
-	default:
-		return fmt.Sprintf("AndExpressionCase(%v)", int(n))
-	}
-}
-
-// AndExpression represents data reduced by productions:
-//
-//	AndExpression:
-//	        EqualityExpression                    // Case AndExpressionEq
-//	|       AndExpression '&' EqualityExpression  // Case AndExpressionAnd
-type AndExpression struct {
-	typer
-	valuer
-	AndExpression      ExpressionNode
-	Case               AndExpressionCase `PrettyPrint:"stringer,zero"`
-	EqualityExpression ExpressionNode
-	Token              Token
-}
-
-// String implements fmt.Stringer.
-func (n *AndExpression) String() string { return PrettyString(n) }
-
-// Position reports the position of the first component of n, if available.
-func (n *AndExpression) Position() (r token.Position) {
-	if n == nil {
-		return r
-	}
-
-	switch n.Case {
-	case 1:
-		if p := n.AndExpression.Position(); p.IsValid() {
-			return p
-		}
-
-		if p := n.Token.Position(); p.IsValid() {
-			return p
-		}
-
-		return n.EqualityExpression.Position()
-	case 0:
-		return n.EqualityExpression.Position()
 	default:
 		panic("internal error")
 	}
@@ -2039,134 +1962,6 @@ func (n *EnumeratorList) Position() (r token.Position) {
 	return n.Enumerator.Position()
 }
 
-// EqualityExpressionCase represents case numbers of production EqualityExpression
-type EqualityExpressionCase int
-
-// Values of type EqualityExpressionCase
-const (
-	EqualityExpressionRel EqualityExpressionCase = iota
-	EqualityExpressionEq
-	EqualityExpressionNeq
-)
-
-// String implements fmt.Stringer
-func (n EqualityExpressionCase) String() string {
-	switch n {
-	case EqualityExpressionRel:
-		return "EqualityExpressionRel"
-	case EqualityExpressionEq:
-		return "EqualityExpressionEq"
-	case EqualityExpressionNeq:
-		return "EqualityExpressionNeq"
-	default:
-		return fmt.Sprintf("EqualityExpressionCase(%v)", int(n))
-	}
-}
-
-// EqualityExpression represents data reduced by productions:
-//
-//	EqualityExpression:
-//	        RelationalExpression                          // Case EqualityExpressionRel
-//	|       EqualityExpression "==" RelationalExpression  // Case EqualityExpressionEq
-//	|       EqualityExpression "!=" RelationalExpression  // Case EqualityExpressionNeq
-type EqualityExpression struct {
-	typer
-	valuer
-	Case                 EqualityExpressionCase `PrettyPrint:"stringer,zero"`
-	EqualityExpression   ExpressionNode
-	RelationalExpression ExpressionNode
-	Token                Token
-}
-
-// String implements fmt.Stringer.
-func (n *EqualityExpression) String() string { return PrettyString(n) }
-
-// Position reports the position of the first component of n, if available.
-func (n *EqualityExpression) Position() (r token.Position) {
-	if n == nil {
-		return r
-	}
-
-	switch n.Case {
-	case 1, 2:
-		if p := n.EqualityExpression.Position(); p.IsValid() {
-			return p
-		}
-
-		if p := n.Token.Position(); p.IsValid() {
-			return p
-		}
-
-		return n.RelationalExpression.Position()
-	case 0:
-		return n.RelationalExpression.Position()
-	default:
-		panic("internal error")
-	}
-}
-
-// ExclusiveOrExpressionCase represents case numbers of production ExclusiveOrExpression
-type ExclusiveOrExpressionCase int
-
-// Values of type ExclusiveOrExpressionCase
-const (
-	ExclusiveOrExpressionAnd ExclusiveOrExpressionCase = iota
-	ExclusiveOrExpressionXor
-)
-
-// String implements fmt.Stringer
-func (n ExclusiveOrExpressionCase) String() string {
-	switch n {
-	case ExclusiveOrExpressionAnd:
-		return "ExclusiveOrExpressionAnd"
-	case ExclusiveOrExpressionXor:
-		return "ExclusiveOrExpressionXor"
-	default:
-		return fmt.Sprintf("ExclusiveOrExpressionCase(%v)", int(n))
-	}
-}
-
-// ExclusiveOrExpression represents data reduced by productions:
-//
-//	ExclusiveOrExpression:
-//	        AndExpression                            // Case ExclusiveOrExpressionAnd
-//	|       ExclusiveOrExpression '^' AndExpression  // Case ExclusiveOrExpressionXor
-type ExclusiveOrExpression struct {
-	typer
-	valuer
-	AndExpression         ExpressionNode
-	Case                  ExclusiveOrExpressionCase `PrettyPrint:"stringer,zero"`
-	ExclusiveOrExpression ExpressionNode
-	Token                 Token
-}
-
-// String implements fmt.Stringer.
-func (n *ExclusiveOrExpression) String() string { return PrettyString(n) }
-
-// Position reports the position of the first component of n, if available.
-func (n *ExclusiveOrExpression) Position() (r token.Position) {
-	if n == nil {
-		return r
-	}
-
-	switch n.Case {
-	case 0:
-		return n.AndExpression.Position()
-	case 1:
-		if p := n.ExclusiveOrExpression.Position(); p.IsValid() {
-			return p
-		}
-
-		if p := n.Token.Position(); p.IsValid() {
-			return p
-		}
-
-		return n.AndExpression.Position()
-	default:
-		panic("internal error")
-	}
-}
-
 // ExpressionListCase represents case numbers of production ExpressionList
 type ExpressionListCase int
 
@@ -2509,68 +2304,6 @@ func (n *IdentifierList) Position() (r token.Position) {
 	}
 
 	return n.Token.Position()
-}
-
-// InclusiveOrExpressionCase represents case numbers of production InclusiveOrExpression
-type InclusiveOrExpressionCase int
-
-// Values of type InclusiveOrExpressionCase
-const (
-	InclusiveOrExpressionXor InclusiveOrExpressionCase = iota
-	InclusiveOrExpressionOr
-)
-
-// String implements fmt.Stringer
-func (n InclusiveOrExpressionCase) String() string {
-	switch n {
-	case InclusiveOrExpressionXor:
-		return "InclusiveOrExpressionXor"
-	case InclusiveOrExpressionOr:
-		return "InclusiveOrExpressionOr"
-	default:
-		return fmt.Sprintf("InclusiveOrExpressionCase(%v)", int(n))
-	}
-}
-
-// InclusiveOrExpression represents data reduced by productions:
-//
-//	InclusiveOrExpression:
-//	        ExclusiveOrExpression                            // Case InclusiveOrExpressionXor
-//	|       InclusiveOrExpression '|' ExclusiveOrExpression  // Case InclusiveOrExpressionOr
-type InclusiveOrExpression struct {
-	typer
-	valuer
-	Case                  InclusiveOrExpressionCase `PrettyPrint:"stringer,zero"`
-	ExclusiveOrExpression ExpressionNode
-	InclusiveOrExpression ExpressionNode
-	Token                 Token
-}
-
-// String implements fmt.Stringer.
-func (n *InclusiveOrExpression) String() string { return PrettyString(n) }
-
-// Position reports the position of the first component of n, if available.
-func (n *InclusiveOrExpression) Position() (r token.Position) {
-	if n == nil {
-		return r
-	}
-
-	switch n.Case {
-	case 0:
-		return n.ExclusiveOrExpression.Position()
-	case 1:
-		if p := n.InclusiveOrExpression.Position(); p.IsValid() {
-			return p
-		}
-
-		if p := n.Token.Position(); p.IsValid() {
-			return p
-		}
-
-		return n.ExclusiveOrExpression.Position()
-	default:
-		panic("internal error")
-	}
 }
 
 // InitDeclaratorCase represents case numbers of production InitDeclarator
@@ -3185,200 +2918,6 @@ func (n *LabeledStatement) Position() (r token.Position) {
 // and LabeledStatementDefault.
 func (n *LabeledStatement) CaseOrdinal() int { return n.caseOrdinal }
 
-// LogicalAndExpressionCase represents case numbers of production LogicalAndExpression
-type LogicalAndExpressionCase int
-
-// Values of type LogicalAndExpressionCase
-const (
-	LogicalAndExpressionOr LogicalAndExpressionCase = iota
-	LogicalAndExpressionLAnd
-)
-
-// String implements fmt.Stringer
-func (n LogicalAndExpressionCase) String() string {
-	switch n {
-	case LogicalAndExpressionOr:
-		return "LogicalAndExpressionOr"
-	case LogicalAndExpressionLAnd:
-		return "LogicalAndExpressionLAnd"
-	default:
-		return fmt.Sprintf("LogicalAndExpressionCase(%v)", int(n))
-	}
-}
-
-// LogicalAndExpression represents data reduced by productions:
-//
-//	LogicalAndExpression:
-//	        InclusiveOrExpression                            // Case LogicalAndExpressionOr
-//	|       LogicalAndExpression "&&" InclusiveOrExpression  // Case LogicalAndExpressionLAnd
-type LogicalAndExpression struct {
-	typer
-	valuer
-	Case                  LogicalAndExpressionCase `PrettyPrint:"stringer,zero"`
-	InclusiveOrExpression ExpressionNode
-	LogicalAndExpression  ExpressionNode
-	Token                 Token
-}
-
-// String implements fmt.Stringer.
-func (n *LogicalAndExpression) String() string { return PrettyString(n) }
-
-// Position reports the position of the first component of n, if available.
-func (n *LogicalAndExpression) Position() (r token.Position) {
-	if n == nil {
-		return r
-	}
-
-	switch n.Case {
-	case 0:
-		return n.InclusiveOrExpression.Position()
-	case 1:
-		if p := n.LogicalAndExpression.Position(); p.IsValid() {
-			return p
-		}
-
-		if p := n.Token.Position(); p.IsValid() {
-			return p
-		}
-
-		return n.InclusiveOrExpression.Position()
-	default:
-		panic("internal error")
-	}
-}
-
-// LogicalOrExpressionCase represents case numbers of production LogicalOrExpression
-type LogicalOrExpressionCase int
-
-// Values of type LogicalOrExpressionCase
-const (
-	LogicalOrExpressionLAnd LogicalOrExpressionCase = iota
-	LogicalOrExpressionLOr
-)
-
-// String implements fmt.Stringer
-func (n LogicalOrExpressionCase) String() string {
-	switch n {
-	case LogicalOrExpressionLAnd:
-		return "LogicalOrExpressionLAnd"
-	case LogicalOrExpressionLOr:
-		return "LogicalOrExpressionLOr"
-	default:
-		return fmt.Sprintf("LogicalOrExpressionCase(%v)", int(n))
-	}
-}
-
-// LogicalOrExpression represents data reduced by productions:
-//
-//	LogicalOrExpression:
-//	        LogicalAndExpression                           // Case LogicalOrExpressionLAnd
-//	|       LogicalOrExpression "||" LogicalAndExpression  // Case LogicalOrExpressionLOr
-type LogicalOrExpression struct {
-	typer
-	valuer
-	Case                 LogicalOrExpressionCase `PrettyPrint:"stringer,zero"`
-	LogicalAndExpression ExpressionNode
-	LogicalOrExpression  ExpressionNode
-	Token                Token
-}
-
-// String implements fmt.Stringer.
-func (n *LogicalOrExpression) String() string { return PrettyString(n) }
-
-// Position reports the position of the first component of n, if available.
-func (n *LogicalOrExpression) Position() (r token.Position) {
-	if n == nil {
-		return r
-	}
-
-	switch n.Case {
-	case 0:
-		return n.LogicalAndExpression.Position()
-	case 1:
-		if p := n.LogicalOrExpression.Position(); p.IsValid() {
-			return p
-		}
-
-		if p := n.Token.Position(); p.IsValid() {
-			return p
-		}
-
-		return n.LogicalAndExpression.Position()
-	default:
-		panic("internal error")
-	}
-}
-
-// MultiplicativeExpressionCase represents case numbers of production MultiplicativeExpression
-type MultiplicativeExpressionCase int
-
-// Values of type MultiplicativeExpressionCase
-const (
-	MultiplicativeExpressionCast MultiplicativeExpressionCase = iota
-	MultiplicativeExpressionMul
-	MultiplicativeExpressionDiv
-	MultiplicativeExpressionMod
-)
-
-// String implements fmt.Stringer
-func (n MultiplicativeExpressionCase) String() string {
-	switch n {
-	case MultiplicativeExpressionCast:
-		return "MultiplicativeExpressionCast"
-	case MultiplicativeExpressionMul:
-		return "MultiplicativeExpressionMul"
-	case MultiplicativeExpressionDiv:
-		return "MultiplicativeExpressionDiv"
-	case MultiplicativeExpressionMod:
-		return "MultiplicativeExpressionMod"
-	default:
-		return fmt.Sprintf("MultiplicativeExpressionCase(%v)", int(n))
-	}
-}
-
-// MultiplicativeExpression represents data reduced by productions:
-//
-//	MultiplicativeExpression:
-//	        CastExpression                               // Case MultiplicativeExpressionCast
-//	|       MultiplicativeExpression '*' CastExpression  // Case MultiplicativeExpressionMul
-//	|       MultiplicativeExpression '/' CastExpression  // Case MultiplicativeExpressionDiv
-//	|       MultiplicativeExpression '%' CastExpression  // Case MultiplicativeExpressionMod
-type MultiplicativeExpression struct {
-	typer
-	valuer
-	Case                     MultiplicativeExpressionCase `PrettyPrint:"stringer,zero"`
-	CastExpression           ExpressionNode
-	MultiplicativeExpression ExpressionNode
-	Token                    Token
-}
-
-// String implements fmt.Stringer.
-func (n *MultiplicativeExpression) String() string { return PrettyString(n) }
-
-// Position reports the position of the first component of n, if available.
-func (n *MultiplicativeExpression) Position() (r token.Position) {
-	if n == nil {
-		return r
-	}
-
-	switch n.Case {
-	case 0:
-		return n.CastExpression.Position()
-	case 1, 2, 3:
-		if p := n.MultiplicativeExpression.Position(); p.IsValid() {
-			return p
-		}
-
-		if p := n.Token.Position(); p.IsValid() {
-			return p
-		}
-
-		return n.CastExpression.Position()
-	default:
-		panic("internal error")
-	}
-}
-
 // ParameterDeclarationCase represents case numbers of production ParameterDeclaration
 type ParameterDeclarationCase int
 
@@ -3874,80 +3413,6 @@ func (n *PrimaryExpression) ResolvedTo() Node { return n.resolvedTo }
 // this node, if any.
 func (n *PrimaryExpression) Macro() *Macro { return n.m }
 
-// RelationalExpressionCase represents case numbers of production RelationalExpression
-type RelationalExpressionCase int
-
-// Values of type RelationalExpressionCase
-const (
-	RelationalExpressionShift RelationalExpressionCase = iota
-	RelationalExpressionLt
-	RelationalExpressionGt
-	RelationalExpressionLeq
-	RelationalExpressionGeq
-)
-
-// String implements fmt.Stringer
-func (n RelationalExpressionCase) String() string {
-	switch n {
-	case RelationalExpressionShift:
-		return "RelationalExpressionShift"
-	case RelationalExpressionLt:
-		return "RelationalExpressionLt"
-	case RelationalExpressionGt:
-		return "RelationalExpressionGt"
-	case RelationalExpressionLeq:
-		return "RelationalExpressionLeq"
-	case RelationalExpressionGeq:
-		return "RelationalExpressionGeq"
-	default:
-		return fmt.Sprintf("RelationalExpressionCase(%v)", int(n))
-	}
-}
-
-// RelationalExpression represents data reduced by productions:
-//
-//	RelationalExpression:
-//	        ShiftExpression                            // Case RelationalExpressionShift
-//	|       RelationalExpression '<' ShiftExpression   // Case RelationalExpressionLt
-//	|       RelationalExpression '>' ShiftExpression   // Case RelationalExpressionGt
-//	|       RelationalExpression "<=" ShiftExpression  // Case RelationalExpressionLeq
-//	|       RelationalExpression ">=" ShiftExpression  // Case RelationalExpressionGeq
-type RelationalExpression struct {
-	typer
-	valuer
-	Case                 RelationalExpressionCase `PrettyPrint:"stringer,zero"`
-	RelationalExpression ExpressionNode
-	ShiftExpression      ExpressionNode
-	Token                Token
-}
-
-// String implements fmt.Stringer.
-func (n *RelationalExpression) String() string { return PrettyString(n) }
-
-// Position reports the position of the first component of n, if available.
-func (n *RelationalExpression) Position() (r token.Position) {
-	if n == nil {
-		return r
-	}
-
-	switch n.Case {
-	case 1, 2, 3, 4:
-		if p := n.RelationalExpression.Position(); p.IsValid() {
-			return p
-		}
-
-		if p := n.Token.Position(); p.IsValid() {
-			return p
-		}
-
-		return n.ShiftExpression.Position()
-	case 0:
-		return n.ShiftExpression.Position()
-	default:
-		panic("internal error")
-	}
-}
-
 // SelectionStatementCase represents case numbers of production SelectionStatement
 type SelectionStatementCase int
 
@@ -4052,72 +3517,6 @@ func (n *SelectionStatement) Position() (r token.Position) {
 // Cases returns the combined number of "case" and "default" labels in a switch
 // statement. Valid for Case == SelectionStatementSwitch.
 func (n *SelectionStatement) Cases() int { return n.switchCases }
-
-// ShiftExpressionCase represents case numbers of production ShiftExpression
-type ShiftExpressionCase int
-
-// Values of type ShiftExpressionCase
-const (
-	ShiftExpressionAdd ShiftExpressionCase = iota
-	ShiftExpressionLsh
-	ShiftExpressionRsh
-)
-
-// String implements fmt.Stringer
-func (n ShiftExpressionCase) String() string {
-	switch n {
-	case ShiftExpressionAdd:
-		return "ShiftExpressionAdd"
-	case ShiftExpressionLsh:
-		return "ShiftExpressionLsh"
-	case ShiftExpressionRsh:
-		return "ShiftExpressionRsh"
-	default:
-		return fmt.Sprintf("ShiftExpressionCase(%v)", int(n))
-	}
-}
-
-// ShiftExpression represents data reduced by productions:
-//
-//	ShiftExpression:
-//	        AdditiveExpression                       // Case ShiftExpressionAdd
-//	|       ShiftExpression "<<" AdditiveExpression  // Case ShiftExpressionLsh
-//	|       ShiftExpression ">>" AdditiveExpression  // Case ShiftExpressionRsh
-type ShiftExpression struct {
-	typer
-	valuer
-	AdditiveExpression ExpressionNode
-	Case               ShiftExpressionCase `PrettyPrint:"stringer,zero"`
-	ShiftExpression    ExpressionNode
-	Token              Token
-}
-
-// String implements fmt.Stringer.
-func (n *ShiftExpression) String() string { return PrettyString(n) }
-
-// Position reports the position of the first component of n, if available.
-func (n *ShiftExpression) Position() (r token.Position) {
-	if n == nil {
-		return r
-	}
-
-	switch n.Case {
-	case 0:
-		return n.AdditiveExpression.Position()
-	case 1, 2:
-		if p := n.ShiftExpression.Position(); p.IsValid() {
-			return p
-		}
-
-		if p := n.Token.Position(); p.IsValid() {
-			return p
-		}
-
-		return n.AdditiveExpression.Position()
-	default:
-		panic("internal error")
-	}
-}
 
 // SpecifierQualifierListCase represents case numbers of production SpecifierQualifierList
 type SpecifierQualifierListCase int

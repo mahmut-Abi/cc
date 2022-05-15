@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-//go:generate stringer -output stringer.go -linecomment -type=tokCh,Kind,Linkage,StorageDuration
+//go:generate stringer -output stringer.go -linecomment -type=tokCh,Kind,Linkage,StorageDuration,BinaryOperation
 //go:generate sh -c "go test -run ^Example |fe"
 
 // Package cc is a C99 compiler front end.

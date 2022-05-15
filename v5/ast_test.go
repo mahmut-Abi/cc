@@ -33,37 +33,37 @@ func ExampleAbstractDeclarator_decl() {
 	// }
 }
 
-func ExampleAdditiveExpression_add() {
+func ExampleBinaryExpression_add() {
 	fmt.Println(exampleAST(49, "int i = x+y;"))
 	// Output:
-	// &cc.AdditiveExpression{
-	// · AdditiveExpression: &cc.PrimaryExpression{
+	// &cc.BinaryExpression{
+	// · Lhs: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:9: identifier "x",
 	// · },
-	// · Case: AdditiveExpressionAdd,
-	// · MultiplicativeExpression: &cc.PrimaryExpression{
+	// · Op: BinaryOperationAdd,
+	// · Token: example.c:1:10: '+' "+",
+	// · Rhs: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:11: identifier "y",
 	// · },
-	// · Token: example.c:1:10: '+' "+",
 	// }
 }
 
-func ExampleAdditiveExpression_sub() {
+func ExampleBinaryExpression_sub() {
 	fmt.Println(exampleAST(50, "int i = x-y;"))
 	// Output:
-	// &cc.AdditiveExpression{
-	// · AdditiveExpression: &cc.PrimaryExpression{
+	// &cc.BinaryExpression{
+	// · Lhs: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:9: identifier "x",
 	// · },
-	// · Case: AdditiveExpressionSub,
-	// · MultiplicativeExpression: &cc.PrimaryExpression{
+	// · Op: BinaryOperationSub,
+	// · Token: example.c:1:10: '-' "-",
+	// · Rhs: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:11: identifier "y",
 	// · },
-	// · Token: example.c:1:10: '-' "-",
 	// }
 }
 
@@ -104,20 +104,20 @@ func ExampleAlignmentSpecifier_expr() {
 	// }
 }
 
-func ExampleAndExpression_and() {
+func ExampleBinaryExpression_and() {
 	fmt.Println(exampleAST(63, "int i = x & y;"))
 	// Output:
-	// &cc.AndExpression{
-	// · AndExpression: &cc.PrimaryExpression{
+	// &cc.BinaryExpression{
+	// · Lhs: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:9: identifier "x",
 	// · },
-	// · Case: AndExpressionAnd,
-	// · EqualityExpression: &cc.PrimaryExpression{
+	// · Op: BinaryOperationAnd,
+	// · Token: example.c:1:11: '&' "&",
+	// · Rhs: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:13: identifier "y",
 	// · },
-	// · Token: example.c:1:11: '&' "&",
 	// }
 }
 
@@ -1467,17 +1467,17 @@ func ExampleDeclaration_assert() {
 	// Output:
 	// &cc.StaticAssertDeclaration{
 	// · ConstantExpression: &cc.ConstantExpression{
-	// · · ConditionalExpression: &cc.RelationalExpression{
-	// · · · Case: RelationalExpressionGt,
-	// · · · RelationalExpression: &cc.PrimaryExpression{
+	// · · ConditionalExpression: &cc.BinaryExpression{
+	// · · · Lhs: &cc.PrimaryExpression{
 	// · · · · Case: PrimaryExpressionIdent,
 	// · · · · Token: example.c:1:16: identifier "x",
 	// · · · },
-	// · · · ShiftExpression: &cc.PrimaryExpression{
+	// · · · Op: BinaryOperationGt,
+	// · · · Token: example.c:1:18: '>' ">",
+	// · · · Rhs: &cc.PrimaryExpression{
 	// · · · · Case: PrimaryExpressionIdent,
 	// · · · · Token: example.c:1:20: identifier "y",
 	// · · · },
-	// · · · Token: example.c:1:18: '>' ">",
 	// · · },
 	// · },
 	// · Token: example.c:1:1: _Static_assert "_Static_assert",
@@ -2304,54 +2304,54 @@ func ExampleEnumeratorList_case1() {
 	// }
 }
 
-func ExampleEqualityExpression_eq() {
+func ExampleBinaryExpression_eq() {
 	fmt.Println(exampleAST(60, "int i = x == y;"))
 	// Output:
-	// &cc.EqualityExpression{
-	// · Case: EqualityExpressionEq,
-	// · EqualityExpression: &cc.PrimaryExpression{
+	// &cc.BinaryExpression{
+	// · Lhs: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:9: identifier "x",
 	// · },
-	// · RelationalExpression: &cc.PrimaryExpression{
+	// · Op: BinaryOperationEq,
+	// · Token: example.c:1:11: '==' "==",
+	// · Rhs: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:14: identifier "y",
 	// · },
-	// · Token: example.c:1:11: '==' "==",
 	// }
 }
 
-func ExampleEqualityExpression_neq() {
+func ExampleBinaryExpression_neq() {
 	fmt.Println(exampleAST(61, "int i = x != y;"))
 	// Output:
-	// &cc.EqualityExpression{
-	// · Case: EqualityExpressionNeq,
-	// · EqualityExpression: &cc.PrimaryExpression{
+	// &cc.BinaryExpression{
+	// · Lhs: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:9: identifier "x",
 	// · },
-	// · RelationalExpression: &cc.PrimaryExpression{
+	// · Op: BinaryOperationNeq,
+	// · Token: example.c:1:11: '!=' "!=",
+	// · Rhs: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:14: identifier "y",
 	// · },
-	// · Token: example.c:1:11: '!=' "!=",
 	// }
 }
 
-func ExampleExclusiveOrExpression_xor() {
+func ExampleBinaryExpression_xor() {
 	fmt.Println(exampleAST(65, "int i = x^y;"))
 	// Output:
-	// &cc.ExclusiveOrExpression{
-	// · AndExpression: &cc.PrimaryExpression{
+	// &cc.BinaryExpression{
+	// · Lhs: &cc.PrimaryExpression{
+	// · · Case: PrimaryExpressionIdent,
+	// · · Token: example.c:1:9: identifier "x",
+	// · },
+	// · Op: BinaryOperationXor,
+	// · Token: example.c:1:10: '^' "^",
+	// · Rhs: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:11: identifier "y",
 	// · },
-	// · Case: ExclusiveOrExpressionXor,
-	// · ExclusiveOrExpression: &cc.PrimaryExpression{
-	// · · Case: PrimaryExpressionIdent,
-	// · · Token: example.c:1:9: identifier "x",
-	// · },
-	// · Token: example.c:1:10: '^' "^",
 	// }
 }
 
@@ -2771,20 +2771,20 @@ func ExampleIdentifierList_case1() {
 	// }
 }
 
-func ExampleInclusiveOrExpression_or() {
+func ExampleBinaryExpression_or() {
 	fmt.Println(exampleAST(67, "int i = x|y;"))
 	// Output:
-	// &cc.InclusiveOrExpression{
-	// · Case: InclusiveOrExpressionOr,
-	// · ExclusiveOrExpression: &cc.PrimaryExpression{
-	// · · Case: PrimaryExpressionIdent,
-	// · · Token: example.c:1:11: identifier "y",
-	// · },
-	// · InclusiveOrExpression: &cc.PrimaryExpression{
+	// &cc.BinaryExpression{
+	// · Lhs: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:9: identifier "x",
 	// · },
+	// · Op: BinaryOperationOr,
 	// · Token: example.c:1:10: '|' "|",
+	// · Rhs: &cc.PrimaryExpression{
+	// · · Case: PrimaryExpressionIdent,
+	// · · Token: example.c:1:11: identifier "y",
+	// · },
 	// }
 }
 
@@ -3085,17 +3085,17 @@ func ExampleIterationStatement_for() {
 	// · · · Token: example.c:1:16: identifier "i",
 	// · · },
 	// · },
-	// · ExpressionList2: &cc.RelationalExpression{
-	// · · Case: RelationalExpressionLt,
-	// · · RelationalExpression: &cc.PrimaryExpression{
+	// · ExpressionList2: &cc.BinaryExpression{
+	// · · Lhs: &cc.PrimaryExpression{
 	// · · · Case: PrimaryExpressionIdent,
 	// · · · Token: example.c:1:23: identifier "i",
 	// · · },
-	// · · ShiftExpression: &cc.PrimaryExpression{
+	// · · Op: BinaryOperationLt,
+	// · · Token: example.c:1:25: '<' "<",
+	// · · Rhs: &cc.PrimaryExpression{
 	// · · · Case: PrimaryExpressionInt,
 	// · · · Token: example.c:1:27: integer constant "10",
 	// · · },
-	// · · Token: example.c:1:25: '<' "<",
 	// · },
 	// · ExpressionList3: &cc.PostfixExpression{
 	// · · Case: PostfixExpressionInc,
@@ -3158,17 +3158,17 @@ func ExampleIterationStatement_forDecl() {
 	// · · },
 	// · · Token: example.c:1:25: ';' ";",
 	// · },
-	// · ExpressionList: &cc.RelationalExpression{
-	// · · Case: RelationalExpressionLt,
-	// · · RelationalExpression: &cc.PrimaryExpression{
+	// · ExpressionList: &cc.BinaryExpression{
+	// · · Lhs: &cc.PrimaryExpression{
 	// · · · Case: PrimaryExpressionIdent,
 	// · · · Token: example.c:1:27: identifier "i",
 	// · · },
-	// · · ShiftExpression: &cc.PrimaryExpression{
+	// · · Op: BinaryOperationLt,
+	// · · Token: example.c:1:29: '<' "<",
+	// · · Rhs: &cc.PrimaryExpression{
 	// · · · Case: PrimaryExpressionInt,
 	// · · · Token: example.c:1:31: integer constant "10",
 	// · · },
-	// · · Token: example.c:1:29: '<' "<",
 	// · },
 	// · ExpressionList2: &cc.PostfixExpression{
 	// · · Case: PostfixExpressionInc,
@@ -3374,88 +3374,88 @@ func ExampleLabeledStatement_default() {
 	// }
 }
 
-func ExampleLogicalAndExpression_lAnd() {
+func ExampleBinaryExpression_lAnd() {
 	fmt.Println(exampleAST(69, "int i = x && y;"))
 	// Output:
-	// &cc.LogicalAndExpression{
-	// · Case: LogicalAndExpressionLAnd,
-	// · InclusiveOrExpression: &cc.PrimaryExpression{
-	// · · Case: PrimaryExpressionIdent,
-	// · · Token: example.c:1:14: identifier "y",
-	// · },
-	// · LogicalAndExpression: &cc.PrimaryExpression{
+	// &cc.BinaryExpression{
+	// · Lhs: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:9: identifier "x",
 	// · },
+	// · Op: BinaryOperationLAnd,
 	// · Token: example.c:1:11: '&&' "&&",
+	// · Rhs: &cc.PrimaryExpression{
+	// · · Case: PrimaryExpressionIdent,
+	// · · Token: example.c:1:14: identifier "y",
+	// · },
 	// }
 }
 
-func ExampleLogicalOrExpression_lOr() {
+func ExampleBinaryExpression_lOr() {
 	fmt.Println(exampleAST(71, "int i = x || y;"))
 	// Output:
-	// &cc.LogicalOrExpression{
-	// · Case: LogicalOrExpressionLOr,
-	// · LogicalAndExpression: &cc.PrimaryExpression{
+	// &cc.BinaryExpression{
+	// · Lhs: &cc.PrimaryExpression{
+	// · · Case: PrimaryExpressionIdent,
+	// · · Token: example.c:1:9: identifier "x",
+	// · },
+	// · Op: BinaryOperationLOr,
+	// · Token: example.c:1:11: '||' "||",
+	// · Rhs: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:14: identifier "y",
 	// · },
-	// · LogicalOrExpression: &cc.PrimaryExpression{
-	// · · Case: PrimaryExpressionIdent,
-	// · · Token: example.c:1:9: identifier "x",
-	// · },
-	// · Token: example.c:1:11: '||' "||",
 	// }
 }
 
-func ExampleMultiplicativeExpression_mul() {
+func ExampleBinaryExpression_mul() {
 	fmt.Println(exampleAST(45, "int i = x * y;"))
 	// Output:
-	// &cc.MultiplicativeExpression{
-	// · Case: MultiplicativeExpressionMul,
-	// · CastExpression: &cc.PrimaryExpression{
-	// · · Case: PrimaryExpressionIdent,
-	// · · Token: example.c:1:13: identifier "y",
-	// · },
-	// · MultiplicativeExpression: &cc.PrimaryExpression{
+	// &cc.BinaryExpression{
+	// · Lhs: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:9: identifier "x",
 	// · },
+	// · Op: BinaryOperationMul,
 	// · Token: example.c:1:11: '*' "*",
+	// · Rhs: &cc.PrimaryExpression{
+	// · · Case: PrimaryExpressionIdent,
+	// · · Token: example.c:1:13: identifier "y",
+	// · },
 	// }
 }
 
-func ExampleMultiplicativeExpression_div() {
+func ExampleBinaryExpression_div() {
 	fmt.Println(exampleAST(46, "int i = x / y;"))
 	// Output:
-	// &cc.MultiplicativeExpression{
-	// · Case: MultiplicativeExpressionDiv,
-	// · CastExpression: &cc.PrimaryExpression{
-	// · · Case: PrimaryExpressionIdent,
-	// · · Token: example.c:1:13: identifier "y",
-	// · },
-	// · MultiplicativeExpression: &cc.PrimaryExpression{
+	// &cc.BinaryExpression{
+	// · Lhs: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:9: identifier "x",
 	// · },
+	// · Op: BinaryOperationDiv,
 	// · Token: example.c:1:11: '/' "/",
+	// · Rhs: &cc.PrimaryExpression{
+	// · · Case: PrimaryExpressionIdent,
+	// · · Token: example.c:1:13: identifier "y",
+	// · },
 	// }
 }
 
-func ExampleMultiplicativeExpression_mod() {
+func ExampleBinaryExpression_mod() {
 	fmt.Println(exampleAST(47, "int i = x % y;"))
 	// Output:
-	// &cc.MultiplicativeExpression{
-	// · Case: MultiplicativeExpressionMod,
-	// · CastExpression: &cc.PrimaryExpression{
-	// · · Case: PrimaryExpressionIdent,
-	// · · Token: example.c:1:13: identifier "y",
-	// · },
-	// · MultiplicativeExpression: &cc.PrimaryExpression{
+	// &cc.BinaryExpression{
+	// · Lhs: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:9: identifier "x",
 	// · },
+	// · Op: BinaryOperationMod,
 	// · Token: example.c:1:11: '%' "%",
+	// · Rhs: &cc.PrimaryExpression{
+	// · · Case: PrimaryExpressionIdent,
+	// · · Token: example.c:1:13: identifier "y",
+	// · },
 	// }
 }
 
@@ -3865,17 +3865,17 @@ func ExamplePrimaryExpression_expr() {
 	// Output:
 	// &cc.PrimaryExpression{
 	// · Case: PrimaryExpressionExpr,
-	// · ExpressionList: &cc.AdditiveExpression{
-	// · · AdditiveExpression: &cc.PrimaryExpression{
+	// · ExpressionList: &cc.BinaryExpression{
+	// · · Lhs: &cc.PrimaryExpression{
 	// · · · Case: PrimaryExpressionIdent,
 	// · · · Token: example.c:1:10: identifier "x",
 	// · · },
-	// · · Case: AdditiveExpressionAdd,
-	// · · MultiplicativeExpression: &cc.PrimaryExpression{
+	// · · Op: BinaryOperationAdd,
+	// · · Token: example.c:1:11: '+' "+",
+	// · · Rhs: &cc.PrimaryExpression{
 	// · · · Case: PrimaryExpressionIdent,
 	// · · · Token: example.c:1:12: identifier "y",
 	// · · },
-	// · · Token: example.c:1:11: '+' "+",
 	// · },
 	// · Token: example.c:1:9: '(' "(",
 	// · Token2: example.c:1:13: ')' ")",
@@ -3951,71 +3951,71 @@ func ExamplePrimaryExpression_generic() {
 	// }
 }
 
-func ExampleRelationalExpression_lt() {
+func ExampleBinaryExpression_lt() {
 	fmt.Println(exampleAST(55, "int i = x < y;"))
 	// Output:
-	// &cc.RelationalExpression{
-	// · Case: RelationalExpressionLt,
-	// · RelationalExpression: &cc.PrimaryExpression{
+	// &cc.BinaryExpression{
+	// · Lhs: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:9: identifier "x",
 	// · },
-	// · ShiftExpression: &cc.PrimaryExpression{
+	// · Op: BinaryOperationLt,
+	// · Token: example.c:1:11: '<' "<",
+	// · Rhs: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:13: identifier "y",
 	// · },
-	// · Token: example.c:1:11: '<' "<",
 	// }
 }
 
-func ExampleRelationalExpression_gt() {
+func ExampleBinaryExpression_gt() {
 	fmt.Println(exampleAST(56, "int i = x > y;"))
 	// Output:
-	// &cc.RelationalExpression{
-	// · Case: RelationalExpressionGt,
-	// · RelationalExpression: &cc.PrimaryExpression{
+	// &cc.BinaryExpression{
+	// · Lhs: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:9: identifier "x",
 	// · },
-	// · ShiftExpression: &cc.PrimaryExpression{
+	// · Op: BinaryOperationGt,
+	// · Token: example.c:1:11: '>' ">",
+	// · Rhs: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:13: identifier "y",
 	// · },
-	// · Token: example.c:1:11: '>' ">",
 	// }
 }
 
-func ExampleRelationalExpression_leq() {
+func ExampleBinaryExpression_leq() {
 	fmt.Println(exampleAST(57, "int i = x <= y;"))
 	// Output:
-	// &cc.RelationalExpression{
-	// · Case: RelationalExpressionLeq,
-	// · RelationalExpression: &cc.PrimaryExpression{
+	// &cc.BinaryExpression{
+	// · Lhs: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:9: identifier "x",
 	// · },
-	// · ShiftExpression: &cc.PrimaryExpression{
+	// · Op: BinaryOperationLeq,
+	// · Token: example.c:1:11: '<=' "<=",
+	// · Rhs: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:14: identifier "y",
 	// · },
-	// · Token: example.c:1:11: '<=' "<=",
 	// }
 }
 
-func ExampleRelationalExpression_geq() {
+func ExampleBinaryExpression_geq() {
 	fmt.Println(exampleAST(58, "int i = x >= y;"))
 	// Output:
-	// &cc.RelationalExpression{
-	// · Case: RelationalExpressionGeq,
-	// · RelationalExpression: &cc.PrimaryExpression{
+	// &cc.BinaryExpression{
+	// · Lhs: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:9: identifier "x",
 	// · },
-	// · ShiftExpression: &cc.PrimaryExpression{
+	// · Op: BinaryOperationGeq,
+	// · Token: example.c:1:11: '>=' ">=",
+	// · Rhs: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:14: identifier "y",
 	// · },
-	// · Token: example.c:1:11: '>=' ">=",
 	// }
 }
 
@@ -4124,37 +4124,37 @@ func ExampleSelectionStatement_switch() {
 	// }
 }
 
-func ExampleShiftExpression_lsh() {
+func ExampleBinaryExpression_lsh() {
 	fmt.Println(exampleAST(52, "int i = x << y;"))
 	// Output:
-	// &cc.ShiftExpression{
-	// · AdditiveExpression: &cc.PrimaryExpression{
-	// · · Case: PrimaryExpressionIdent,
-	// · · Token: example.c:1:14: identifier "y",
-	// · },
-	// · Case: ShiftExpressionLsh,
-	// · ShiftExpression: &cc.PrimaryExpression{
+	// &cc.BinaryExpression{
+	// · Lhs: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:9: identifier "x",
 	// · },
+	// · Op: BinaryOperationLsh,
 	// · Token: example.c:1:11: '<<' "<<",
+	// · Rhs: &cc.PrimaryExpression{
+	// · · Case: PrimaryExpressionIdent,
+	// · · Token: example.c:1:14: identifier "y",
+	// · },
 	// }
 }
 
-func ExampleShiftExpression_rsh() {
+func ExampleBinaryExpression_rsh() {
 	fmt.Println(exampleAST(53, "int i = x >> y;"))
 	// Output:
-	// &cc.ShiftExpression{
-	// · AdditiveExpression: &cc.PrimaryExpression{
-	// · · Case: PrimaryExpressionIdent,
-	// · · Token: example.c:1:14: identifier "y",
-	// · },
-	// · Case: ShiftExpressionRsh,
-	// · ShiftExpression: &cc.PrimaryExpression{
+	// &cc.BinaryExpression{
+	// · Lhs: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:9: identifier "x",
 	// · },
+	// · Op: BinaryOperationRsh,
 	// · Token: example.c:1:11: '>>' ">>",
+	// · Rhs: &cc.PrimaryExpression{
+	// · · Case: PrimaryExpressionIdent,
+	// · · Token: example.c:1:14: identifier "y",
+	// · },
 	// }
 }
 
@@ -4686,17 +4686,17 @@ func ExampleStaticAssertDeclaration_case0() {
 	// Output:
 	// &cc.StaticAssertDeclaration{
 	// · ConstantExpression: &cc.ConstantExpression{
-	// · · ConditionalExpression: &cc.RelationalExpression{
-	// · · · Case: RelationalExpressionGt,
-	// · · · RelationalExpression: &cc.PrimaryExpression{
+	// · · ConditionalExpression: &cc.BinaryExpression{
+	// · · · Lhs: &cc.PrimaryExpression{
 	// · · · · Case: PrimaryExpressionIdent,
 	// · · · · Token: example.c:1:16: identifier "x",
 	// · · · },
-	// · · · ShiftExpression: &cc.PrimaryExpression{
+	// · · · Op: BinaryOperationGt,
+	// · · · Token: example.c:1:18: '>' ">",
+	// · · · Rhs: &cc.PrimaryExpression{
 	// · · · · Case: PrimaryExpressionIdent,
 	// · · · · Token: example.c:1:20: identifier "y",
 	// · · · },
-	// · · · Token: example.c:1:18: '>' ">",
 	// · · },
 	// · },
 	// · Token: example.c:1:1: _Static_assert "_Static_assert",
@@ -4824,17 +4824,17 @@ func ExampleStructDeclaration_assert() {
 	// · Case: StructDeclarationAssert,
 	// · StaticAssertDeclaration: &cc.StaticAssertDeclaration{
 	// · · ConstantExpression: &cc.ConstantExpression{
-	// · · · ConditionalExpression: &cc.RelationalExpression{
-	// · · · · Case: RelationalExpressionGt,
-	// · · · · RelationalExpression: &cc.PrimaryExpression{
+	// · · · ConditionalExpression: &cc.BinaryExpression{
+	// · · · · Lhs: &cc.PrimaryExpression{
 	// · · · · · Case: PrimaryExpressionIdent,
 	// · · · · · Token: example.c:1:24: identifier "x",
 	// · · · · },
-	// · · · · ShiftExpression: &cc.PrimaryExpression{
+	// · · · · Op: BinaryOperationGt,
+	// · · · · Token: example.c:1:26: '>' ">",
+	// · · · · Rhs: &cc.PrimaryExpression{
 	// · · · · · Case: PrimaryExpressionIdent,
 	// · · · · · Token: example.c:1:28: identifier "y",
 	// · · · · },
-	// · · · · Token: example.c:1:26: '>' ">",
 	// · · · },
 	// · · },
 	// · · Token: example.c:1:9: _Static_assert "_Static_assert",
