@@ -1771,6 +1771,7 @@ func TestMake(t *testing.T) {
 		{"download.redis.io/releases/redis-6.2.6.tar.gz", "redis-6.2.6", cfg.noConfigure(), redis},
 		{"c9x.me/git/qbe.tar.gz", "qbe", cfg.noConfigure(), qbe},
 		{"git.postgresql.org/git/postgresql.tar.gz", "postgresql", cfg, all},
+		{"www.lua.org/ftp/lua-5.4.4.tar.gz", "lua-5.4.4", cfg.noConfigure(), all},
 	} {
 		if !filter(v.filter) {
 			continue
