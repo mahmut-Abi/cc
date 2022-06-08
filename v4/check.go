@@ -279,7 +279,7 @@ func lessFunctionType(a, b *FunctionType) bool {
 	return false
 }
 
-func (c *ctx) convert(v Value, t Type) (r Value) {
+func convert(v Value, t Type) (r Value) {
 	if v == nil || v == Unknown {
 		return Unknown
 	}
@@ -991,20 +991,20 @@ func (n *Initializer) check(c *ctx, t Type, off int64) {
 		case *ArrayType:
 			n.checkExprArray(c, x, exprT, off)
 		case *EnumType:
-			n.val = c.convert(n.Value(), t)
+			n.val = convert(n.Value(), t)
 		case *PointerType:
 			if isPointerType(exprT) {
 				return
 			}
 
 			if IsIntegerType(exprT) {
-				n.val = c.convert(n.Value(), t)
+				n.val = convert(n.Value(), t)
 				return
 			}
 
 			c.errors.add(errorf("TODO %T <- %T %T", x, n.Value(), exprT))
 		case *PredefinedType:
-			n.val = c.convert(n.Value(), t)
+			n.val = convert(n.Value(), t)
 		case *StructType:
 			n.checkExprStruct(c, x, exprT, off)
 		case *UnionType:

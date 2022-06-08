@@ -89,6 +89,7 @@ int __darwin_check_fd_set_overflow(int, void *, int) {
 }
 #endif
 
+__SIZE_TYPE__ __builtin_strlen(const char *s);
 __UINT16_TYPE__ __builtin_bswap16 (__UINT16_TYPE__ x);
 __UINT32_TYPE__ __builtin_bswap32 (__UINT32_TYPE__ x);
 __UINT64_TYPE__ __builtin_bswap64 (__UINT64_TYPE__ x);
@@ -96,20 +97,41 @@ double __builtin_acos(double x);
 double __builtin_asin(double x);
 double __builtin_atan(double x);
 double __builtin_atan2(double y, double x);
+double __builtin_copysign(double x, double y);
 double __builtin_fabs(double x);
+double __builtin_huge_val();
+double __builtin_inf();
+double __builtin_nan(char*);
 float __builtin_acosf(float x);
 float __builtin_asinf(float x);
 float __builtin_atan2f(float y, float x);
 float __builtin_atanf(float x);
+float __builtin_copysignf(float x, float y);
 float __builtin_fabsf(float x);
+float __builtin_huge_valf();
+float __builtin_inff();
+float __builtin_nanf(char*);
 int __builtin___sprintf_chk(char * str, int flag, __SIZE_TYPE__ strlen, char * format, ...);
 int __builtin_abs(int j);
+int __builtin_dprintf(int fd, const char *format, ...);
+int __builtin_fprintf(void *stream, const char *format, ...);
+int __builtin_printf(const char *format, ...);
+int __builtin_snprintf(char *str, __SIZE_TYPE__ size, const char *format, ...);
+int __builtin_sprintf(char *str, const char *format, ...);
+int __builtin_vdprintf(int fd, const char *format, __builtin_va_list ap);
+int __builtin_vfprintf(void *stream, const char *format, __builtin_va_list ap);
+int __builtin_vprintf(const char *format, __builtin_va_list ap);
+int __builtin_vsnprintf(char *str, __SIZE_TYPE__ size, const char *format, __builtin_va_list ap);
+int __builtin_vsprintf(char *str, const char *format, __builtin_va_list ap);
 long __builtin_labs(long j);
 long double __builtin_acosl(long double x);
 long double __builtin_asinl(long double x);
 long double __builtin_atan2l(long double y, long double x);
 long double __builtin_atanl( long double x);
+long double __builtin_copysignl(long double x, long double y);
 long double __builtin_fabsl(long double x);
+long double __builtin_infl();
+long double __builtin_nanl(char*);
 long long __builtin_llabs(long long j);
 void *__builtin___memcpy_chk(void * dest, void * src, __SIZE_TYPE__ len, __SIZE_TYPE__ destlen);
 void *__builtin___memset_chk(void * dest, int c, __SIZE_TYPE__ len, __SIZE_TYPE__ destlen);
@@ -137,7 +159,6 @@ void __builtin_abort(void);
 //TODO fmod
 //TODO fmodf
 //TODO fmodl
-//TODO fprintf
 //TODO fputs
 //TODO free
 //TODO frexp
@@ -155,7 +176,6 @@ void __builtin_abort(void);
 //TODO isspace
 //TODO isupper
 //TODO isxdigit
-//TODO labs
 //TODO ldexp
 //TODO ldexpf
 //TODO ldexpl
@@ -176,7 +196,6 @@ void __builtin_abort(void);
 //TODO pow
 //TODO powf
 //TODO powl
-//TODO printf
 //TODO putchar
 //TODO puts
 //TODO realloc
@@ -187,8 +206,6 @@ void __builtin_abort(void);
 //TODO sinhf
 //TODO sinhl
 //TODO sinl
-//TODO snprintf
-//TODO sprintf
 //TODO sqrt
 //TODO sqrtf
 //TODO sqrtl
@@ -198,7 +215,6 @@ void __builtin_abort(void);
 //TODO strcmp
 //TODO strcpy
 //TODO strcspn
-//TODO strlen
 //TODO strncat
 //TODO strncmp
 //TODO strncpy
@@ -214,9 +230,6 @@ void __builtin_abort(void);
 //TODO tanl
 //TODO tolower
 //TODO toupper
-//TODO vfprintf
-//TODO vprintf
-//TODO vsprintf
 
 `
 )

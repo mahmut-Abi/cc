@@ -44,7 +44,7 @@ editor: ast.go
 	go test -o /dev/null -c
 	go build -o /dev/null fakecc.go
 	go install 2>&1 | tee log-editor
-	rm -f ast.go.orig;
+	rm -f ast.go.orig
 
 mem:
 	go test -c -o mem.test
