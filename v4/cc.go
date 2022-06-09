@@ -133,11 +133,13 @@ long double __builtin_fabsl(long double x);
 long double __builtin_infl();
 long double __builtin_nanl(char*);
 long long __builtin_llabs(long long j);
+void *__builtin_memcpy(void *dest, const void *src, __SIZE_TYPE__ n);
 void *__builtin___memcpy_chk(void * dest, void * src, __SIZE_TYPE__ len, __SIZE_TYPE__ destlen);
 void *__builtin___memset_chk(void * dest, int c, __SIZE_TYPE__ len, __SIZE_TYPE__ destlen);
 void *__builtin___strncpy_chk (char *dest, char *src, __SIZE_TYPE__ len, __SIZE_TYPE__ dstlen);
 void *__builtin__strncpy_chk (char *dest, char *src, __SIZE_TYPE__ len, __SIZE_TYPE__ dstlen);
 void __builtin_abort(void);
+
 
 //TODO calloc
 //TODO ceil
@@ -188,7 +190,6 @@ void __builtin_abort(void);
 //TODO malloc
 //TODO memchr
 //TODO memcmp
-//TODO memcpy
 //TODO memset
 //TODO modf
 //TODO modff
