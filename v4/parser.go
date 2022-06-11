@@ -3574,8 +3574,9 @@ func (s *Scope) ident(t Token) Node {
 }
 
 func (s *Scope) idents(t Token) (r []Node) {
+	nm := t.Src()
 	for ; s != nil; s = s.Parent {
-		for _, v := range s.Nodes[string(t.Src())] {
+		for _, v := range s.Nodes[string(nm)] {
 			switch x := v.(type) {
 			case *Declarator:
 				if t.seq >= int32(x.visible) {
@@ -3584,17 +3585,17 @@ func (s *Scope) idents(t Token) (r []Node) {
 					switch {
 					case x.isExtern:
 						for s := s.Parent; s != nil; s = s.Parent {
-							for _, v := range s.Nodes[string(t.Src())] {
+							for _, v := range s.Nodes[string(nm)] {
 								if x, ok := v.(*Declarator); ok && x.isExtern {
 									x.resolved = s
 									r = append(r, x)
 								}
 							}
 						}
-					case x.Type().Kind() == Function:
+					case x.Type().Kind() == Function && !x.isFuncDef:
 						for s := s.Parent; s != nil; s = s.Parent {
-							for _, v := range s.Nodes[string(t.Src())] {
-								if x, ok := v.(*Declarator); ok && x.Type().Kind() == Function {
+							for _, v := range s.Nodes[string(nm)] {
+								if x, ok := v.(*Declarator); ok && x.Type().Kind() == Function && x.isFuncDef {
 									x.resolved = s
 									r = append(r, x)
 								}
