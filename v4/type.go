@@ -956,6 +956,9 @@ func (n *structType) IsCompatible(m *structType) bool {
 	return true
 }
 
+// NumFields reports the number of n's fields.
+func (n *structType) NumFields() int { return len(n.fields) }
+
 func (n *structType) fieldByIndex(i int) *Field {
 	if i >= 0 && i < len(n.fields) {
 		return n.fields[i]
