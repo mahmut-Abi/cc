@@ -167,6 +167,8 @@ func (p *parser) isKeyword(s []byte) (r rune, ok bool) {
 }
 
 func (p *parser) next() {
+	var b []byte
+	var set bool
 	for {
 		p.cpp.rune()
 		t := p.cpp.shift()
@@ -181,9 +183,13 @@ func (p *parser) next() {
 			p.prevNL = t
 			if len(sep) != 0 {
 				sep = append(sep, p.prevNL.Sep()...)
-				p.prevNL.Set(sep, p.prevNL.Src())
+				b = append(b, sep...)
+				set = true
 			}
 		default:
+			if set {
+				p.prevNL.Set(b, p.prevNL.Src())
+			}
 			p.seq++
 			t.seq = p.seq
 			p.toks = append(p.toks, p.tok(t))

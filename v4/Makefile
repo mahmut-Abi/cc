@@ -48,7 +48,7 @@ editor: ast.go
 
 mem:
 	go test -c -o mem.test
-	./mem.test -test.run TestTranslationPhase4 -re 20001226-1.c -test.memprofile mem.out
+	./mem.test -test.run TestParserBug -re 9.c -test.memprofile mem.out
 	go tool pprof --lines --web --alloc_space mem.test mem.out
 
 win32:
