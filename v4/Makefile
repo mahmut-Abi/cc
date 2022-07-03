@@ -39,7 +39,7 @@ edit:
 	@touch log
 	@if [ -f "Session.vim" ]; then gvim -S & else gvim -p Makefile *.go & fi
 
-editor: ast.go
+editor: # ast.go
 	gofmt -l -s -w *.go
 	go test -o /dev/null -c
 	go build -o /dev/null fakecc.go
