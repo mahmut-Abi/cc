@@ -19,6 +19,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"reflect"
 	"regexp"
 	"runtime"
 	"runtime/debug"
@@ -1906,4 +1907,104 @@ func testMake(t *testing.T, archive, dir string, mcfg *makeCfg) (files, ok, skip
 	}
 	t.Logf("files %v, skip %v, ok %v, fails %v", files, skip, ok, nfails)
 	return files, ok, skip, nfails
+}
+
+func TestSep(t *testing.T) {
+	for i, v := range []struct {
+		src         string
+		sep         string
+		trailingSep string
+	}{
+		{"int f() {}", "", "\n"},
+		{" int f() {}\n", " ", "\n"},
+		{"\nint f() {}\n", "\n", "\n"},
+		{"/*A*//*B*/int f() {}\n", "/*A*//*B*/", "\n"},
+		{"/*A*//*B*/ int f() {}\n", "/*A*//*B*/ ", "\n"},
+
+		{"/*A*//*B*/\nint f() {}\n", "/*A*//*B*/\n", "\n"},
+		{"/*A*/ /*B*/int f() {}\n", "/*A*/ /*B*/", "\n"},
+		{"/*A*/ /*B*/ int f() {}\n", "/*A*/ /*B*/ ", "\n"},
+		{"/*A*/ /*B*/\nint f() {}\n", "/*A*/ /*B*/\n", "\n"},
+		{"/*A*/\n/*B*/int f() {}\n", "/*A*/\n/*B*/", "\n"},
+
+		{"/*A*/\n/*B*/ int f() {}\n", "/*A*/\n/*B*/ ", "\n"},
+		{"/*A*/\n/*B*/\nint f() {}\n", "/*A*/\n/*B*/\n", "\n"},
+		{" /*A*/ /*B*/int f() {}\n", " /*A*/ /*B*/", "\n"},
+		{" /*A*/ /*B*/ int f() {}\n", " /*A*/ /*B*/ ", "\n"},
+		{" /*A*/ /*B*/\nint f() {}\n", " /*A*/ /*B*/\n", "\n"},
+
+		{" /*A*/\n/*B*/int f() {}\n", " /*A*/\n/*B*/", "\n"},
+		{" /*A*/\n/*B*/ int f() {}\n", " /*A*/\n/*B*/ ", "\n"},
+		{" /*A*/\n/*B*/\nint f() {}\n", " /*A*/\n/*B*/\n", "\n"},
+		{"\n/*A*/ /*B*/int f() {}\n", "\n/*A*/ /*B*/", "\n"},
+		{"\n/*A*/ /*B*/ int f() {}\n", "\n/*A*/ /*B*/ ", "\n"},
+
+		{"\n/*A*/ /*B*/\nint f() {}\n", "\n/*A*/ /*B*/\n", "\n"},
+		{"\n/*A*/\n/*B*/int f() {}\n", "\n/*A*/\n/*B*/", "\n"},
+		{"\n/*A*/\n/*B*/ int f() {}\n", "\n/*A*/\n/*B*/ ", "\n"},
+		{"\n/*A*/\n/*B*/\nint f() {}\n", "\n/*A*/\n/*B*/\n", "\n"},
+	} {
+		ast, err := Parse(
+			&Config{},
+			[]Source{{Name: "test", Value: v.src + "int __predefined_declarator;"}},
+		)
+		if err != nil {
+			t.Errorf("%v: %v", i, err)
+			continue
+		}
+
+		t.Logf("%q -> %q", v.src, NodeSource(ast.TranslationUnit))
+		var tok Token
+		firstToken(ast.TranslationUnit, &tok)
+		if g, e := string(tok.Sep()), v.sep; g != e {
+			t.Errorf("%v: %q %q", i, g, e)
+		}
+		if g, e := string(ast.EOF.Sep()), v.trailingSep; g != e {
+			t.Errorf("%v: %q %q", i, g, e)
+		}
+	}
+}
+
+func firstToken(n Node, r *Token) {
+	if n == nil {
+		return
+	}
+
+	if x, ok := n.(*LabeledStatement); ok && x != nil {
+		t := x.Token
+		if r.Seq() == 0 || t.Seq() < t.Seq() {
+			*r = t
+		}
+		return
+	}
+
+	if x, ok := n.(Token); ok && x.Seq() != 0 {
+		if r.Seq() == 0 || x.Seq() < r.Seq() {
+			*r = x
+		}
+		return
+	}
+
+	t := reflect.TypeOf(n)
+	v := reflect.ValueOf(n)
+	var zero reflect.Value
+	if t.Kind() == reflect.Pointer {
+		t = t.Elem()
+		v = v.Elem()
+	}
+	if v == zero || v.IsZero() || t.Kind() != reflect.Struct {
+		return
+	}
+
+	nf := t.NumField()
+	for i := 0; i < nf; i++ {
+		f := t.Field(i)
+		if !f.IsExported() {
+			continue
+		}
+
+		if m, ok := v.Field(i).Interface().(Node); ok {
+			firstToken(m, r)
+		}
+	}
 }
