@@ -573,15 +573,15 @@ func (c *ctx) checkFunctionDefinition(sc *Scope, ds *DeclarationSpecifiers, d *D
 				d := c.predefinedDeclarator(param.name)
 				d.isExtern = false
 				d.isParam = true
-				d.lexicalScope = d.DirectDeclarator.params
-				d.resolved = d.lexicalScope
+				d.lexicalScope = (*lexicalScope)(d.DirectDeclarator.params)
+				d.resolved = (*Scope)(d.lexicalScope)
 				param.Declarator = d
 				param.typ = c.intT
 			default:
 				d.isExtern = false
 				d.isParam = true
-				d.lexicalScope = d.DirectDeclarator.params
-				d.resolved = d.lexicalScope
+				d.lexicalScope = (*lexicalScope)(d.DirectDeclarator.params)
+				d.resolved = (*Scope)(d.lexicalScope)
 				param.Declarator = d
 				param.typ = d.Type().Decay()
 			}
@@ -949,6 +949,10 @@ func (n *InitDeclarator) check(c *ctx, t Type, isExtern, isStatic, isAtomic, isT
 	n.Declarator.isVolatile = isVolatile
 	n.Declarator.alignas = alignas
 	t = n.Declarator.check(c, t)
+	if attr := n.AttributeSpecifierList.check(c); attr != nil {
+		t = t.setAttr(attr)
+		n.Declarator.typ = t
+	}
 	if n.Asm != nil {
 		n.Asm.check(c)
 		return
@@ -1863,7 +1867,9 @@ func (n *DeclarationSpecifiers) check(c *ctx, isExtern, isStatic, isAtomic, isTh
 			ts = append(ts, n.TypeSpecifier.Case)
 			r = n.TypeSpecifier.check(c, isAtomic)
 		case DeclarationSpecifiersTypeQual: // TypeQualifier DeclarationSpecifiers
-			n.TypeQualifier.check(c, isConst, isVolatile, isAtomic, isRestrict)
+			if attr := n.TypeQualifier.check(c, isConst, isVolatile, isAtomic, isRestrict); attr != nil {
+				attrs = append(attrs, attr)
+			}
 		case DeclarationSpecifiersFunc: // FunctionSpecifier DeclarationSpecifiers
 			n.FunctionSpecifier.check(c, isInline, isNoreturn)
 		case DeclarationSpecifiersAlignSpec: // AlignmentSpecifier DeclarationSpecifiers
@@ -2075,7 +2081,7 @@ func (n *FunctionSpecifier) check(c *ctx, isInline, isNoreturn *bool) {
 //  |       "_Atomic"        // Case TypeQualifierAtomic
 //  |       "_Nonnull"       // Case TypeQualifierNonnull
 //  |       "__attribute__"  // Case TypeQualifierAttr
-func (n *TypeQualifier) check(c *ctx, isConst, isVolatile, isAtomic, isRestrict *bool) {
+func (n *TypeQualifier) check(c *ctx, isConst, isVolatile, isAtomic, isRestrict *bool) (r *Attributes) {
 	switch n.Case {
 	case TypeQualifierConst: // "const"
 		*isConst = true
@@ -2088,10 +2094,11 @@ func (n *TypeQualifier) check(c *ctx, isConst, isVolatile, isAtomic, isRestrict 
 	case TypeQualifierNonnull: // "_Nonnull"
 		c.errors.add(errorf("TODO %v", n.Case))
 	case TypeQualifierAttr: // AttributeSpecifierList
-		n.AttributeSpecifierList.check(c)
+		r = n.AttributeSpecifierList.check(c)
 	default:
 		c.errors.add(errorf("internal error: %v", n.Case))
 	}
+	return r
 }
 
 //  StorageClassSpecifier:
@@ -2538,19 +2545,29 @@ func (n *SpecifierQualifierList) check(c *ctx, isAtomic, isConst, isVolatile, is
 
 	var ts []TypeSpecifierCase
 
+	var attr *Attributes
+	n0 := n
 	defer func() {
 		if r == nil || r == Invalid {
 			c.errors.add(errorf("TODO missed/failed type check %v: %v %T", n.Position(), ts, n))
+			return
+		}
+
+		if attr != nil {
+			r = r.setAttr(attr)
 		}
 	}()
 
+	var attrs []*Attributes
 	for ; n != nil; n = n.SpecifierQualifierList {
 		switch n.Case {
 		case SpecifierQualifierListTypeSpec: // TypeSpecifier SpecifierQualifierList
 			ts = append(ts, n.TypeSpecifier.Case)
 			r = n.TypeSpecifier.check(c, isAtomic)
 		case SpecifierQualifierListTypeQual: // TypeQualifier SpecifierQualifierList
-			n.TypeQualifier.check(c, isConst, isVolatile, isAtomic, isRestrict)
+			if attr := n.TypeQualifier.check(c, isConst, isVolatile, isAtomic, isRestrict); attr != nil {
+				attrs = append(attrs, attr)
+			}
 		case SpecifierQualifierListAlignSpec: // AlignmentSpecifier SpecifierQualifierList
 			if v := n.AlignmentSpecifier.check(c).Align(); v > 0 {
 				*alignas = v
@@ -2558,6 +2575,14 @@ func (n *SpecifierQualifierList) check(c *ctx, isAtomic, isConst, isVolatile, is
 		default:
 			c.errors.add(errorf("internal error: %v", n.Case))
 		}
+	}
+	switch len(attrs) {
+	case 0:
+		// ok
+	case 1:
+		attr = attrs[0]
+	default:
+		c.errors.add(errorf("TODO %T", n0.Position()))
 	}
 	t, ok := c.builtinTypes[ts2String(ts)]
 	if ok {
@@ -3753,8 +3778,8 @@ out:
 				d = c.predefinedDeclarator(n.Token)
 				d.isExtern = true
 				d.isParam = false
-				d.lexicalScope = n.LexicalScope()
-				d.resolved = d.lexicalScope
+				d.lexicalScope = (*lexicalScope)(n.LexicalScope())
+				d.resolved = (*Scope)(d.lexicalScope)
 				n.resolvedTo = d
 				if mode.has(implicitFuncDef) {
 					n.typ = c.implicitFunc

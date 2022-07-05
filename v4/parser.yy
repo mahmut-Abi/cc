@@ -134,7 +134,7 @@ package cc // import "modernc.org/cc/v4"
 
 		        /* [0], 6.5.1 Primary expressions */
 			/*yy:field	m	*Macro		*/
-			/*yy:field	lexicalScoper		*/
+			/*yy:field	*lexicalScope		*/
 			/*yy:field	resolvedTo	Node	*/
 			/*yy:field	typer			*/
 			/*yy:field	valuer			*/
@@ -481,7 +481,7 @@ package cc // import "modernc.org/cc/v4"
 /*yy:case Declspec   */ |	"__declspec" '(' /* ... */ ')'
 
 			/* [0], 6.7.2 Type specifiers */
-			/*yy:field	lexicalScoper		*/
+			/*yy:field	*lexicalScope		*/
 			/*yy:example void i(); */
 /*yy:case Void       */ TypeSpecifier:
 				"void"
@@ -564,7 +564,7 @@ package cc // import "modernc.org/cc/v4"
 			/* [0], 6.7.2.1 Structure and union specifiers */
 			/*yy:field	AttributeSpecifierList	*AttributeSpecifierList	*/
 			/*yy:field	AttributeSpecifierList2	*AttributeSpecifierList	*/
-			/*yy:field	lexicalScoper		*/
+			/*yy:field	*lexicalScope		*/
 			/*yy:field	visible	*/
 			/*yy:field	typer		*/
 			/*yy:example struct s { int i; } __attribute__((a)); */
@@ -614,7 +614,7 @@ package cc // import "modernc.org/cc/v4"
 /*yy:case BitField   */ |	Declarator ':' ConstantExpression
 
 			/* [0], 6.7.2.2 Enumeration specifiers */
-			/*yy:field	lexicalScoper		*/
+			/*yy:field	*lexicalScope		*/
 			/*yy:field	visible	*/
 			/*yy:field	typer		*/
 			/*yy:example enum e {a}; */
@@ -671,7 +671,7 @@ package cc // import "modernc.org/cc/v4"
 			/*yy:field	alignas		int		*/
 			/*yy:field	read		int		*/
 			/*yy:field	write		int		*/
-			/*yy:field	lexicalScoper			*/
+			/*yy:field	*lexicalScope			*/
 			/*yy:field	typer				*/
 			/*yy:field	visible				*/
 			/*yy:field	resolver			*/
@@ -856,7 +856,7 @@ package cc // import "modernc.org/cc/v4"
 /*yy:case Default    */ |	"default" ':' Statement
 
 			/* [0], 6.8.2 Compound statement */
-			/*yy:field	lexicalScoper		*/
+			/*yy:field	*lexicalScope		*/
 			/*yy:example int f() { __label__ L; int i; } 		*/
 			CompoundStatement:
 				'{' BlockItemList '}'

@@ -984,7 +984,7 @@ func (n *CastExpression) Position() (r token.Position) {
 //	CompoundStatement:
 //	        '{' BlockItemList '}'
 type CompoundStatement struct {
-	lexicalScoper
+	*lexicalScope
 	BlockItemList *BlockItemList
 	Token         Token
 	Token2        Token
@@ -1329,7 +1329,7 @@ type Declarator struct {
 	alignas int
 	read    int
 	write   int
-	lexicalScoper
+	*lexicalScope
 	typer
 	visible
 	resolver
@@ -1903,7 +1903,7 @@ func (n EnumSpecifierCase) String() string {
 //	        "enum" IDENTIFIER '{' EnumeratorList ',' '}'  // Case EnumSpecifierDef
 //	|       "enum" IDENTIFIER                             // Case EnumSpecifierTag
 type EnumSpecifier struct {
-	lexicalScoper
+	*lexicalScope
 	visible
 	typer
 	Case           EnumSpecifierCase `PrettyPrint:"stringer,zero"`
@@ -3839,7 +3839,7 @@ func (n PrimaryExpressionCase) String() string {
 //	|       GenericSelection           // Case PrimaryExpressionGeneric
 type PrimaryExpression struct {
 	m *Macro
-	lexicalScoper
+	*lexicalScope
 	resolvedTo Node
 	typer
 	valuer
@@ -4654,7 +4654,7 @@ func (n StructOrUnionSpecifierCase) String() string {
 type StructOrUnionSpecifier struct {
 	AttributeSpecifierList  *AttributeSpecifierList
 	AttributeSpecifierList2 *AttributeSpecifierList
-	lexicalScoper
+	*lexicalScope
 	visible
 	typer
 	Case                  StructOrUnionSpecifierCase `PrettyPrint:"stringer,zero"`
@@ -5004,7 +5004,7 @@ func (n TypeSpecifierCase) String() string {
 //	|       "_Float32x"                      // Case TypeSpecifierFloat32x
 //	|       "_Float64x"                      // Case TypeSpecifierFloat64x
 type TypeSpecifier struct {
-	lexicalScoper
+	*lexicalScope
 	AtomicTypeSpecifier    *AtomicTypeSpecifier
 	Case                   TypeSpecifierCase `PrettyPrint:"stringer,zero"`
 	EnumSpecifier          *EnumSpecifier

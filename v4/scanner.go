@@ -223,7 +223,11 @@ func (t *Token) Set(sep, src []byte) error {
 }
 
 // Position implements Node.
-func (t Token) Position() token.Position {
+func (t Token) Position() (r token.Position) {
+	if t.s == nil {
+		return r
+	}
+
 	return t.s.fset.Position(int32(t.off) + int32(t.s.pos0))
 }
 
