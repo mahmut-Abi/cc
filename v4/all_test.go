@@ -1984,7 +1984,7 @@ func firstToken(n Node, r *Token) {
 
 	if x, ok := n.(*LabeledStatement); ok && x != nil {
 		t := x.Token
-		if r.Seq() == 0 || t.Seq() < t.Seq() {
+		if r.Seq() == 0 || t.Seq() < r.Seq() {
 			*r = t
 		}
 		return
