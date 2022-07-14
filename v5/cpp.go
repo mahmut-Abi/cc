@@ -1465,9 +1465,40 @@ func (c *cpp) nextLine() (r textLine) {
 				c.includeNext(x)
 			case "pragma":
 				// eg.  ["#" "pragma" "STDC" "FP_CONTRACT" "ON" "\n"]
-				if h := c.cfg.PragmaHandler; h != nil {
-					if err := h(x[2 : len(x)-1]); err != nil {
-						c.eh("%v:", err)
+				switch x[2].SrcStr() {
+				case "push_macro":
+					// ["#" "pragma" "push_macro" '(' "foo" ')' "\n"]
+					if len(x) >= 6 && x[3].Ch == '(' && x[4].Ch == rune(STRINGLITERAL) && x[5].Ch == ')' {
+						nm := x[4].SrcStr()
+						nm = nm[1 : len(nm)-1]
+						m := c.macros[nm]
+						c.mstack[nm] = append(c.mstack[nm], m)
+					}
+				case "pop_macro":
+					// ["#" "pragma" "pop_macro" '(' "foo" ')' "\n"]
+					if len(x) >= 6 && x[3].Ch == '(' && x[4].Ch == rune(STRINGLITERAL) && x[5].Ch == ')' {
+						nm := x[4].SrcStr()
+						nm = nm[1 : len(nm)-1]
+						s := c.mstack[nm]
+						if len(s) == 0 {
+							break
+						}
+
+						m := s[len(s)-1]
+						s = s[:len(s)-1]
+						switch m {
+						case nil:
+							delete(c.macros, nm)
+						default:
+							c.macros[nm] = m
+						}
+						c.mstack[nm] = s
+					}
+				default:
+					if h := c.cfg.PragmaHandler; h != nil {
+						if err := h(x[2 : len(x)-1]); err != nil {
+							c.eh("%v:", err)
+						}
 					}
 				}
 			case "line":
