@@ -1488,7 +1488,12 @@ func (c *cpp) nextLine() (r textLine) {
 
 						m := s[len(s)-1]
 						s = s[:len(s)-1]
-						c.macros[nm] = m
+						switch m {
+						case nil:
+							delete(c.macros, nm)
+						default:
+							c.macros[nm] = m
+						}
 						c.mstack[nm] = s
 					}
 				default:
