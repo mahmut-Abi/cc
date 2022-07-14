@@ -2740,6 +2740,7 @@ func (n InitializerCase) String() string {
 type Initializer struct {
 	nelems int64
 	off    int64
+	parent *Initializer
 	typer
 	valuer
 	AssignmentExpression ExpressionNode

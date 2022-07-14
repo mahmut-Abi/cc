@@ -792,6 +792,7 @@ package cc // import "modernc.org/cc/v4"
 			/* [0], 6.7.8 Initialization */
 			/*yy:field	nelems	int64	*/
 			/*yy:field	off	int64	*/
+			/*yy:field	parent	*Initializer	*/
 			/*yy:field	typer	*/
 			/*yy:field	valuer	*/
 			/*yy:example int i = x; */

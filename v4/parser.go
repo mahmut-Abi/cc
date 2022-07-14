@@ -1088,7 +1088,7 @@ func (p *parser) declaration(ds *DeclarationSpecifiers, d *Declarator, declare b
 
 		r = &Declaration{Case: DeclarationAuto, Token: p.shift(false), Declarator: p.declarator(nil, nil, false)}
 		r.Token2 = p.must('=')
-		r.Initializer = p.initializer()
+		r.Initializer = p.initializer(nil)
 		r.Token3 = p.must(';')
 		r.Declarator.visible = visible(r.Token3.seq)
 		p.scope.declare(p.cpp.eh, nm.SrcStr(), r.Declarator)
@@ -1247,7 +1247,7 @@ func (p *parser) initDeclarator(ds *DeclarationSpecifiers, d *Declarator, declar
 		}
 		r.Case = InitDeclaratorInit
 		r.Token = p.shift(false)
-		r.Initializer = p.initializer()
+		r.Initializer = p.initializer(nil)
 	}
 	return r
 }
@@ -1258,13 +1258,14 @@ func (p *parser) initDeclarator(ds *DeclarationSpecifiers, d *Declarator, declar
 // 	assignment-expression
 // 	{ initializer-list }
 // 	{ initializer-list , }
-func (p *parser) initializer() (r *Initializer) {
+func (p *parser) initializer(parent *Initializer) (r *Initializer) {
 	switch p.rune(false) {
 	case eof:
 		p.cpp.eh("%v: unexpected EOF", p.toks[0].Position())
 		return nil
 	case '{':
-		r = &Initializer{Case: InitializerInitList, Token: p.shift(false), InitializerList: p.initializerList()}
+		r = &Initializer{Case: InitializerInitList, Token: p.shift(false), parent: parent}
+		r.InitializerList = p.initializerList(r)
 		if p.rune(false) == ',' {
 			r.Token2 = p.shift(false)
 		}
@@ -1272,34 +1273,34 @@ func (p *parser) initializer() (r *Initializer) {
 		r.Token3 = p.must('}')
 		return r
 	default:
-		return &Initializer{Case: InitializerExpr, AssignmentExpression: p.assignmentExpression(true)}
+		return &Initializer{Case: InitializerExpr, AssignmentExpression: p.assignmentExpression(true), parent: parent}
 	}
 }
 
 //  initializer-list:
 // 	designation_opt initializer
 // 	initializer-list , designation_opt initializer
-func (p *parser) initializerList() (r *InitializerList) {
+func (p *parser) initializerList(parent *Initializer) (r *InitializerList) {
 	switch p.rune(true) {
 	case eof:
 		p.cpp.eh("%v: unexpected EOF", p.toks[0].Position())
 		return nil
 	case '[', '.':
-		r = &InitializerList{Designation: p.designation(), Initializer: p.initializer()}
+		r = &InitializerList{Designation: p.designation(), Initializer: p.initializer(parent)}
 	case rune(IDENTIFIER):
 		switch p.peek(1, false).Ch {
 		case ':':
-			r = &InitializerList{Designation: p.designation(), Initializer: p.initializer()}
+			r = &InitializerList{Designation: p.designation(), Initializer: p.initializer(parent)}
 		default:
-			r = &InitializerList{Initializer: p.initializer()}
+			r = &InitializerList{Initializer: p.initializer(parent)}
 		}
 	case '{':
-		r = &InitializerList{Initializer: p.initializer()}
+		r = &InitializerList{Initializer: p.initializer(parent)}
 	case '}':
 		return nil
 	default:
 		if p.isExpression(p.rune(true)) {
-			r = &InitializerList{Initializer: p.initializer()}
+			r = &InitializerList{Initializer: p.initializer(parent)}
 			break
 		}
 
@@ -1314,18 +1315,18 @@ func (p *parser) initializerList() (r *InitializerList) {
 			'.',
 			'[':
 
-			il = &InitializerList{Token: p.shift(false), Designation: p.designation(), Initializer: p.initializer()}
+			il = &InitializerList{Token: p.shift(false), Designation: p.designation(), Initializer: p.initializer(parent)}
 		case rune(IDENTIFIER):
 			switch p.peek(2, false).Ch {
 			case ':':
-				il = &InitializerList{Token: p.shift(false), Designation: p.designation(), Initializer: p.initializer()}
+				il = &InitializerList{Token: p.shift(false), Designation: p.designation(), Initializer: p.initializer(parent)}
 			default:
-				il = &InitializerList{Token: p.shift(false), Initializer: p.initializer()}
+				il = &InitializerList{Token: p.shift(false), Initializer: p.initializer(parent)}
 			}
 		case '}':
 			return r
 		default:
-			il = &InitializerList{Token: p.shift(false), Initializer: p.initializer()}
+			il = &InitializerList{Token: p.shift(false), Initializer: p.initializer(parent)}
 		}
 		prev.InitializerList = il
 		prev = il
@@ -2172,7 +2173,7 @@ func (p *parser) postfixExpression(lp Token, tn *TypeName, rp Token, checkTypeNa
 	var r0 *PostfixExpression
 	switch {
 	case tn != nil:
-		r0 = &PostfixExpression{Case: PostfixExpressionComplit, Token: lp, TypeName: tn, Token2: rp, Token3: p.must('{'), InitializerList: p.initializerList()}
+		r0 = &PostfixExpression{Case: PostfixExpressionComplit, Token: lp, TypeName: tn, Token2: rp, Token3: p.must('{'), InitializerList: p.initializerList(nil)}
 		switch p.rune(false) {
 		case eof:
 			p.cpp.eh("%v: unexpected EOF", p.toks[0].Position())
@@ -2193,7 +2194,7 @@ func (p *parser) postfixExpression(lp Token, tn *TypeName, rp Token, checkTypeNa
 			case p.isExpression(ch) || ch == '{':
 				r0 = &PostfixExpression{Case: PostfixExpressionPrimary, PrimaryExpression: p.primaryExpression(checkTypeName)}
 			case p.isSpecifierQualifer(ch, true):
-				r0 = &PostfixExpression{Case: PostfixExpressionComplit, Token: p.shift(false), TypeName: p.typeName(), Token2: p.must(')'), Token3: p.must('{'), InitializerList: p.initializerList()}
+				r0 = &PostfixExpression{Case: PostfixExpressionComplit, Token: p.shift(false), TypeName: p.typeName(), Token2: p.must(')'), Token3: p.must('{'), InitializerList: p.initializerList(nil)}
 				switch p.rune(false) {
 				case eof:
 					p.cpp.eh("%v: unexpected EOF", p.toks[0].Position())
