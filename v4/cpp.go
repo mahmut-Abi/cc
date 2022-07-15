@@ -1297,7 +1297,7 @@ func (c *cpp) parseDefined(ts tokenSequence) (r tokenSequence) {
 	switch c.macro(t.Token, nm) {
 	case nil:
 		switch nm {
-		case "__has_include":
+		case "__has_include", "__has_include__":
 			t.Token = oneTok
 		default:
 			t.Token = zeroTok
@@ -2536,7 +2536,7 @@ func (c *cpp) primaryExpression(s *cppTokens, eval bool) interface{} {
 	case rune(IDENTIFIER):
 		s.shift()
 		switch t.SrcStr() {
-		case "__has_include":
+		case "__has_include", "__has_include__":
 			t0 := t
 			var arg string
 			if t := s.token(); t.Ch != '(' {
