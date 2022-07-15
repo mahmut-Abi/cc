@@ -713,6 +713,7 @@ type cpp struct {
 	indentLevel int // debug dumps
 	macros      map[string]*Macro
 	mmap        map[mmapKey]*Macro
+	mstack      map[string][]*Macro
 	sources     []Source
 	stack       []interface{}
 	tok         Token
@@ -745,6 +746,7 @@ func newCPP(cfg *Config, fset *fset, sources []Source, eh errHandler) (*cpp, err
 		groups:  map[string]group{},
 		macros:  map[string]*Macro{},
 		mmap:    map[mmapKey]*Macro{},
+		mstack:  map[string][]*Macro{},
 		sources: sources,
 	}
 	c.tokenizer = newTokenizer(c)
