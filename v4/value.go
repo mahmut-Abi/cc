@@ -385,6 +385,8 @@ func (n *EqualityExpression) eval(c *ctx, mode flags) (r Value) {
 				// ok
 			case Int64Value:
 				n.val = bool2int(x != y)
+			case UInt64Value:
+				n.val = bool2int(UInt64Value(x) != y)
 			default:
 				c.errors.add(errorf("TODO %v TYPE %T", n.Case, y))
 			}
@@ -392,6 +394,8 @@ func (n *EqualityExpression) eval(c *ctx, mode flags) (r Value) {
 			switch y := convert(n.RelationalExpression.eval(c, mode), t2).(type) {
 			case *UnknownValue:
 				// ok
+			case Int64Value:
+				n.val = bool2int(x != UInt64Value(y))
 			case UInt64Value:
 				n.val = bool2int(x != y)
 			default:
