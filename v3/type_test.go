@@ -966,6 +966,33 @@ struct xxx {
 	}
 }
 
+// https://gitlab.com/cznic/cc/-/issues/132
+func TestIssue132(t *testing.T) {
+	abi, err := NewABIFromEnv()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ast, err := Translate(&Config{ABI: abi, FixBitfieldPadding: true}, nil, nil, []Source{
+		{Name: "x.c", Value: `
+struct xxx {
+	unsigned char opaque : 1;
+	unsigned char x;
+}s;
+`},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ta := ast.StructTypes[String("xxx")]
+	t.Logf("\n%s", dumpLayout(ta))
+	fld, _ := ta.FieldByName(String("x"))
+	if g, e := fld.Offset(), uintptr(1); g != e {
+		t.Fatalf("xxx.c offset: got %v, exp %v", g, e)
+	}
+}
+
 func isConstInitializer(n *Initializer) bool {
 	if n.IsConst() {
 		return true
