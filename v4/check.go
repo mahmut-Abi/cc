@@ -2490,7 +2490,7 @@ func (n *StructDeclarationList) check(c *ctx, s *StructOrUnionSpecifier) {
 
 		switch {
 		case f.isBitField:
-			f.accessBytes = bits2AccessBytes(f.valueBits)
+			f.accessBytes = bits2AccessBytes(f.valueBits + brk&7)
 			switch {
 			case isUnion:
 				f.mask = (uint64(1)<<f.valueBits - 1)
@@ -2663,9 +2663,9 @@ func (n *StructDeclarator) check(c *ctx, t Type, isAtomic, isConst, isVolatile, 
 	case StructDeclaratorDecl: // Declarator
 		return &Field{declarator: n.Declarator, typ: newTyper(n.Declarator.check(c, t))}
 	case StructDeclaratorBitField: // Declarator ':' ConstantExpression
-		t := n.ConstantExpression.check(c, decay)
-		if !IsIntegerType(t) {
-			c.errors.add(errorf("%v: expected integer expression: %s", n.ConstantExpression.Position(), t))
+		et := n.ConstantExpression.check(c, decay)
+		if !IsIntegerType(et) {
+			c.errors.add(errorf("%v: expected integer expression: %s", n.ConstantExpression.Position(), et))
 			break
 		}
 
