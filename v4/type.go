@@ -1229,6 +1229,15 @@ func (n *StructType) Size() int64 {
 	return n.size
 }
 
+// NumFields reports the number of n's fields.
+func (n *StructType) NumFields() int {
+	if n.forward != nil {
+		return n.forward.Type().(*StructType).NumFields()
+	}
+
+	return len(n.fields)
+}
+
 // String implements Type.
 func (n *StructType) String() string { return n.str(&strings.Builder{}, false).String() }
 
@@ -1471,6 +1480,15 @@ func (n *UnionType) Size() int64 {
 	}
 
 	return n.size
+}
+
+// NumFields reports the number of n's fields.
+func (n *UnionType) NumFields() int {
+	if n.forward != nil {
+		return n.forward.Type().(*UnionType).NumFields()
+	}
+
+	return len(n.fields)
 }
 
 // String implements Type.
