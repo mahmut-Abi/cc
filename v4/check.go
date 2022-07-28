@@ -2480,6 +2480,7 @@ func (n *StructDeclarationList) check(c *ctx, s *StructOrUnionSpecifier) {
 	isUnion := s.StructOrUnion.Case == StructOrUnionUnion
 	var brk, unionBits int64
 	maxAlignBytes := 1
+	bitFields := map[int64][]*Field{}
 	for i, f := range fields {
 		if f == nil {
 			c.errors.add(errorf("TODO %T", n))
@@ -2506,6 +2507,7 @@ func (n *StructDeclarationList) check(c *ctx, s *StructOrUnionSpecifier) {
 				f.mask = (uint64(1)<<f.valueBits - 1) << f.offsetBits
 				brk += f.valueBits
 			}
+			bitFields[f.offsetBytes] = append(bitFields[f.offsetBytes], f)
 		default:
 			sz := f.Type().Size()
 			if f.Type().IsIncomplete() && f.Type().Kind() == Array { // Flexible array member
@@ -2541,6 +2543,34 @@ func (n *StructDeclarationList) check(c *ctx, s *StructOrUnionSpecifier) {
 		t.fields = fields
 		t.size = brk >> 3
 		t.align = maxAlignBytes
+	}
+
+	type bitFieldGroup struct {
+		off, size int64
+	}
+
+	var groups []bitFieldGroup
+	for k, v := range bitFields {
+		ab := int64(-1)
+		for _, f := range v {
+			ab = mathutil.MaxInt64(ab, f.AccessBytes())
+		}
+		for _, f := range v {
+			f.groupSize = int(ab)
+		}
+		groups = append(groups, bitFieldGroup{k, ab})
+	}
+	sort.Slice(groups, func(i, j int) bool { return groups[i].off < groups[j].off })
+	var g bitFieldGroup
+	for _, v := range groups {
+		if g.size == 0 || v.off >= g.off+g.size {
+			g = v
+			continue
+		}
+
+		for _, f := range bitFields[v.off] {
+			f.inOverlapGroup = true
+		}
 	}
 }
 

@@ -831,18 +831,53 @@ type Field struct {
 	typ         typer
 	valueBits   int64
 
-	depth int
+	depth     int
+	groupSize int
 	// Additional bit offset to offset bytes. Non zero only for bit fields but can
 	// be zero even for a bit field, for example, the first bit field after a non
 	// bit field will have offsetBits zero.
 	offsetBits int
 	index      int // index into .fields in structType
 
-	isBitField bool
+	inOverlapGroup bool
+	isBitField     bool
 }
 
 // IsBitfield reports whether n is a bit field.
 func (n *Field) IsBitfield() bool { return n.isBitField }
+
+// InOverlapGroup reports whether n, a bit field, is in a group that is
+// contained in a preceding larger bit field group.
+//
+// A bitfield group is the set of bit fields that share the same .Offset().
+// Consider:
+//
+//	struct {
+//		int a:7, b:2, c:1;
+//	}
+//
+//	field	.Offset()	group	.AccessBytes()
+//	  a	    0		  0	      1
+//	  b	    0		  0	      2
+//	  c	    1		  1	      1
+//
+// Because field b has offset 0 and access bytes 2, group 0 overlaps with group
+// 1. Field c will report InOverlapGroup() == true.
+func (n *Field) InOverlapGroup() bool { return n.inOverlapGroup }
+
+// GroupSize is the maximum .AccessByte() of a group.
+//
+// A bitfield group is the set of bit fields that share the same .Offset().
+// Consider:
+//
+//	struct {
+//		int a:7, b:2;
+//	}
+//
+//	field	.Offset()	group	.AccessBytes()	.GroupSize()
+//	  a	    0		  0	      1		     2
+//	  b	    0		  0	      2		     2
+func (n *Field) GroupSize() int { return n.groupSize }
 
 // AccessBytes reports the size in bytes used to access n. AccessBytes can be
 // smaller than size of n's type when n is a bit field.
