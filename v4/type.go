@@ -948,6 +948,7 @@ type structType struct {
 	tag    Token
 
 	align         int
+	padding       int
 	isIncomplete0 bool
 	isUnion       bool
 }
@@ -972,6 +973,17 @@ func (n *structType) isIncomplete() bool {
 	}
 	return false
 }
+
+// Padding reports how many bytes at the end of a struct/union should be
+// additionally reserved. Consider:
+//
+//	struct {
+//		int a:1;
+//	}
+//
+// Alignment of the above struct is that of an int, but the 'a' field uses only
+// one byte. Padding will report 3 in this case.
+func (n *structType) Padding() int { return n.padding }
 
 func (n *structType) IsCompatible(m *structType) bool {
 	if n == m {
