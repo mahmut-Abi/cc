@@ -517,8 +517,6 @@ func (n *AsmIndex) check(c *ctx) {
 
 	if n.ExpressionList != nil {
 		n.ExpressionList.check(c, decay|asmArgList|ignoreUndefined)
-	}
-	if n.ExpressionList != nil {
 		n.ExpressionList.eval(c, decay|ignoreUndefined)
 	}
 }
@@ -677,8 +675,6 @@ func (n *IterationStatement) check(c *ctx) (r Type) {
 	case IterationStatementWhile: // "while" '(' ExpressionList ')' Statement
 		if n.ExpressionList != nil {
 			n.ExpressionList.check(c, decay)
-		}
-		if n.ExpressionList != nil {
 			n.ExpressionList.eval(c, decay)
 		}
 		c.inLoop++
@@ -690,28 +686,20 @@ func (n *IterationStatement) check(c *ctx) (r Type) {
 		r = n.Statement.check(c)
 		if n.ExpressionList != nil {
 			n.ExpressionList.check(c, decay)
-		}
-		if n.ExpressionList != nil {
 			n.ExpressionList.eval(c, decay)
 		}
 		return r
 	case IterationStatementFor: // "for" '(' ExpressionList ';' ExpressionList ';' ExpressionList ')' Statement
 		if n.ExpressionList != nil {
 			n.ExpressionList.check(c, decay)
-		}
-		if n.ExpressionList != nil {
 			n.ExpressionList.eval(c, decay)
 		}
 		if n.ExpressionList2 != nil {
 			n.ExpressionList2.check(c, decay)
-		}
-		if n.ExpressionList2 != nil {
 			n.ExpressionList2.eval(c, decay)
 		}
 		if n.ExpressionList3 != nil {
 			n.ExpressionList3.check(c, decay)
-		}
-		if n.ExpressionList3 != nil {
 			n.ExpressionList3.eval(c, decay)
 		}
 		c.inLoop++
@@ -721,14 +709,10 @@ func (n *IterationStatement) check(c *ctx) (r Type) {
 		n.Declaration.check(c)
 		if n.ExpressionList != nil {
 			n.ExpressionList.check(c, decay)
-		}
-		if n.ExpressionList != nil {
 			n.ExpressionList.eval(c, decay)
 		}
 		if n.ExpressionList2 != nil {
 			n.ExpressionList2.check(c, decay)
-		}
-		if n.ExpressionList2 != nil {
 			n.ExpressionList2.eval(c, decay)
 		}
 		c.inLoop++
@@ -759,8 +743,6 @@ out:
 	case JumpStatementGotoExpr: // "goto" '*' ExpressionList ';'
 		if n.ExpressionList != nil {
 			n.ExpressionList.check(c, decay)
-		}
-		if n.ExpressionList != nil {
 			n.ExpressionList.eval(c, decay)
 		}
 	case JumpStatementContinue: // "continue" ';'
@@ -774,8 +756,6 @@ out:
 	case JumpStatementReturn: // "return" ExpressionList ';'
 		if n.ExpressionList != nil {
 			r = n.ExpressionList.check(c, decay)
-		}
-		if n.ExpressionList != nil {
 			n.ExpressionList.eval(c, decay)
 		}
 		//TODO check assignable to fn result
@@ -795,16 +775,12 @@ func (n *SelectionStatement) check(c *ctx) (r Type) {
 	case SelectionStatementIf: // "if" '(' ExpressionList ')' Statement
 		if n.ExpressionList != nil {
 			n.ExpressionList.check(c, decay)
-		}
-		if n.ExpressionList != nil {
 			n.ExpressionList.eval(c, decay)
 		}
 		return n.Statement.check(c)
 	case SelectionStatementIfElse: // "if" '(' ExpressionList ')' Statement "else" Statement
 		if n.ExpressionList != nil {
 			n.ExpressionList.check(c, decay)
-		}
-		if n.ExpressionList != nil {
 			n.ExpressionList.eval(c, decay)
 		}
 		r1 := n.Statement.check(c)
@@ -817,8 +793,6 @@ func (n *SelectionStatement) check(c *ctx) (r Type) {
 	case SelectionStatementSwitch: // "switch" '(' ExpressionList ')' Statement
 		if n.ExpressionList != nil {
 			n.ExpressionList.check(c, decay)
-		}
-		if n.ExpressionList != nil {
 			n.ExpressionList.eval(c, decay)
 		}
 		c.inSwitch++
@@ -847,8 +821,6 @@ func (n *ExpressionStatement) check(c *ctx) (r Type) {
 
 	if n.ExpressionList != nil {
 		r = n.ExpressionList.check(c, decay)
-	}
-	if n.ExpressionList != nil {
 		n.ExpressionList.eval(c, decay)
 	}
 	return r
