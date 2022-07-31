@@ -2632,7 +2632,7 @@ func (p *parser) declaratorOrAbstractDeclarator(declare bool) (r Node) {
 					return nil
 				}
 			case '(':
-				switch x := p.declaratorOrAbstractDeclarator(declare).(type) {
+				switch x := p.declaratorOrAbstractDeclarator(false).(type) {
 				case *Declarator:
 					x.Pointer = ptr
 					dd := &DirectDeclarator{Case: DirectDeclaratorDecl, Token: lparen, Declarator: x, Token2: p.must(')')}
@@ -3528,10 +3528,20 @@ func (s *Scope) idents(t Token) (r []Node) {
 				if t.seq >= int32(x.visible) {
 					x.resolved = s
 					r = append(r, x)
-					if x.isExtern {
+					switch {
+					case x.isExtern:
 						for s := s.Parent; s != nil; s = s.Parent {
 							for _, v := range s.Nodes[string(t.Src())] {
 								if x, ok := v.(*Declarator); ok && x.isExtern {
+									x.resolved = s
+									r = append(r, x)
+								}
+							}
+						}
+					case x.Type().Kind() == Function:
+						for s := s.Parent; s != nil; s = s.Parent {
+							for _, v := range s.Nodes[string(t.Src())] {
+								if x, ok := v.(*Declarator); ok && x.Type().Kind() == Function {
 									x.resolved = s
 									r = append(r, x)
 								}

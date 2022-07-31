@@ -1893,6 +1893,20 @@ func (n *AttributeValue) check(c *ctx, attr *Attributes) {
 	case AttributeValueExpr: // IDENTIFIER '(' ArgumentExpressionList ')'
 		n.ArgumentExpressionList.check(c, decay|ignoreUndefined)
 		switch n.Token.SrcStr() {
+		case "alias":
+			e := n.ArgumentExpressionList.AssignmentExpression
+			if n.ArgumentExpressionList.ArgumentExpressionList != nil {
+				c.errors.add(errorf("%v: expected one expression", e.Position()))
+				break
+			}
+
+			x, ok := e.Value().(StringValue)
+			if !ok {
+				c.errors.add(errorf("%v: expected a string literal", e.Position()))
+				return
+			}
+
+			attr.setAlias(string(x))
 		case "aligned":
 			e := n.ArgumentExpressionList.AssignmentExpression
 			if n.ArgumentExpressionList.ArgumentExpressionList != nil {

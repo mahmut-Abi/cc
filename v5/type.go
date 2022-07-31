@@ -2140,6 +2140,7 @@ func IntegerPromotion(t Type) Type {
 //
 // See also https://gcc.gnu.org/onlinedocs/gcc/Attribute-Syntax.html
 type Attributes struct {
+	alias      string
 	aligned    int64
 	vectorSize int64
 
@@ -2153,14 +2154,18 @@ func newAttributes() *Attributes {
 	}
 }
 
+func (n *Attributes) setAlias(v string)     { n.alias = v; n.isNonZero = true }
 func (n *Attributes) setAligned(v int64)    { n.aligned = v; n.isNonZero = true }
 func (n *Attributes) setVectorSize(v int64) { n.vectorSize = v; n.isNonZero = true }
 
-// Aligned returns N from __attribute__(aligned(N)) or -1 if not
+// Alias returns S from __attribute__((alias("S"))) or "" if not present
+func (n *Attributes) Alias() string { return n.alias }
+
+// Aligned returns N from __attribute__((aligned(N)) or -1 if not
 // present/valid.
 func (n *Attributes) Aligned() int64 { return n.aligned }
 
-// VectorSize returns N from __attribute__(vector_size(N)) or -1 if not
+// VectorSize returns N from __attribute__((vector_size(N)) or -1 if not
 // present/valid.
 //
 // The vector_size attribute is only applicable to integral and floating
