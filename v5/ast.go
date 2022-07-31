@@ -2151,6 +2151,9 @@ func (n *GenericSelection) Position() (r token.Position) {
 // Associated returns the selected association of n, if any.
 func (n *GenericSelection) Associated() *GenericAssociation { return n.assoc }
 
+// Parent returns Initalizer m that has n on its InitializerList, if any.
+func (n *Initializer) Parent() *Initializer { return n.parent }
+
 // IdentifierList represents data reduced by productions:
 //
 //	IdentifierList:
@@ -2298,6 +2301,7 @@ func (n InitializerCase) String() string {
 type Initializer struct {
 	nelems int64
 	off    int64
+	parent *Initializer
 	typer
 	valuer
 	AssignmentExpression Expression
