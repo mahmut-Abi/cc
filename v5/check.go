@@ -296,7 +296,7 @@ func convert(v Value, t Type) (r Value) {
 	}
 	if IsIntegerType(t) {
 		switch {
-		case t.Size() > 8:
+		case t.Size() <= 0 || t.Size() > 8:
 			return Unknown
 		case IsSignedInteger(t):
 			switch x := v.(type) {
