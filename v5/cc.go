@@ -80,7 +80,7 @@ typedef __PTRDIFF_TYPE__ __predefined_ptrdiff_t;
 
 #ifdef __APPLE__
 int __darwin_check_fd_set_overflow(int, void *, int) {
-	abort();
+	__builtin_abort();
 }
 #endif
 
