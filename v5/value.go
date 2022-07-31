@@ -129,7 +129,7 @@ type UTF32StringValue []rune
 func (n UTF32StringValue) Convert(to Type) Value { return convert(n, to) }
 
 func (n *ConstantExpression) eval(c *ctx, mode flags) (r Value) {
-	n.val = n.ConditionalExpression.eval(c, mode)
+	n.val = n.Expression.eval(c, mode)
 	return n.Value()
 }
 
@@ -709,12 +709,12 @@ func (n *UnaryExpression) eval(c *ctx, mode flags) (r Value) {
 		case UnaryExpressionAddrof: // '&' CastExpression
 			c.errors.add(errorf("TODO %T %v", n, n.Case))
 		case UnaryExpressionDeref: // '*' CastExpression
-			switch x := n.CastExpression.eval(c, mode.del(addrOf)).(type) {
+			switch x := n.Expression.eval(c, mode.del(addrOf)).(type) {
 			case *UnknownValue:
 				// ok
 			case UInt64Value:
-				if _, ok := n.CastExpression.Type().(*PointerType); ok {
-					n.val = convert(x, n.CastExpression.Type())
+				if _, ok := n.Expression.Type().(*PointerType); ok {
+					n.val = convert(x, n.Expression.Type())
 				}
 			default:
 				c.errors.add(errorf("TODO %v %v %T", n.Case, mode.has(addrOf), x))
@@ -740,7 +740,7 @@ func (n *UnaryExpression) eval(c *ctx, mode flags) (r Value) {
 		case UnaryExpressionImag: // "__imag__" UnaryExpression
 			c.errors.add(errorf("TODO %T %v", n, n.Case))
 		case UnaryExpressionReal: // "__real__" UnaryExpression
-			switch x := n.UnaryExpression.eval(c, mode.del(addrOf)).(type) {
+			switch x := n.Expression3.eval(c, mode.del(addrOf)).(type) {
 			case *UnknownValue:
 				// ok
 			default:
@@ -754,17 +754,17 @@ func (n *UnaryExpression) eval(c *ctx, mode flags) (r Value) {
 
 	switch n.Case {
 	case UnaryExpressionPostfix: // PostfixExpression
-		n.val = n.PostfixExpression.eval(c, mode)
+		n.val = n.Expression2.eval(c, mode)
 	case UnaryExpressionInc: // "++" UnaryExpression
 		// nop
 	case UnaryExpressionDec: // "--" UnaryExpression
 		// nop
 	case UnaryExpressionAddrof: // '&' CastExpression
-		n.val = convert(n.CastExpression.eval(c, mode.add(addrOf)), n.Type())
+		n.val = convert(n.Expression.eval(c, mode.add(addrOf)), n.Type())
 	case UnaryExpressionDeref: // '*' CastExpression
 		// nop
 	case UnaryExpressionPlus: // '+' CastExpression
-		switch x := convert(n.CastExpression.eval(c, mode), n.Type()).(type) {
+		switch x := convert(n.Expression.eval(c, mode), n.Type()).(type) {
 		case *UnknownValue:
 			// nop
 		case Int64Value:
@@ -773,7 +773,7 @@ func (n *UnaryExpression) eval(c *ctx, mode flags) (r Value) {
 			c.errors.add(errorf("TODO %v TYPE %T", n.Case, x))
 		}
 	case UnaryExpressionMinus: // '-' CastExpression
-		switch x := convert(n.CastExpression.eval(c, mode), n.Type()).(type) {
+		switch x := convert(n.Expression.eval(c, mode), n.Type()).(type) {
 		case *UnknownValue:
 			// nop
 		case Int64Value:
@@ -786,7 +786,7 @@ func (n *UnaryExpression) eval(c *ctx, mode flags) (r Value) {
 			c.errors.add(errorf("TODO %v TYPE %T", n.Case, x))
 		}
 	case UnaryExpressionCpl: // '~' CastExpression
-		switch x := n.CastExpression.eval(c, mode).(type) {
+		switch x := n.Expression.eval(c, mode).(type) {
 		case *UnknownValue:
 			// nop
 		case Int64Value:
@@ -797,7 +797,7 @@ func (n *UnaryExpression) eval(c *ctx, mode flags) (r Value) {
 			c.errors.add(errorf("TODO %v TYPE %T", n.Case, x))
 		}
 	case UnaryExpressionNot: // '!' CastExpression
-		switch x := n.CastExpression.eval(c, mode).(type) {
+		switch x := n.Expression.eval(c, mode).(type) {
 		case *UnknownValue:
 			// nop
 		case Int64Value:
@@ -835,11 +835,11 @@ func (n *PostfixExpression) eval(c *ctx, mode flags) (r Value) {
 		case PostfixExpressionPrimary: // PrimaryExpression
 			c.errors.add(errorf("TODO %v %v", n.Case, mode.has(addrOf)))
 		case PostfixExpressionIndex: // PostfixExpression '[' Expression ']'
-			switch x := n.PostfixExpression.eval(c, mode.del(addrOf)).(type) {
+			switch x := n.Expression.eval(c, mode.del(addrOf)).(type) {
 			case *UnknownValue, StringValue, UTF16StringValue, UTF32StringValue:
 				// ok
 			case UInt64Value:
-				if p, ok := n.PostfixExpression.Type().(*PointerType); ok {
+				if p, ok := n.Expression.Type().(*PointerType); ok {
 					if ix, ok := int64Value(c, n.ExpressionList); ok && ix >= 0 {
 						if esz := p.Elem().Size(); esz >= 0 {
 							n.val = convert(x+UInt64Value(ix*esz), c.newPointerType(p.Elem()))
@@ -852,9 +852,9 @@ func (n *PostfixExpression) eval(c *ctx, mode flags) (r Value) {
 		case PostfixExpressionCall: // PostfixExpression '(' ArgumentExpressionList ')'
 			c.errors.add(errorf("TODO %v %v", n.Case, mode.has(addrOf)))
 		case PostfixExpressionSelect: // PostfixExpression '.' IDENTIFIER
-			switch x := n.PostfixExpression.Type().(type) {
+			switch x := n.Expression.Type().(type) {
 			case *StructType:
-				switch y := n.PostfixExpression.eval(c, mode).(type) {
+				switch y := n.Expression.eval(c, mode).(type) {
 				case *UnknownValue:
 					// ok
 				case UInt64Value:
@@ -865,7 +865,7 @@ func (n *PostfixExpression) eval(c *ctx, mode flags) (r Value) {
 					c.errors.add(errorf("TODO %T %T", x, y))
 				}
 			case *UnionType:
-				switch y := n.PostfixExpression.eval(c, mode).(type) {
+				switch y := n.Expression.eval(c, mode).(type) {
 				case *UnknownValue:
 					// ok
 				case UInt64Value:
@@ -879,9 +879,9 @@ func (n *PostfixExpression) eval(c *ctx, mode flags) (r Value) {
 				c.errors.add(errorf("TODO %T", x))
 			}
 		case PostfixExpressionPSelect: // PostfixExpression "->" IDENTIFIER
-			switch x := n.PostfixExpression.Type().(type) {
+			switch x := n.Expression.Type().(type) {
 			case *PointerType:
-				switch y := n.PostfixExpression.eval(c, mode.del(addrOf)).(type) {
+				switch y := n.Expression.eval(c, mode.del(addrOf)).(type) {
 				case *UnknownValue:
 					// ok
 				case UInt64Value:
@@ -917,11 +917,11 @@ func (n *PostfixExpression) eval(c *ctx, mode flags) (r Value) {
 
 	switch n.Case {
 	case PostfixExpressionPrimary: // PrimaryExpression
-		n.val = n.PrimaryExpression.eval(c, mode)
+		n.val = n.Expression2.eval(c, mode)
 	case PostfixExpressionIndex: // PostfixExpression '[' Expression ']'
 		switch {
-		case isPointerType(n.PostfixExpression.Type()) && IsIntegerType(n.ExpressionList.Type()):
-			switch v := n.PostfixExpression.eval(c, mode).(type) {
+		case isPointerType(n.Expression.Type()) && IsIntegerType(n.ExpressionList.Type()):
+			switch v := n.Expression.eval(c, mode).(type) {
 			case *UnknownValue:
 				// nop
 			case StringValue:
@@ -975,12 +975,12 @@ func (n *PostfixExpression) eval(c *ctx, mode flags) (r Value) {
 				// trc("%v: %v %v [%v %v] %T", n.Token.Position(), n.PostfixExpression.Value(), n.PostfixExpression.Type(), n.ExpressionList.Value(), n.ExpressionList.Type(), v)
 				c.errors.add(errorf("TODO %v %T", n.Case, v))
 			}
-		case IsIntegerType(n.PostfixExpression.Type()) && isPointerType(n.ExpressionList.Type()):
+		case IsIntegerType(n.Expression.Type()) && isPointerType(n.ExpressionList.Type()):
 			switch v := n.ExpressionList.eval(c, mode).(type) {
 			case *UnknownValue:
 				// nop
 			case StringValue:
-				switch x := n.PostfixExpression.eval(c, 0).(type) {
+				switch x := n.Expression.eval(c, 0).(type) {
 				case *UnknownValue:
 					// nop
 				case Int64Value:
@@ -1014,7 +1014,7 @@ func (n *PostfixExpression) eval(c *ctx, mode flags) (r Value) {
 			break
 		}
 
-		v := convert(n.InitializerList.Initializer.AssignmentExpression.eval(c, mode), n.Type())
+		v := convert(n.InitializerList.Initializer.Expression.eval(c, mode), n.Type())
 		switch n.Type().(type) {
 		case *PredefinedType:
 			n.val = v

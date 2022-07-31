@@ -144,12 +144,12 @@ func (n AlignmentSpecifierCase) String() string {
 //	        "_Alignas" '(' TypeName ')'            // Case AlignmentSpecifierType
 //	|       "_Alignas" '(' ConstantExpression ')'  // Case AlignmentSpecifierExpr
 type AlignmentSpecifier struct {
-	Case               AlignmentSpecifierCase `PrettyPrint:"stringer,zero"`
-	ConstantExpression Expression
-	Token              Token
-	Token2             Token
-	Token3             Token
-	TypeName           *TypeName
+	Case       AlignmentSpecifierCase `PrettyPrint:"stringer,zero"`
+	Expression Expression
+	Token      Token
+	Token2     Token
+	Token3     Token
+	TypeName   *TypeName
 }
 
 // String implements fmt.Stringer.
@@ -171,7 +171,7 @@ func (n *AlignmentSpecifier) Position() (r token.Position) {
 			return p
 		}
 
-		if p := n.ConstantExpression.Position(); p.IsValid() {
+		if p := n.Expression.Position(); p.IsValid() {
 			return p
 		}
 
@@ -202,7 +202,7 @@ func (n *AlignmentSpecifier) Position() (r token.Position) {
 //	|       ArgumentExpressionList ',' AssignmentExpression
 type ArgumentExpressionList struct {
 	ArgumentExpressionList *ArgumentExpressionList
-	AssignmentExpression   Expression
+	Expression             Expression
 	Token                  Token
 }
 
@@ -215,7 +215,7 @@ func (n *ArgumentExpressionList) Position() (r token.Position) {
 		return r
 	}
 
-	return n.AssignmentExpression.Position()
+	return n.Expression.Position()
 }
 
 // Asm represents data reduced by production:
@@ -296,10 +296,10 @@ func (n *AsmArgList) Position() (r token.Position) {
 //	        AsmIndex AssignmentExpression
 //	|       AsmExpressionList ',' AsmIndex AssignmentExpression
 type AsmExpressionList struct {
-	AsmExpressionList    *AsmExpressionList
-	AsmIndex             *AsmIndex
-	AssignmentExpression Expression
-	Token                Token
+	AsmExpressionList *AsmExpressionList
+	AsmIndex          *AsmIndex
+	Expression        Expression
+	Token             Token
 }
 
 // String implements fmt.Stringer.
@@ -315,7 +315,7 @@ func (n *AsmExpressionList) Position() (r token.Position) {
 		return p
 	}
 
-	return n.AssignmentExpression.Position()
+	return n.Expression.Position()
 }
 
 // AsmIndex represents data reduced by production:
@@ -818,7 +818,7 @@ func (n *ConditionalExpression) Position() (r token.Position) {
 type ConstantExpression struct {
 	typer
 	valuer
-	ConditionalExpression Expression
+	Expression Expression
 }
 
 // String implements fmt.Stringer.
@@ -830,7 +830,7 @@ func (n *ConstantExpression) Position() (r token.Position) {
 		return r
 	}
 
-	return n.ConditionalExpression.Position()
+	return n.Expression.Position()
 }
 
 // Declaration represents data reduced by productions:
@@ -1301,7 +1301,7 @@ func (n DirectAbstractDeclaratorCase) String() string {
 type DirectAbstractDeclarator struct {
 	params                   *Scope
 	AbstractDeclarator       *AbstractDeclarator
-	AssignmentExpression     Expression
+	Expression               Expression
 	Case                     DirectAbstractDeclaratorCase `PrettyPrint:"stringer,zero"`
 	DirectAbstractDeclarator *DirectAbstractDeclarator
 	ParameterTypeList        *ParameterTypeList
@@ -1368,7 +1368,7 @@ func (n *DirectAbstractDeclarator) Position() (r token.Position) {
 			}
 		}
 
-		if p := n.AssignmentExpression.Position(); p.IsValid() {
+		if p := n.Expression.Position(); p.IsValid() {
 			return p
 		}
 
@@ -1388,7 +1388,7 @@ func (n *DirectAbstractDeclarator) Position() (r token.Position) {
 			}
 		}
 
-		if p := n.AssignmentExpression.Position(); p.IsValid() {
+		if p := n.Expression.Position(); p.IsValid() {
 			return p
 		}
 
@@ -1412,7 +1412,7 @@ func (n *DirectAbstractDeclarator) Position() (r token.Position) {
 			return p
 		}
 
-		if p := n.AssignmentExpression.Position(); p.IsValid() {
+		if p := n.Expression.Position(); p.IsValid() {
 			return p
 		}
 
@@ -1483,17 +1483,17 @@ func (n DirectDeclaratorCase) String() string {
 //	|       DirectDeclarator '(' ParameterTypeList ')'                             // Case DirectDeclaratorFuncParam
 //	|       DirectDeclarator '(' IdentifierList ')'                                // Case DirectDeclaratorFuncIdent
 type DirectDeclarator struct {
-	params               *Scope
-	AssignmentExpression Expression
-	Case                 DirectDeclaratorCase `PrettyPrint:"stringer,zero"`
-	Declarator           *Declarator
-	DirectDeclarator     *DirectDeclarator
-	IdentifierList       *IdentifierList
-	ParameterTypeList    *ParameterTypeList
-	Token                Token
-	Token2               Token
-	Token3               Token
-	TypeQualifiers       []*TypeQualifier
+	params            *Scope
+	Expression        Expression
+	Case              DirectDeclaratorCase `PrettyPrint:"stringer,zero"`
+	Declarator        *Declarator
+	DirectDeclarator  *DirectDeclarator
+	IdentifierList    *IdentifierList
+	ParameterTypeList *ParameterTypeList
+	Token             Token
+	Token2            Token
+	Token3            Token
+	TypeQualifiers    []*TypeQualifier
 }
 
 // String implements fmt.Stringer.
@@ -1553,7 +1553,7 @@ func (n *DirectDeclarator) Position() (r token.Position) {
 			}
 		}
 
-		if p := n.AssignmentExpression.Position(); p.IsValid() {
+		if p := n.Expression.Position(); p.IsValid() {
 			return p
 		}
 
@@ -1573,7 +1573,7 @@ func (n *DirectDeclarator) Position() (r token.Position) {
 			}
 		}
 
-		if p := n.AssignmentExpression.Position(); p.IsValid() {
+		if p := n.Expression.Position(); p.IsValid() {
 			return p
 		}
 
@@ -1597,7 +1597,7 @@ func (n *DirectDeclarator) Position() (r token.Position) {
 			return p
 		}
 
-		if p := n.AssignmentExpression.Position(); p.IsValid() {
+		if p := n.Expression.Position(); p.IsValid() {
 			return p
 		}
 
@@ -1780,10 +1780,10 @@ type Enumerator struct {
 	resolver
 	valuer
 	visible
-	Case               EnumeratorCase `PrettyPrint:"stringer,zero"`
-	ConstantExpression Expression
-	Token              Token
-	Token2             Token
+	Case       EnumeratorCase `PrettyPrint:"stringer,zero"`
+	Expression Expression
+	Token      Token
+	Token2     Token
 }
 
 // String implements fmt.Stringer.
@@ -1807,7 +1807,7 @@ func (n *Enumerator) Position() (r token.Position) {
 			return p
 		}
 
-		return n.ConstantExpression.Position()
+		return n.Expression.Position()
 	default:
 		panic("internal error")
 	}
@@ -2032,11 +2032,11 @@ func (n GenericAssociationCase) String() string {
 //	        TypeName ':' AssignmentExpression   // Case GenericAssociationType
 //	|       "default" ':' AssignmentExpression  // Case GenericAssociationDefault
 type GenericAssociation struct {
-	AssignmentExpression Expression
-	Case                 GenericAssociationCase `PrettyPrint:"stringer,zero"`
-	Token                Token
-	Token2               Token
-	TypeName             *TypeName
+	Expression Expression
+	Case       GenericAssociationCase `PrettyPrint:"stringer,zero"`
+	Token      Token
+	Token2     Token
+	TypeName   *TypeName
 }
 
 // String implements fmt.Stringer.
@@ -2058,7 +2058,7 @@ func (n *GenericAssociation) Position() (r token.Position) {
 			return p
 		}
 
-		return n.AssignmentExpression.Position()
+		return n.Expression.Position()
 	case 0:
 		if p := n.TypeName.Position(); p.IsValid() {
 			return p
@@ -2068,7 +2068,7 @@ func (n *GenericAssociation) Position() (r token.Position) {
 			return p
 		}
 
-		return n.AssignmentExpression.Position()
+		return n.Expression.Position()
 	default:
 		panic("internal error")
 	}
@@ -2104,7 +2104,7 @@ func (n *GenericAssociationList) Position() (r token.Position) {
 type GenericSelection struct {
 	assoc *GenericAssociation
 	typer
-	AssignmentExpression   Expression
+	Expression             Expression
 	GenericAssociationList *GenericAssociationList
 	Token                  Token
 	Token2                 Token
@@ -2129,7 +2129,7 @@ func (n *GenericSelection) Position() (r token.Position) {
 		return p
 	}
 
-	if p := n.AssignmentExpression.Position(); p.IsValid() {
+	if p := n.Expression.Position(); p.IsValid() {
 		return p
 	}
 
@@ -2244,12 +2244,12 @@ type Initializer struct {
 	parent *Initializer
 	typer
 	valuer
-	AssignmentExpression Expression
-	Case                 InitializerCase `PrettyPrint:"stringer,zero"`
-	InitializerList      *InitializerList
-	Token                Token
-	Token2               Token
-	Token3               Token
+	Expression      Expression
+	Case            InitializerCase `PrettyPrint:"stringer,zero"`
+	InitializerList *InitializerList
+	Token           Token
+	Token2          Token
+	Token3          Token
 }
 
 // String implements fmt.Stringer.
@@ -2263,7 +2263,7 @@ func (n *Initializer) Position() (r token.Position) {
 
 	switch n.Case {
 	case 0:
-		return n.AssignmentExpression.Position()
+		return n.Expression.Position()
 	case 1:
 		if p := n.Token.Position(); p.IsValid() {
 			return p
@@ -2655,14 +2655,14 @@ func (n LabeledStatementCase) String() string {
 //	|       "case" ConstantExpression "..." ConstantExpression ':' Statement  // Case LabeledStatementRange
 //	|       "default" ':' Statement                                           // Case LabeledStatementDefault
 type LabeledStatement struct {
-	caseOrdinal         int
-	Case                LabeledStatementCase `PrettyPrint:"stringer,zero"`
-	ConstantExpression  Expression
-	ConstantExpression2 Expression
-	Statement           Statement
-	Token               Token
-	Token2              Token
-	Token3              Token
+	caseOrdinal int
+	Case        LabeledStatementCase `PrettyPrint:"stringer,zero"`
+	Expression  Expression
+	Expression2 Expression
+	Statement   Statement
+	Token       Token
+	Token2      Token
+	Token3      Token
 }
 
 // String implements fmt.Stringer.
@@ -2680,7 +2680,7 @@ func (n *LabeledStatement) Position() (r token.Position) {
 			return p
 		}
 
-		if p := n.ConstantExpression.Position(); p.IsValid() {
+		if p := n.Expression.Position(); p.IsValid() {
 			return p
 		}
 
@@ -2688,7 +2688,7 @@ func (n *LabeledStatement) Position() (r token.Position) {
 			return p
 		}
 
-		if p := n.ConstantExpression2.Position(); p.IsValid() {
+		if p := n.Expression2.Position(); p.IsValid() {
 			return p
 		}
 
@@ -2702,7 +2702,7 @@ func (n *LabeledStatement) Position() (r token.Position) {
 			return p
 		}
 
-		if p := n.ConstantExpression.Position(); p.IsValid() {
+		if p := n.Expression.Position(); p.IsValid() {
 			return p
 		}
 
@@ -3014,8 +3014,8 @@ type PostfixExpression struct {
 	Case                   PostfixExpressionCase `PrettyPrint:"stringer,zero"`
 	ExpressionList         Expression
 	InitializerList        *InitializerList
-	PostfixExpression      Expression
-	PrimaryExpression      Expression
+	Expression             Expression
+	Expression2            Expression
 	Token                  Token
 	Token2                 Token
 	Token3                 Token
@@ -3035,13 +3035,13 @@ func (n *PostfixExpression) Position() (r token.Position) {
 
 	switch n.Case {
 	case 5, 6:
-		if p := n.PostfixExpression.Position(); p.IsValid() {
+		if p := n.Expression.Position(); p.IsValid() {
 			return p
 		}
 
 		return n.Token.Position()
 	case 2:
-		if p := n.PostfixExpression.Position(); p.IsValid() {
+		if p := n.Expression.Position(); p.IsValid() {
 			return p
 		}
 
@@ -3055,7 +3055,7 @@ func (n *PostfixExpression) Position() (r token.Position) {
 
 		return n.Token2.Position()
 	case 1:
-		if p := n.PostfixExpression.Position(); p.IsValid() {
+		if p := n.Expression.Position(); p.IsValid() {
 			return p
 		}
 
@@ -3069,7 +3069,7 @@ func (n *PostfixExpression) Position() (r token.Position) {
 
 		return n.Token2.Position()
 	case 3, 4:
-		if p := n.PostfixExpression.Position(); p.IsValid() {
+		if p := n.Expression.Position(); p.IsValid() {
 			return p
 		}
 
@@ -3079,7 +3079,7 @@ func (n *PostfixExpression) Position() (r token.Position) {
 
 		return n.Token2.Position()
 	case 0:
-		return n.PrimaryExpression.Position()
+		return n.Expression2.Position()
 	case 7:
 		if p := n.Token.Position(); p.IsValid() {
 			return p
@@ -3441,12 +3441,12 @@ func (*AsmStatement) isStatement()        {}
 //	StaticAssertDeclaration:
 //	        "_Static_assert" '(' ConstantExpression ',' STRINGLITERAL ')'
 type StaticAssertDeclaration struct {
-	ConstantExpression Expression
-	Token              Token
-	Token2             Token
-	Token3             Token
-	Token4             Token
-	Token5             Token
+	Expression Expression
+	Token      Token
+	Token2     Token
+	Token3     Token
+	Token4     Token
+	Token5     Token
 }
 
 // String implements fmt.Stringer.
@@ -3466,7 +3466,7 @@ func (n *StaticAssertDeclaration) Position() (r token.Position) {
 		return p
 	}
 
-	if p := n.ConstantExpression.Position(); p.IsValid() {
+	if p := n.Expression.Position(); p.IsValid() {
 		return p
 	}
 
@@ -3673,10 +3673,10 @@ func (n StructDeclaratorCase) String() string {
 //	        Declarator                         // Case StructDeclaratorDecl
 //	|       Declarator ':' ConstantExpression  // Case StructDeclaratorBitField
 type StructDeclarator struct {
-	Case               StructDeclaratorCase `PrettyPrint:"stringer,zero"`
-	ConstantExpression Expression
-	Declarator         *Declarator
-	Token              Token
+	Case       StructDeclaratorCase `PrettyPrint:"stringer,zero"`
+	Expression Expression
+	Declarator *Declarator
+	Token      Token
 }
 
 // String implements fmt.Stringer.
@@ -3700,7 +3700,7 @@ func (n *StructDeclarator) Position() (r token.Position) {
 			return p
 		}
 
-		return n.ConstantExpression.Position()
+		return n.Expression.Position()
 	default:
 		panic("internal error")
 	}
@@ -4224,14 +4224,14 @@ func (n UnaryExpressionCase) String() string {
 type UnaryExpression struct {
 	typer
 	valuer
-	Case              UnaryExpressionCase `PrettyPrint:"stringer,zero"`
-	CastExpression    Expression
-	PostfixExpression Expression
-	Token             Token
-	Token2            Token
-	Token3            Token
-	TypeName          *TypeName
-	UnaryExpression   Expression
+	Case        UnaryExpressionCase `PrettyPrint:"stringer,zero"`
+	Expression  Expression
+	Expression2 Expression
+	Token       Token
+	Token2      Token
+	Token3      Token
+	TypeName    *TypeName
+	Expression3 Expression
 }
 
 // String implements fmt.Stringer.
@@ -4245,13 +4245,13 @@ func (n *UnaryExpression) Position() (r token.Position) {
 
 	switch n.Case {
 	case 0:
-		return n.PostfixExpression.Position()
+		return n.Expression2.Position()
 	case 3, 4, 5, 6, 7, 8:
 		if p := n.Token.Position(); p.IsValid() {
 			return p
 		}
 
-		return n.CastExpression.Position()
+		return n.Expression.Position()
 	case 11:
 		if p := n.Token.Position(); p.IsValid() {
 			return p
@@ -4277,7 +4277,7 @@ func (n *UnaryExpression) Position() (r token.Position) {
 			return p
 		}
 
-		return n.UnaryExpression.Position()
+		return n.Expression3.Position()
 	default:
 		panic("internal error")
 	}

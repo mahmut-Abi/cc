@@ -92,8 +92,8 @@ func ExampleAlignmentSpecifier_expr() {
 	// Output:
 	// &cc.AlignmentSpecifier{
 	// · Case: AlignmentSpecifierExpr,
-	// · ConstantExpression: &cc.ConstantExpression{
-	// · · ConditionalExpression: &cc.PrimaryExpression{
+	// · Expression: &cc.ConstantExpression{
+	// · · Expression: &cc.PrimaryExpression{
 	// · · · Case: PrimaryExpressionInt,
 	// · · · Token: example.c:1:10: integer constant "0ll",
 	// · · },
@@ -125,7 +125,7 @@ func ExampleArgumentExpressionList_case0() {
 	fmt.Println(exampleAST(24, "int i = f(x);"))
 	// Output:
 	// &cc.ArgumentExpressionList{
-	// · AssignmentExpression: &cc.PrimaryExpression{
+	// · Expression: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:11: identifier "x",
 	// · },
@@ -137,13 +137,13 @@ func ExampleArgumentExpressionList_case1() {
 	// Output:
 	// &cc.ArgumentExpressionList{
 	// · ArgumentExpressionList: &cc.ArgumentExpressionList{
-	// · · AssignmentExpression: &cc.PrimaryExpression{
+	// · · Expression: &cc.PrimaryExpression{
 	// · · · Case: PrimaryExpressionIdent,
 	// · · · Token: example.c:1:14: identifier "y",
 	// · · },
 	// · · Token: example.c:1:12: ',' ",",
 	// · },
-	// · AssignmentExpression: &cc.PrimaryExpression{
+	// · Expression: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:11: identifier "x",
 	// · },
@@ -166,7 +166,7 @@ func ExampleAsmArgList_case0() {
 	// Output:
 	// &cc.AsmArgList{
 	// · AsmExpressionList: &cc.AsmExpressionList{
-	// · · AssignmentExpression: &cc.PrimaryExpression{
+	// · · Expression: &cc.PrimaryExpression{
 	// · · · Case: PrimaryExpressionIdent,
 	// · · · Token: example.c:1:16: identifier "a",
 	// · · },
@@ -181,7 +181,7 @@ func ExampleAsmArgList_case1() {
 	// &cc.AsmArgList{
 	// · AsmArgList: &cc.AsmArgList{
 	// · · AsmExpressionList: &cc.AsmExpressionList{
-	// · · · AssignmentExpression: &cc.PrimaryExpression{
+	// · · · Expression: &cc.PrimaryExpression{
 	// · · · · Case: PrimaryExpressionIdent,
 	// · · · · Token: example.c:1:20: identifier "b",
 	// · · · },
@@ -189,7 +189,7 @@ func ExampleAsmArgList_case1() {
 	// · · Token: example.c:1:18: ':' ":",
 	// · },
 	// · AsmExpressionList: &cc.AsmExpressionList{
-	// · · AssignmentExpression: &cc.PrimaryExpression{
+	// · · Expression: &cc.PrimaryExpression{
 	// · · · Case: PrimaryExpressionIdent,
 	// · · · Token: example.c:1:16: identifier "a",
 	// · · },
@@ -202,7 +202,7 @@ func ExampleAsmExpressionList_case0() {
 	fmt.Println(exampleAST(256, "__asm__(\"nop\": a);"))
 	// Output:
 	// &cc.AsmExpressionList{
-	// · AssignmentExpression: &cc.PrimaryExpression{
+	// · Expression: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:16: identifier "a",
 	// · },
@@ -214,13 +214,13 @@ func ExampleAsmExpressionList_case1() {
 	// Output:
 	// &cc.AsmExpressionList{
 	// · AsmExpressionList: &cc.AsmExpressionList{
-	// · · AssignmentExpression: &cc.PrimaryExpression{
+	// · · Expression: &cc.PrimaryExpression{
 	// · · · Case: PrimaryExpressionIdent,
 	// · · · Token: example.c:1:19: identifier "b",
 	// · · },
 	// · · Token: example.c:1:17: ',' ",",
 	// · },
-	// · AssignmentExpression: &cc.PrimaryExpression{
+	// · Expression: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:16: identifier "a",
 	// · },
@@ -596,7 +596,7 @@ func ExampleAttributeValue_expr() {
 	// Output:
 	// &cc.AttributeValue{
 	// · ArgumentExpressionList: &cc.ArgumentExpressionList{
-	// · · AssignmentExpression: &cc.PrimaryExpression{
+	// · · Expression: &cc.PrimaryExpression{
 	// · · · Case: PrimaryExpressionIdent,
 	// · · · Token: example.c:1:24: identifier "b",
 	// · · },
@@ -690,7 +690,7 @@ func ExampleBlockItem_decl() {
 	// · · · · · · · },
 	// · · · · · · },
 	// · · · · · · Initializer: &cc.Initializer{
-	// · · · · · · · AssignmentExpression: &cc.PrimaryExpression{
+	// · · · · · · · Expression: &cc.PrimaryExpression{
 	// · · · · · · · · Case: PrimaryExpressionString,
 	// · · · · · · · · Token: example.c:1:9: string literal "\"f\"",
 	// · · · · · · · },
@@ -779,7 +779,7 @@ func ExampleBlockItem_label() {
 	// · · · · · · · },
 	// · · · · · · },
 	// · · · · · · Initializer: &cc.Initializer{
-	// · · · · · · · AssignmentExpression: &cc.PrimaryExpression{
+	// · · · · · · · Expression: &cc.PrimaryExpression{
 	// · · · · · · · · Case: PrimaryExpressionString,
 	// · · · · · · · · Token: example.c:1:9: string literal "\"f\"",
 	// · · · · · · · },
@@ -875,7 +875,7 @@ func ExampleBlockItem_stmt() {
 	// · · · · · · · },
 	// · · · · · · },
 	// · · · · · · Initializer: &cc.Initializer{
-	// · · · · · · · AssignmentExpression: &cc.PrimaryExpression{
+	// · · · · · · · Expression: &cc.PrimaryExpression{
 	// · · · · · · · · Case: PrimaryExpressionString,
 	// · · · · · · · · Token: example.c:1:9: string literal "\"f\"",
 	// · · · · · · · },
@@ -889,7 +889,7 @@ func ExampleBlockItem_stmt() {
 	// · · · 1: &cc.ExpressionStatement{
 	// · · · · ExpressionList: &cc.PostfixExpression{
 	// · · · · · Case: PostfixExpressionCall,
-	// · · · · · PostfixExpression: &cc.PrimaryExpression{
+	// · · · · · Expression: &cc.PrimaryExpression{
 	// · · · · · · Case: PrimaryExpressionIdent,
 	// · · · · · · Token: example.c:1:11: identifier "g",
 	// · · · · · },
@@ -957,7 +957,7 @@ func ExampleBlockItem_funcDef() {
 	// · · · · · · · },
 	// · · · · · · },
 	// · · · · · · Initializer: &cc.Initializer{
-	// · · · · · · · AssignmentExpression: &cc.PrimaryExpression{
+	// · · · · · · · Expression: &cc.PrimaryExpression{
 	// · · · · · · · · Case: PrimaryExpressionString,
 	// · · · · · · · · Token: example.c:1:9: string literal "\"f\"",
 	// · · · · · · · },
@@ -1018,7 +1018,7 @@ func ExampleBlockItem_funcDef() {
 	// · · · · · · · · · · },
 	// · · · · · · · · · },
 	// · · · · · · · · · Initializer: &cc.Initializer{
-	// · · · · · · · · · · AssignmentExpression: &cc.PrimaryExpression{
+	// · · · · · · · · · · Expression: &cc.PrimaryExpression{
 	// · · · · · · · · · · · Case: PrimaryExpressionString,
 	// · · · · · · · · · · · Token: example.c:1:19: string literal "\"g\"",
 	// · · · · · · · · · · },
@@ -1092,7 +1092,7 @@ func ExampleBlockItem_case0() {
 	// · · · · · · · },
 	// · · · · · · },
 	// · · · · · · Initializer: &cc.Initializer{
-	// · · · · · · · AssignmentExpression: &cc.PrimaryExpression{
+	// · · · · · · · Expression: &cc.PrimaryExpression{
 	// · · · · · · · · Case: PrimaryExpressionString,
 	// · · · · · · · · Token: example.c:1:9: string literal "\"f\"",
 	// · · · · · · · },
@@ -1181,7 +1181,7 @@ func ExampleBlockItem_case1() {
 	// · · · · · · · },
 	// · · · · · · },
 	// · · · · · · Initializer: &cc.Initializer{
-	// · · · · · · · AssignmentExpression: &cc.PrimaryExpression{
+	// · · · · · · · Expression: &cc.PrimaryExpression{
 	// · · · · · · · · Case: PrimaryExpressionString,
 	// · · · · · · · · Token: example.c:1:9: string literal "\"f\"",
 	// · · · · · · · },
@@ -1314,7 +1314,7 @@ func ExampleCompoundStatement_case0() {
 	// · · · · · · },
 	// · · · · · },
 	// · · · · · Initializer: &cc.Initializer{
-	// · · · · · · AssignmentExpression: &cc.PrimaryExpression{
+	// · · · · · · Expression: &cc.PrimaryExpression{
 	// · · · · · · · Case: PrimaryExpressionString,
 	// · · · · · · · Token: example.c:1:9: string literal "\"f\"",
 	// · · · · · · },
@@ -1381,7 +1381,7 @@ func ExampleConstantExpression_case0() {
 	fmt.Println(exampleAST(88, "struct { int i:3; };"))
 	// Output:
 	// &cc.ConstantExpression{
-	// · ConditionalExpression: &cc.PrimaryExpression{
+	// · Expression: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionInt,
 	// · · Token: example.c:1:16: integer constant "3",
 	// · },
@@ -1425,8 +1425,8 @@ func ExampleDeclaration_assert() {
 	fmt.Println(exampleAST(90, "_Static_assert(x > y, \"abc\")"))
 	// Output:
 	// &cc.StaticAssertDeclaration{
-	// · ConstantExpression: &cc.ConstantExpression{
-	// · · ConditionalExpression: &cc.BinaryExpression{
+	// · Expression: &cc.ConstantExpression{
+	// · · Expression: &cc.BinaryExpression{
 	// · · · Lhs: &cc.PrimaryExpression{
 	// · · · · Case: PrimaryExpressionIdent,
 	// · · · · Token: example.c:1:16: identifier "x",
@@ -1460,7 +1460,7 @@ func ExampleDeclaration_auto() {
 	// · },
 	// · Token2: example.c:1:15: '=' "=",
 	// · Initializer: &cc.Initializer{
-	// · · AssignmentExpression: &cc.PrimaryExpression{
+	// · · Expression: &cc.PrimaryExpression{
 	// · · · Case: PrimaryExpressionIdent,
 	// · · · Token: example.c:1:17: identifier "y",
 	// · · },
@@ -1521,7 +1521,7 @@ func ExampleDeclaration_case0() {
 	// · · · · },
 	// · · · },
 	// · · · Initializer: &cc.Initializer{
-	// · · · · AssignmentExpression: &cc.PrimaryExpression{
+	// · · · · Expression: &cc.PrimaryExpression{
 	// · · · · · Case: PrimaryExpressionString,
 	// · · · · · Token: example.c:1:17: string literal "\"f\"",
 	// · · · · },
@@ -1604,7 +1604,7 @@ func ExampleDeclaration_case1() {
 	// · · · · },
 	// · · · },
 	// · · · Initializer: &cc.Initializer{
-	// · · · · AssignmentExpression: &cc.PrimaryExpression{
+	// · · · · Expression: &cc.PrimaryExpression{
 	// · · · · · Case: PrimaryExpressionString,
 	// · · · · · Token: example.c:1:27: string literal "\"f\"",
 	// · · · · },
@@ -1759,7 +1759,7 @@ func ExampleDesignation_case0() {
 	// · · 0: &cc.Designator{
 	// · · · Case: DesignatorIndex,
 	// · · · ConstantExpression: &cc.ConstantExpression{
-	// · · · · ConditionalExpression: &cc.PrimaryExpression{
+	// · · · · Expression: &cc.PrimaryExpression{
 	// · · · · · Case: PrimaryExpressionInt,
 	// · · · · · Token: example.c:1:14: integer constant "42",
 	// · · · · },
@@ -1778,7 +1778,7 @@ func ExampleDesignator_index() {
 	// &cc.Designator{
 	// · Case: DesignatorIndex,
 	// · ConstantExpression: &cc.ConstantExpression{
-	// · · ConditionalExpression: &cc.PrimaryExpression{
+	// · · Expression: &cc.PrimaryExpression{
 	// · · · Case: PrimaryExpressionInt,
 	// · · · Token: example.c:1:14: integer constant "42",
 	// · · },
@@ -1794,13 +1794,13 @@ func ExampleDesignator_index2() {
 	// &cc.Designator{
 	// · Case: DesignatorIndex2,
 	// · ConstantExpression: &cc.ConstantExpression{
-	// · · ConditionalExpression: &cc.PrimaryExpression{
+	// · · Expression: &cc.PrimaryExpression{
 	// · · · Case: PrimaryExpressionInt,
 	// · · · Token: example.c:1:14: integer constant "42",
 	// · · },
 	// · },
 	// · ConstantExpression2: &cc.ConstantExpression{
-	// · · ConditionalExpression: &cc.PrimaryExpression{
+	// · · Expression: &cc.PrimaryExpression{
 	// · · · Case: PrimaryExpressionInt,
 	// · · · Token: example.c:1:21: integer constant "278",
 	// · · },
@@ -1837,7 +1837,7 @@ func ExampleDesignator_case0() {
 	// &cc.Designator{
 	// · Case: DesignatorIndex,
 	// · ConstantExpression: &cc.ConstantExpression{
-	// · · ConditionalExpression: &cc.PrimaryExpression{
+	// · · Expression: &cc.PrimaryExpression{
 	// · · · Case: PrimaryExpressionInt,
 	// · · · Token: example.c:1:14: integer constant "42",
 	// · · },
@@ -1853,7 +1853,7 @@ func ExampleDesignator_case1() {
 	// &cc.Designator{
 	// · Case: DesignatorIndex,
 	// · ConstantExpression: &cc.ConstantExpression{
-	// · · ConditionalExpression: &cc.PrimaryExpression{
+	// · · Expression: &cc.PrimaryExpression{
 	// · · · Case: PrimaryExpressionInt,
 	// · · · Token: example.c:1:19: integer constant "42",
 	// · · },
@@ -1864,7 +1864,7 @@ func ExampleDesignator_case1() {
 	// &cc.Designator{
 	// · Case: DesignatorIndex,
 	// · ConstantExpression: &cc.ConstantExpression{
-	// · · ConditionalExpression: &cc.PrimaryExpression{
+	// · · Expression: &cc.PrimaryExpression{
 	// · · · Case: PrimaryExpressionInt,
 	// · · · Token: example.c:1:23: integer constant "12",
 	// · · },
@@ -1895,7 +1895,7 @@ func ExampleDirectAbstractDeclarator_arr() {
 	fmt.Println(exampleAST(198, "void f(int[const 42]);"))
 	// Output:
 	// &cc.DirectAbstractDeclarator{
-	// · AssignmentExpression: &cc.PrimaryExpression{
+	// · Expression: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionInt,
 	// · · Token: example.c:1:18: integer constant "42",
 	// · },
@@ -1915,7 +1915,7 @@ func ExampleDirectAbstractDeclarator_staticArr() {
 	fmt.Println(exampleAST(199, "void f(int[static const 42]);"))
 	// Output:
 	// &cc.DirectAbstractDeclarator{
-	// · AssignmentExpression: &cc.PrimaryExpression{
+	// · Expression: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionInt,
 	// · · Token: example.c:1:25: integer constant "42",
 	// · },
@@ -1936,7 +1936,7 @@ func ExampleDirectAbstractDeclarator_arrStatic() {
 	fmt.Println(exampleAST(200, "void f(int[const static 42]);"))
 	// Output:
 	// &cc.DirectAbstractDeclarator{
-	// · AssignmentExpression: &cc.PrimaryExpression{
+	// · Expression: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionInt,
 	// · · Token: example.c:1:25: integer constant "42",
 	// · },
@@ -2017,7 +2017,7 @@ func ExampleDirectDeclarator_arr() {
 	fmt.Println(exampleAST(175, "int i[const 42];"))
 	// Output:
 	// &cc.DirectDeclarator{
-	// · AssignmentExpression: &cc.PrimaryExpression{
+	// · Expression: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionInt,
 	// · · Token: example.c:1:13: integer constant "42",
 	// · },
@@ -2041,7 +2041,7 @@ func ExampleDirectDeclarator_staticArr() {
 	fmt.Println(exampleAST(176, "int i[static const 42];"))
 	// Output:
 	// &cc.DirectDeclarator{
-	// · AssignmentExpression: &cc.PrimaryExpression{
+	// · Expression: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionInt,
 	// · · Token: example.c:1:20: integer constant "42",
 	// · },
@@ -2066,7 +2066,7 @@ func ExampleDirectDeclarator_arrStatic() {
 	fmt.Println(exampleAST(177, "int i[const static 42];"))
 	// Output:
 	// &cc.DirectDeclarator{
-	// · AssignmentExpression: &cc.PrimaryExpression{
+	// · Expression: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionInt,
 	// · · Token: example.c:1:20: integer constant "42",
 	// · },
@@ -2201,8 +2201,8 @@ func ExampleEnumerator_expr() {
 	// Output:
 	// &cc.Enumerator{
 	// · Case: EnumeratorExpr,
-	// · ConstantExpression: &cc.ConstantExpression{
-	// · · ConditionalExpression: &cc.PrimaryExpression{
+	// · Expression: &cc.ConstantExpression{
+	// · · Expression: &cc.PrimaryExpression{
 	// · · · Case: PrimaryExpressionInt,
 	// · · · Token: example.c:1:13: integer constant "42",
 	// · · },
@@ -2324,7 +2324,7 @@ func ExampleExpressionStatement_case0() {
 	// &cc.ExpressionStatement{
 	// · ExpressionList: &cc.PostfixExpression{
 	// · · Case: PostfixExpressionCall,
-	// · · PostfixExpression: &cc.PrimaryExpression{
+	// · · Expression: &cc.PrimaryExpression{
 	// · · · Case: PrimaryExpressionIdent,
 	// · · · Token: example.c:1:11: identifier "g",
 	// · · },
@@ -2388,7 +2388,7 @@ func ExampleExternalDeclaration_funcDef() {
 	// · · · · · · · },
 	// · · · · · · },
 	// · · · · · · Initializer: &cc.Initializer{
-	// · · · · · · · AssignmentExpression: &cc.PrimaryExpression{
+	// · · · · · · · Expression: &cc.PrimaryExpression{
 	// · · · · · · · · Case: PrimaryExpressionString,
 	// · · · · · · · · Token: example.c:1:9: string literal "\"f\"",
 	// · · · · · · · },
@@ -2514,7 +2514,7 @@ func ExampleFunctionDefinition_case0() {
 	// · · · · · · · },
 	// · · · · · · },
 	// · · · · · · Initializer: &cc.Initializer{
-	// · · · · · · · AssignmentExpression: &cc.PrimaryExpression{
+	// · · · · · · · Expression: &cc.PrimaryExpression{
 	// · · · · · · · · Case: PrimaryExpressionString,
 	// · · · · · · · · Token: example.c:1:9: string literal "\"f\"",
 	// · · · · · · · },
@@ -2553,7 +2553,7 @@ func ExampleGenericAssociation_type() {
 	fmt.Println(exampleAST(14, "int i = _Generic(x, int: y)(42);"))
 	// Output:
 	// &cc.GenericAssociation{
-	// · AssignmentExpression: &cc.PrimaryExpression{
+	// · Expression: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:26: identifier "y",
 	// · },
@@ -2575,7 +2575,7 @@ func ExampleGenericAssociation_default() {
 	fmt.Println(exampleAST(15, "int i = _Generic(x, default: y)(42);"))
 	// Output:
 	// &cc.GenericAssociation{
-	// · AssignmentExpression: &cc.PrimaryExpression{
+	// · Expression: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:30: identifier "y",
 	// · },
@@ -2590,7 +2590,7 @@ func ExampleGenericAssociationList_case0() {
 	// Output:
 	// &cc.GenericAssociationList{
 	// · GenericAssociation: &cc.GenericAssociation{
-	// · · AssignmentExpression: &cc.PrimaryExpression{
+	// · · Expression: &cc.PrimaryExpression{
 	// · · · Case: PrimaryExpressionIdent,
 	// · · · Token: example.c:1:26: identifier "y",
 	// · · },
@@ -2614,7 +2614,7 @@ func ExampleGenericAssociationList_case1() {
 	// Output:
 	// &cc.GenericAssociationList{
 	// · GenericAssociation: &cc.GenericAssociation{
-	// · · AssignmentExpression: &cc.PrimaryExpression{
+	// · · Expression: &cc.PrimaryExpression{
 	// · · · Case: PrimaryExpressionIdent,
 	// · · · Token: example.c:1:26: identifier "y",
 	// · · },
@@ -2632,7 +2632,7 @@ func ExampleGenericAssociationList_case1() {
 	// · },
 	// · GenericAssociationList: &cc.GenericAssociationList{
 	// · · GenericAssociation: &cc.GenericAssociation{
-	// · · · AssignmentExpression: &cc.PrimaryExpression{
+	// · · · Expression: &cc.PrimaryExpression{
 	// · · · · Case: PrimaryExpressionIdent,
 	// · · · · Token: example.c:1:36: identifier "z",
 	// · · · },
@@ -2657,13 +2657,13 @@ func ExampleGenericSelection_case0() {
 	fmt.Println(exampleAST(11, "int i = _Generic(x, int: y)(42);"))
 	// Output:
 	// &cc.GenericSelection{
-	// · AssignmentExpression: &cc.PrimaryExpression{
+	// · Expression: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:18: identifier "x",
 	// · },
 	// · GenericAssociationList: &cc.GenericAssociationList{
 	// · · GenericAssociation: &cc.GenericAssociation{
-	// · · · AssignmentExpression: &cc.PrimaryExpression{
+	// · · · Expression: &cc.PrimaryExpression{
 	// · · · · Case: PrimaryExpressionIdent,
 	// · · · · Token: example.c:1:26: identifier "y",
 	// · · · },
@@ -2760,7 +2760,7 @@ func ExampleInitDeclarator_init() {
 	// · · },
 	// · },
 	// · Initializer: &cc.Initializer{
-	// · · AssignmentExpression: &cc.PrimaryExpression{
+	// · · Expression: &cc.PrimaryExpression{
 	// · · · Case: PrimaryExpressionIdent,
 	// · · · Token: example.c:1:32: identifier "x",
 	// · · },
@@ -2824,7 +2824,7 @@ func ExampleInitializer_expr() {
 	fmt.Println(exampleAST(203, "int i = x;"))
 	// Output:
 	// &cc.Initializer{
-	// · AssignmentExpression: &cc.PrimaryExpression{
+	// · Expression: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:9: identifier "x",
 	// · },
@@ -2839,7 +2839,7 @@ func ExampleInitializer_initList() {
 	// · Case: InitializerInitList,
 	// · InitializerList: &cc.InitializerList{
 	// · · Initializer: &cc.Initializer{
-	// · · · AssignmentExpression: &cc.PrimaryExpression{
+	// · · · Expression: &cc.PrimaryExpression{
 	// · · · · Case: PrimaryExpressionIdent,
 	// · · · · Token: example.c:1:13: identifier "x",
 	// · · · },
@@ -2860,7 +2860,7 @@ func ExampleInitializerList_case0() {
 	// · · · 0: &cc.Designator{
 	// · · · · Case: DesignatorIndex,
 	// · · · · ConstantExpression: &cc.ConstantExpression{
-	// · · · · · ConditionalExpression: &cc.PrimaryExpression{
+	// · · · · · Expression: &cc.PrimaryExpression{
 	// · · · · · · Case: PrimaryExpressionInt,
 	// · · · · · · Token: example.c:1:14: integer constant "10",
 	// · · · · · },
@@ -2872,7 +2872,7 @@ func ExampleInitializerList_case0() {
 	// · · Token: example.c:1:18: '=' "=",
 	// · },
 	// · Initializer: &cc.Initializer{
-	// · · AssignmentExpression: &cc.PrimaryExpression{
+	// · · Expression: &cc.PrimaryExpression{
 	// · · · Case: PrimaryExpressionIdent,
 	// · · · Token: example.c:1:20: identifier "x",
 	// · · },
@@ -2890,7 +2890,7 @@ func ExampleInitializerList_case1() {
 	// · · · 0: &cc.Designator{
 	// · · · · Case: DesignatorIndex,
 	// · · · · ConstantExpression: &cc.ConstantExpression{
-	// · · · · · ConditionalExpression: &cc.PrimaryExpression{
+	// · · · · · Expression: &cc.PrimaryExpression{
 	// · · · · · · Case: PrimaryExpressionInt,
 	// · · · · · · Token: example.c:1:14: integer constant "10",
 	// · · · · · },
@@ -2902,7 +2902,7 @@ func ExampleInitializerList_case1() {
 	// · · Token: example.c:1:18: '=' "=",
 	// · },
 	// · Initializer: &cc.Initializer{
-	// · · AssignmentExpression: &cc.PrimaryExpression{
+	// · · Expression: &cc.PrimaryExpression{
 	// · · · Case: PrimaryExpressionIdent,
 	// · · · Token: example.c:1:20: identifier "x",
 	// · · },
@@ -2914,7 +2914,7 @@ func ExampleInitializerList_case1() {
 	// · · · · 0: &cc.Designator{
 	// · · · · · Case: DesignatorIndex,
 	// · · · · · ConstantExpression: &cc.ConstantExpression{
-	// · · · · · · ConditionalExpression: &cc.PrimaryExpression{
+	// · · · · · · Expression: &cc.PrimaryExpression{
 	// · · · · · · · Case: PrimaryExpressionInt,
 	// · · · · · · · Token: example.c:1:24: integer constant "20",
 	// · · · · · · },
@@ -2926,7 +2926,7 @@ func ExampleInitializerList_case1() {
 	// · · · Token: example.c:1:28: '=' "=",
 	// · · },
 	// · · Initializer: &cc.Initializer{
-	// · · · AssignmentExpression: &cc.PrimaryExpression{
+	// · · · Expression: &cc.PrimaryExpression{
 	// · · · · Case: PrimaryExpressionIdent,
 	// · · · · Token: example.c:1:30: identifier "y",
 	// · · · },
@@ -2949,7 +2949,7 @@ func ExampleIterationStatement_while() {
 	// · Statement: &cc.ExpressionStatement{
 	// · · ExpressionList: &cc.PostfixExpression{
 	// · · · Case: PostfixExpressionCall,
-	// · · · PostfixExpression: &cc.PrimaryExpression{
+	// · · · Expression: &cc.PrimaryExpression{
 	// · · · · Case: PrimaryExpressionIdent,
 	// · · · · Token: example.c:1:20: identifier "y",
 	// · · · },
@@ -2976,7 +2976,7 @@ func ExampleIterationStatement_do() {
 	// · Statement: &cc.ExpressionStatement{
 	// · · ExpressionList: &cc.PostfixExpression{
 	// · · · Case: PostfixExpressionCall,
-	// · · · PostfixExpression: &cc.PrimaryExpression{
+	// · · · Expression: &cc.PrimaryExpression{
 	// · · · · Case: PrimaryExpressionIdent,
 	// · · · · Token: example.c:1:14: identifier "x",
 	// · · · },
@@ -3024,7 +3024,7 @@ func ExampleIterationStatement_for() {
 	// · },
 	// · ExpressionList3: &cc.PostfixExpression{
 	// · · Case: PostfixExpressionInc,
-	// · · PostfixExpression: &cc.PrimaryExpression{
+	// · · Expression: &cc.PrimaryExpression{
 	// · · · Case: PrimaryExpressionIdent,
 	// · · · Token: example.c:1:31: identifier "i",
 	// · · },
@@ -3033,7 +3033,7 @@ func ExampleIterationStatement_for() {
 	// · Statement: &cc.ExpressionStatement{
 	// · · ExpressionList: &cc.PostfixExpression{
 	// · · · Case: PostfixExpressionCall,
-	// · · · PostfixExpression: &cc.PrimaryExpression{
+	// · · · Expression: &cc.PrimaryExpression{
 	// · · · · Case: PrimaryExpressionIdent,
 	// · · · · Token: example.c:1:36: identifier "x",
 	// · · · },
@@ -3071,7 +3071,7 @@ func ExampleIterationStatement_forDecl() {
 	// · · · · · },
 	// · · · · },
 	// · · · · Initializer: &cc.Initializer{
-	// · · · · · AssignmentExpression: &cc.PrimaryExpression{
+	// · · · · · Expression: &cc.PrimaryExpression{
 	// · · · · · · Case: PrimaryExpressionInt,
 	// · · · · · · Token: example.c:1:24: integer constant "0",
 	// · · · · · },
@@ -3096,7 +3096,7 @@ func ExampleIterationStatement_forDecl() {
 	// · },
 	// · ExpressionList2: &cc.PostfixExpression{
 	// · · Case: PostfixExpressionInc,
-	// · · PostfixExpression: &cc.PrimaryExpression{
+	// · · Expression: &cc.PrimaryExpression{
 	// · · · Case: PrimaryExpressionIdent,
 	// · · · Token: example.c:1:35: identifier "i",
 	// · · },
@@ -3105,7 +3105,7 @@ func ExampleIterationStatement_forDecl() {
 	// · Statement: &cc.ExpressionStatement{
 	// · · ExpressionList: &cc.PostfixExpression{
 	// · · · Case: PostfixExpressionCall,
-	// · · · PostfixExpression: &cc.PrimaryExpression{
+	// · · · Expression: &cc.PrimaryExpression{
 	// · · · · Case: PrimaryExpressionIdent,
 	// · · · · Token: example.c:1:40: identifier "x",
 	// · · · },
@@ -3218,8 +3218,8 @@ func ExampleLabeledStatement_caseLabel() {
 	// Output:
 	// &cc.LabeledStatement{
 	// · Case: LabeledStatementCaseLabel,
-	// · ConstantExpression: &cc.ConstantExpression{
-	// · · ConditionalExpression: &cc.PrimaryExpression{
+	// · Expression: &cc.ConstantExpression{
+	// · · Expression: &cc.PrimaryExpression{
 	// · · · Case: PrimaryExpressionInt,
 	// · · · Token: example.c:1:26: integer constant "42",
 	// · · },
@@ -3227,7 +3227,7 @@ func ExampleLabeledStatement_caseLabel() {
 	// · Statement: &cc.ExpressionStatement{
 	// · · ExpressionList: &cc.PostfixExpression{
 	// · · · Case: PostfixExpressionCall,
-	// · · · PostfixExpression: &cc.PrimaryExpression{
+	// · · · Expression: &cc.PrimaryExpression{
 	// · · · · Case: PrimaryExpressionIdent,
 	// · · · · Token: example.c:1:30: identifier "x",
 	// · · · },
@@ -3246,14 +3246,14 @@ func ExampleLabeledStatement_range() {
 	// Output:
 	// &cc.LabeledStatement{
 	// · Case: LabeledStatementRange,
-	// · ConstantExpression: &cc.ConstantExpression{
-	// · · ConditionalExpression: &cc.PrimaryExpression{
+	// · Expression: &cc.ConstantExpression{
+	// · · Expression: &cc.PrimaryExpression{
 	// · · · Case: PrimaryExpressionInt,
 	// · · · Token: example.c:1:26: integer constant "42",
 	// · · },
 	// · },
-	// · ConstantExpression2: &cc.ConstantExpression{
-	// · · ConditionalExpression: &cc.PrimaryExpression{
+	// · Expression2: &cc.ConstantExpression{
+	// · · Expression: &cc.PrimaryExpression{
 	// · · · Case: PrimaryExpressionInt,
 	// · · · Token: example.c:1:33: integer constant "56",
 	// · · },
@@ -3261,7 +3261,7 @@ func ExampleLabeledStatement_range() {
 	// · Statement: &cc.ExpressionStatement{
 	// · · ExpressionList: &cc.PostfixExpression{
 	// · · · Case: PostfixExpressionCall,
-	// · · · PostfixExpression: &cc.PrimaryExpression{
+	// · · · Expression: &cc.PrimaryExpression{
 	// · · · · Case: PrimaryExpressionIdent,
 	// · · · · Token: example.c:1:37: identifier "x",
 	// · · · },
@@ -3284,7 +3284,7 @@ func ExampleLabeledStatement_default() {
 	// · Statement: &cc.ExpressionStatement{
 	// · · ExpressionList: &cc.PostfixExpression{
 	// · · · Case: PostfixExpressionCall,
-	// · · · PostfixExpression: &cc.PrimaryExpression{
+	// · · · Expression: &cc.PrimaryExpression{
 	// · · · · Case: PrimaryExpressionIdent,
 	// · · · · Token: example.c:1:30: identifier "x",
 	// · · · },
@@ -3599,7 +3599,7 @@ func ExamplePostfixExpression_index() {
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:11: identifier "y",
 	// · },
-	// · PostfixExpression: &cc.PrimaryExpression{
+	// · Expression: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:9: identifier "x",
 	// · },
@@ -3613,13 +3613,13 @@ func ExamplePostfixExpression_call() {
 	// Output:
 	// &cc.PostfixExpression{
 	// · ArgumentExpressionList: &cc.ArgumentExpressionList{
-	// · · AssignmentExpression: &cc.PrimaryExpression{
+	// · · Expression: &cc.PrimaryExpression{
 	// · · · Case: PrimaryExpressionIdent,
 	// · · · Token: example.c:1:11: identifier "y",
 	// · · },
 	// · },
 	// · Case: PostfixExpressionCall,
-	// · PostfixExpression: &cc.PrimaryExpression{
+	// · Expression: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:9: identifier "x",
 	// · },
@@ -3633,7 +3633,7 @@ func ExamplePostfixExpression_select() {
 	// Output:
 	// &cc.PostfixExpression{
 	// · Case: PostfixExpressionSelect,
-	// · PostfixExpression: &cc.PrimaryExpression{
+	// · Expression: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:9: identifier "x",
 	// · },
@@ -3647,7 +3647,7 @@ func ExamplePostfixExpression_pSelect() {
 	// Output:
 	// &cc.PostfixExpression{
 	// · Case: PostfixExpressionPSelect,
-	// · PostfixExpression: &cc.PrimaryExpression{
+	// · Expression: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:9: identifier "x",
 	// · },
@@ -3661,7 +3661,7 @@ func ExamplePostfixExpression_inc() {
 	// Output:
 	// &cc.PostfixExpression{
 	// · Case: PostfixExpressionInc,
-	// · PostfixExpression: &cc.PrimaryExpression{
+	// · Expression: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:9: identifier "x",
 	// · },
@@ -3674,7 +3674,7 @@ func ExamplePostfixExpression_dec() {
 	// Output:
 	// &cc.PostfixExpression{
 	// · Case: PostfixExpressionDec,
-	// · PostfixExpression: &cc.PrimaryExpression{
+	// · Expression: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:9: identifier "x",
 	// · },
@@ -3689,7 +3689,7 @@ func ExamplePostfixExpression_complit() {
 	// · Case: PostfixExpressionComplit,
 	// · InitializerList: &cc.InitializerList{
 	// · · Initializer: &cc.Initializer{
-	// · · · AssignmentExpression: &cc.PrimaryExpression{
+	// · · · Expression: &cc.PrimaryExpression{
 	// · · · · Case: PrimaryExpressionIdent,
 	// · · · · Token: example.c:1:17: identifier "y",
 	// · · · },
@@ -3816,7 +3816,7 @@ func ExamplePrimaryExpression_stmt() {
 	// · · · 0: &cc.ExpressionStatement{
 	// · · · · ExpressionList: &cc.PostfixExpression{
 	// · · · · · Case: PostfixExpressionCall,
-	// · · · · · PostfixExpression: &cc.PrimaryExpression{
+	// · · · · · Expression: &cc.PrimaryExpression{
 	// · · · · · · Case: PrimaryExpressionIdent,
 	// · · · · · · Token: example.c:1:11: identifier "x",
 	// · · · · · },
@@ -3843,13 +3843,13 @@ func ExamplePrimaryExpression_generic() {
 	// &cc.PrimaryExpression{
 	// · Case: PrimaryExpressionGeneric,
 	// · GenericSelection: &cc.GenericSelection{
-	// · · AssignmentExpression: &cc.PrimaryExpression{
+	// · · Expression: &cc.PrimaryExpression{
 	// · · · Case: PrimaryExpressionIdent,
 	// · · · Token: example.c:1:18: identifier "x",
 	// · · },
 	// · · GenericAssociationList: &cc.GenericAssociationList{
 	// · · · GenericAssociation: &cc.GenericAssociation{
-	// · · · · AssignmentExpression: &cc.PrimaryExpression{
+	// · · · · Expression: &cc.PrimaryExpression{
 	// · · · · · Case: PrimaryExpressionIdent,
 	// · · · · · Token: example.c:1:26: identifier "y",
 	// · · · · },
@@ -3954,7 +3954,7 @@ func ExampleSelectionStatement_if() {
 	// · Statement: &cc.ExpressionStatement{
 	// · · ExpressionList: &cc.PostfixExpression{
 	// · · · Case: PostfixExpressionCall,
-	// · · · PostfixExpression: &cc.PrimaryExpression{
+	// · · · Expression: &cc.PrimaryExpression{
 	// · · · · Case: PrimaryExpressionIdent,
 	// · · · · Token: example.c:1:17: identifier "y",
 	// · · · },
@@ -3981,7 +3981,7 @@ func ExampleSelectionStatement_ifElse() {
 	// · Statement: &cc.ExpressionStatement{
 	// · · ExpressionList: &cc.PostfixExpression{
 	// · · · Case: PostfixExpressionCall,
-	// · · · PostfixExpression: &cc.PrimaryExpression{
+	// · · · Expression: &cc.PrimaryExpression{
 	// · · · · Case: PrimaryExpressionIdent,
 	// · · · · Token: example.c:1:17: identifier "y",
 	// · · · },
@@ -3993,7 +3993,7 @@ func ExampleSelectionStatement_ifElse() {
 	// · Statement2: &cc.ExpressionStatement{
 	// · · ExpressionList: &cc.PostfixExpression{
 	// · · · Case: PostfixExpressionCall,
-	// · · · PostfixExpression: &cc.PrimaryExpression{
+	// · · · Expression: &cc.PrimaryExpression{
 	// · · · · Case: PrimaryExpressionIdent,
 	// · · · · Token: example.c:1:27: identifier "z",
 	// · · · },
@@ -4020,8 +4020,8 @@ func ExampleSelectionStatement_switch() {
 	// · },
 	// · Statement: &cc.LabeledStatement{
 	// · · Case: LabeledStatementCaseLabel,
-	// · · ConstantExpression: &cc.ConstantExpression{
-	// · · · ConditionalExpression: &cc.PrimaryExpression{
+	// · · Expression: &cc.ConstantExpression{
+	// · · · Expression: &cc.PrimaryExpression{
 	// · · · · Case: PrimaryExpressionInt,
 	// · · · · Token: example.c:1:26: integer constant "42",
 	// · · · },
@@ -4029,7 +4029,7 @@ func ExampleSelectionStatement_switch() {
 	// · · Statement: &cc.ExpressionStatement{
 	// · · · ExpressionList: &cc.PostfixExpression{
 	// · · · · Case: PostfixExpressionCall,
-	// · · · · PostfixExpression: &cc.PrimaryExpression{
+	// · · · · Expression: &cc.PrimaryExpression{
 	// · · · · · Case: PrimaryExpressionIdent,
 	// · · · · · Token: example.c:1:30: identifier "x",
 	// · · · · },
@@ -4177,7 +4177,7 @@ func ExampleStatement_labeled() {
 	// · · · · · · },
 	// · · · · · },
 	// · · · · · Initializer: &cc.Initializer{
-	// · · · · · · AssignmentExpression: &cc.PrimaryExpression{
+	// · · · · · · Expression: &cc.PrimaryExpression{
 	// · · · · · · · Case: PrimaryExpressionString,
 	// · · · · · · · Token: example.c:1:9: string literal "\"f\"",
 	// · · · · · · },
@@ -4193,7 +4193,7 @@ func ExampleStatement_labeled() {
 	// · · · Statement: &cc.ExpressionStatement{
 	// · · · · ExpressionList: &cc.PostfixExpression{
 	// · · · · · Case: PostfixExpressionCall,
-	// · · · · · PostfixExpression: &cc.PrimaryExpression{
+	// · · · · · Expression: &cc.PrimaryExpression{
 	// · · · · · · Case: PrimaryExpressionIdent,
 	// · · · · · · Token: example.c:1:14: identifier "x",
 	// · · · · · },
@@ -4245,7 +4245,7 @@ func ExampleStatement_compound() {
 	// · · · · · · },
 	// · · · · · },
 	// · · · · · Initializer: &cc.Initializer{
-	// · · · · · · AssignmentExpression: &cc.PrimaryExpression{
+	// · · · · · · Expression: &cc.PrimaryExpression{
 	// · · · · · · · Case: PrimaryExpressionString,
 	// · · · · · · · Token: example.c:1:9: string literal "\"f\"",
 	// · · · · · · },
@@ -4262,7 +4262,7 @@ func ExampleStatement_compound() {
 	// · · · · 0: &cc.ExpressionStatement{
 	// · · · · · ExpressionList: &cc.PostfixExpression{
 	// · · · · · · Case: PostfixExpressionCall,
-	// · · · · · · PostfixExpression: &cc.PrimaryExpression{
+	// · · · · · · Expression: &cc.PrimaryExpression{
 	// · · · · · · · Case: PrimaryExpressionIdent,
 	// · · · · · · · Token: example.c:1:13: identifier "y",
 	// · · · · · · },
@@ -4314,7 +4314,7 @@ func ExampleStatement_expr() {
 	// · · · · · · },
 	// · · · · · },
 	// · · · · · Initializer: &cc.Initializer{
-	// · · · · · · AssignmentExpression: &cc.PrimaryExpression{
+	// · · · · · · Expression: &cc.PrimaryExpression{
 	// · · · · · · · Case: PrimaryExpressionString,
 	// · · · · · · · Token: example.c:1:9: string literal "\"f\"",
 	// · · · · · · },
@@ -4368,7 +4368,7 @@ func ExampleStatement_selection() {
 	// · · · · · · },
 	// · · · · · },
 	// · · · · · Initializer: &cc.Initializer{
-	// · · · · · · AssignmentExpression: &cc.PrimaryExpression{
+	// · · · · · · Expression: &cc.PrimaryExpression{
 	// · · · · · · · Case: PrimaryExpressionString,
 	// · · · · · · · Token: example.c:1:9: string literal "\"f\"",
 	// · · · · · · },
@@ -4388,7 +4388,7 @@ func ExampleStatement_selection() {
 	// · · · Statement: &cc.ExpressionStatement{
 	// · · · · ExpressionList: &cc.PostfixExpression{
 	// · · · · · Case: PostfixExpressionCall,
-	// · · · · · PostfixExpression: &cc.PrimaryExpression{
+	// · · · · · Expression: &cc.PrimaryExpression{
 	// · · · · · · Case: PrimaryExpressionIdent,
 	// · · · · · · Token: example.c:1:17: identifier "y",
 	// · · · · · },
@@ -4441,7 +4441,7 @@ func ExampleStatement_iteration() {
 	// · · · · · · },
 	// · · · · · },
 	// · · · · · Initializer: &cc.Initializer{
-	// · · · · · · AssignmentExpression: &cc.PrimaryExpression{
+	// · · · · · · Expression: &cc.PrimaryExpression{
 	// · · · · · · · Case: PrimaryExpressionString,
 	// · · · · · · · Token: example.c:1:9: string literal "\"f\"",
 	// · · · · · · },
@@ -4457,7 +4457,7 @@ func ExampleStatement_iteration() {
 	// · · · Statement: &cc.ExpressionStatement{
 	// · · · · ExpressionList: &cc.PostfixExpression{
 	// · · · · · Case: PostfixExpressionCall,
-	// · · · · · PostfixExpression: &cc.PrimaryExpression{
+	// · · · · · Expression: &cc.PrimaryExpression{
 	// · · · · · · Case: PrimaryExpressionIdent,
 	// · · · · · · Token: example.c:1:19: identifier "x",
 	// · · · · · },
@@ -4512,7 +4512,7 @@ func ExampleStatement_jump() {
 	// · · · · · · },
 	// · · · · · },
 	// · · · · · Initializer: &cc.Initializer{
-	// · · · · · · AssignmentExpression: &cc.PrimaryExpression{
+	// · · · · · · Expression: &cc.PrimaryExpression{
 	// · · · · · · · Case: PrimaryExpressionString,
 	// · · · · · · · Token: example.c:1:9: string literal "\"f\"",
 	// · · · · · · },
@@ -4572,7 +4572,7 @@ func ExampleStatement_asm() {
 	// · · · · · · },
 	// · · · · · },
 	// · · · · · Initializer: &cc.Initializer{
-	// · · · · · · AssignmentExpression: &cc.PrimaryExpression{
+	// · · · · · · Expression: &cc.PrimaryExpression{
 	// · · · · · · · Case: PrimaryExpressionString,
 	// · · · · · · · Token: example.c:1:9: string literal "\"f\"",
 	// · · · · · · },
@@ -4601,8 +4601,8 @@ func ExampleStaticAssertDeclaration_case0() {
 	fmt.Println(exampleAST(92, "_Static_assert(x > y, \"abc\")"))
 	// Output:
 	// &cc.StaticAssertDeclaration{
-	// · ConstantExpression: &cc.ConstantExpression{
-	// · · ConditionalExpression: &cc.BinaryExpression{
+	// · Expression: &cc.ConstantExpression{
+	// · · Expression: &cc.BinaryExpression{
 	// · · · Lhs: &cc.PrimaryExpression{
 	// · · · · Case: PrimaryExpressionIdent,
 	// · · · · Token: example.c:1:16: identifier "x",
@@ -4739,8 +4739,8 @@ func ExampleStructDeclaration_assert() {
 	// &cc.StructDeclaration{
 	// · Case: StructDeclarationAssert,
 	// · StaticAssertDeclaration: &cc.StaticAssertDeclaration{
-	// · · ConstantExpression: &cc.ConstantExpression{
-	// · · · ConditionalExpression: &cc.BinaryExpression{
+	// · · Expression: &cc.ConstantExpression{
+	// · · · Expression: &cc.BinaryExpression{
 	// · · · · Lhs: &cc.PrimaryExpression{
 	// · · · · · Case: PrimaryExpressionIdent,
 	// · · · · · Token: example.c:1:24: identifier "x",
@@ -4885,8 +4885,8 @@ func ExampleStructDeclarator_bitField() {
 	// Output:
 	// &cc.StructDeclarator{
 	// · Case: StructDeclaratorBitField,
-	// · ConstantExpression: &cc.ConstantExpression{
-	// · · ConditionalExpression: &cc.PrimaryExpression{
+	// · Expression: &cc.ConstantExpression{
+	// · · Expression: &cc.PrimaryExpression{
 	// · · · Case: PrimaryExpressionInt,
 	// · · · Token: example.c:1:15: integer constant "3",
 	// · · },
@@ -5562,7 +5562,7 @@ func ExampleUnaryExpression_inc() {
 	// &cc.UnaryExpression{
 	// · Case: UnaryExpressionInc,
 	// · Token: example.c:1:9: '++' "++",
-	// · UnaryExpression: &cc.PrimaryExpression{
+	// · Expression3: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:11: identifier "x",
 	// · },
@@ -5575,7 +5575,7 @@ func ExampleUnaryExpression_dec() {
 	// &cc.UnaryExpression{
 	// · Case: UnaryExpressionDec,
 	// · Token: example.c:1:9: '--' "--",
-	// · UnaryExpression: &cc.PrimaryExpression{
+	// · Expression3: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:11: identifier "x",
 	// · },
@@ -5587,7 +5587,7 @@ func ExampleUnaryExpression_addrof() {
 	// Output:
 	// &cc.UnaryExpression{
 	// · Case: UnaryExpressionAddrof,
-	// · CastExpression: &cc.PrimaryExpression{
+	// · Expression: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:11: identifier "x",
 	// · },
@@ -5600,7 +5600,7 @@ func ExampleUnaryExpression_deref() {
 	// Output:
 	// &cc.UnaryExpression{
 	// · Case: UnaryExpressionDeref,
-	// · CastExpression: &cc.PrimaryExpression{
+	// · Expression: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:10: identifier "x",
 	// · },
@@ -5613,7 +5613,7 @@ func ExampleUnaryExpression_plus() {
 	// Output:
 	// &cc.UnaryExpression{
 	// · Case: UnaryExpressionPlus,
-	// · CastExpression: &cc.PrimaryExpression{
+	// · Expression: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:10: identifier "x",
 	// · },
@@ -5626,7 +5626,7 @@ func ExampleUnaryExpression_minus() {
 	// Output:
 	// &cc.UnaryExpression{
 	// · Case: UnaryExpressionMinus,
-	// · CastExpression: &cc.PrimaryExpression{
+	// · Expression: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:10: identifier "x",
 	// · },
@@ -5639,7 +5639,7 @@ func ExampleUnaryExpression_cpl() {
 	// Output:
 	// &cc.UnaryExpression{
 	// · Case: UnaryExpressionCpl,
-	// · CastExpression: &cc.PrimaryExpression{
+	// · Expression: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:10: identifier "x",
 	// · },
@@ -5652,7 +5652,7 @@ func ExampleUnaryExpression_not() {
 	// Output:
 	// &cc.UnaryExpression{
 	// · Case: UnaryExpressionNot,
-	// · CastExpression: &cc.PrimaryExpression{
+	// · Expression: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:10: identifier "x",
 	// · },
@@ -5666,7 +5666,7 @@ func ExampleUnaryExpression_sizeofExpr() {
 	// &cc.UnaryExpression{
 	// · Case: UnaryExpressionSizeofExpr,
 	// · Token: example.c:1:9: 'sizeof' "sizeof",
-	// · UnaryExpression: &cc.PrimaryExpression{
+	// · Expression3: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:16: identifier "x",
 	// · },
@@ -5709,7 +5709,7 @@ func ExampleUnaryExpression_alignofExpr() {
 	// &cc.UnaryExpression{
 	// · Case: UnaryExpressionAlignofExpr,
 	// · Token: example.c:1:9: '_Alignof' "_Alignof",
-	// · UnaryExpression: &cc.PrimaryExpression{
+	// · Expression3: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionExpr,
 	// · · ExpressionList: &cc.PrimaryExpression{
 	// · · · Case: PrimaryExpressionIdent,
@@ -5747,7 +5747,7 @@ func ExampleUnaryExpression_imag() {
 	// &cc.UnaryExpression{
 	// · Case: UnaryExpressionImag,
 	// · Token: example.c:1:12: '__imag__' "__imag__",
-	// · UnaryExpression: &cc.PrimaryExpression{
+	// · Expression3: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:21: identifier "x",
 	// · },
@@ -5760,7 +5760,7 @@ func ExampleUnaryExpression_real() {
 	// &cc.UnaryExpression{
 	// · Case: UnaryExpressionReal,
 	// · Token: example.c:1:12: '__real__' "__real__",
-	// · UnaryExpression: &cc.PrimaryExpression{
+	// · Expression3: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:21: identifier "x",
 	// · },

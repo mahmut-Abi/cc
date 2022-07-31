@@ -510,8 +510,8 @@ func (n *AsmArgList) check(c *ctx) {
 func (n *AsmExpressionList) check(c *ctx) {
 	for ; n != nil; n = n.AsmExpressionList {
 		n.AsmIndex.check(c)
-		n.AssignmentExpression.check(c, decay|asmArgList|ignoreUndefined)
-		n.AssignmentExpression.eval(c, decay|ignoreUndefined)
+		n.Expression.check(c, decay|asmArgList|ignoreUndefined)
+		n.Expression.eval(c, decay|ignoreUndefined)
 	}
 }
 
@@ -649,7 +649,7 @@ func (n *LabeledStatement) check(c *ctx) Type {
 		}
 		n.caseOrdinal = c.switchCases
 		c.switchCases++
-		n.ConstantExpression.check(c, decay)
+		n.Expression.check(c, decay)
 		n.Statement.check(c)
 	case LabeledStatementRange: // "case" ConstantExpression "..." ConstantExpression ':' Statement
 		if c.inSwitch == 0 {
@@ -657,8 +657,8 @@ func (n *LabeledStatement) check(c *ctx) Type {
 		}
 		n.caseOrdinal = c.switchCases
 		c.switchCases++
-		n.ConstantExpression.check(c, decay)
-		n.ConstantExpression2.check(c, decay)
+		n.Expression.check(c, decay)
+		n.Expression2.check(c, decay)
 		n.Statement.check(c)
 	case LabeledStatementDefault: // "default" ':' Statement
 		if c.inSwitch == 0 {
@@ -858,7 +858,7 @@ func (n *AutoDeclaration) check(c *ctx) Type {
 		return c.voidT
 	}
 
-	n.Declarator.typ = n.Initializer.AssignmentExpression.check(c, decay)
+	n.Declarator.typ = n.Initializer.Expression.check(c, decay)
 	n.Declarator.write++
 	return c.voidT
 }
@@ -866,12 +866,12 @@ func (n *AutoDeclaration) check(c *ctx) Type {
 //  StaticAssertDeclaration:
 //          "_Static_assert" '(' ConstantExpression ',' STRINGLITERAL ')'
 func (n *StaticAssertDeclaration) check(c *ctx) Type {
-	n.ConstantExpression.check(c, decay)
-	if !isNonzero(n.ConstantExpression.Value()) {
+	n.Expression.check(c, decay)
+	if !isNonzero(n.Expression.Value()) {
 		s := stringConst(func(msg string, args ...interface{}) {
 			c.errors.add(errorf(msg, args...))
 		}, n.Token4)
-		c.errors.add(errorf("%v: assertion failed: %s", n.ConstantExpression.Position(), s[:len(s)-1]))
+		c.errors.add(errorf("%v: assertion failed: %s", n.Expression.Position(), s[:len(s)-1]))
 	}
 	return c.voidT
 }
@@ -942,14 +942,14 @@ func (n *Initializer) check(c *ctx, currObj, t Type, off int64, l *InitializerLi
 	// defer func() { trc("%sEXIT INIT", c.indentDec()) }()
 	switch n.Case {
 	case InitializerExpr: // AssignmentExpression
-		exprT := n.AssignmentExpression.check(c, decay)
+		exprT := n.Expression.check(c, decay)
 		if exprT == Invalid {
 			n.val = Unknown
 			c.errors.add(errorf("TODO %T <- %T", t, exprT))
 			return
 		}
 
-		n.val = n.AssignmentExpression.eval(c, decay)
+		n.val = n.Expression.eval(c, decay)
 		switch x := t.(type) {
 		case *ArrayType:
 			return n.checkArray(c, currObj, x, exprT, off, l)
@@ -1607,11 +1607,11 @@ func (n *DirectDeclarator) check(c *ctx, t Type) (r Type) {
 	case DirectDeclaratorDecl: // '(' Declarator ')'
 		return n.Declarator.check(c, t)
 	case DirectDeclaratorArr: // DirectDeclarator '[' TypeQualifiers AssignmentExpression ']'
-		return n.DirectDeclarator.check(c, c.newArrayType(t, arraySize(c, n.AssignmentExpression), n.AssignmentExpression))
+		return n.DirectDeclarator.check(c, c.newArrayType(t, arraySize(c, n.Expression), n.Expression))
 	case DirectDeclaratorStaticArr: // DirectDeclarator '[' "static" TypeQualifiers AssignmentExpression ']'
-		return n.DirectDeclarator.check(c, c.newArrayType(t, arraySize(c, n.AssignmentExpression), n.AssignmentExpression))
+		return n.DirectDeclarator.check(c, c.newArrayType(t, arraySize(c, n.Expression), n.Expression))
 	case DirectDeclaratorArrStatic: // DirectDeclarator '[' TypeQualifiers "static" AssignmentExpression ']'
-		return n.DirectDeclarator.check(c, c.newArrayType(t, arraySize(c, n.AssignmentExpression), n.AssignmentExpression))
+		return n.DirectDeclarator.check(c, c.newArrayType(t, arraySize(c, n.Expression), n.Expression))
 	case DirectDeclaratorStar: // DirectDeclarator '[' TypeQualifiers '*' ']'
 		c.errors.add(errorf("TODO %v", n.Case))
 	case DirectDeclaratorFuncParam: // DirectDeclarator '(' ParameterTypeList ')'
@@ -1748,7 +1748,7 @@ func (n *DirectAbstractDeclarator) check(c *ctx, t Type) (r Type) {
 	case DirectAbstractDeclaratorDecl: // '(' AbstractDeclarator ')'
 		return n.AbstractDeclarator.check(c, t)
 	case DirectAbstractDeclaratorArr: // DirectAbstractDeclarator '[' TypeQualifiers AssignmentExpression ']'
-		return n.DirectAbstractDeclarator.check(c, c.newArrayType(t, arraySize(c, n.AssignmentExpression), n.AssignmentExpression))
+		return n.DirectAbstractDeclarator.check(c, c.newArrayType(t, arraySize(c, n.Expression), n.Expression))
 	case DirectAbstractDeclaratorStaticArr: // DirectAbstractDeclarator '[' "static" TypeQualifiers AssignmentExpression ']'
 		c.errors.add(errorf("TODO %v", n.Case))
 	case DirectAbstractDeclaratorArrStatic: // DirectAbstractDeclarator '[' TypeQualifiers "static" AssignmentExpression ']'
@@ -1940,7 +1940,7 @@ func (n *AttributeValue) check(c *ctx, attr *Attributes) {
 		n.ArgumentExpressionList.check(c, decay|ignoreUndefined)
 		switch n.Token.SrcStr() {
 		case "alias":
-			e := n.ArgumentExpressionList.AssignmentExpression
+			e := n.ArgumentExpressionList.Expression
 			if n.ArgumentExpressionList.ArgumentExpressionList != nil {
 				c.errors.add(errorf("%v: expected one expression", e.Position()))
 				break
@@ -1954,7 +1954,7 @@ func (n *AttributeValue) check(c *ctx, attr *Attributes) {
 
 			attr.setAlias(string(x))
 		case "aligned":
-			e := n.ArgumentExpressionList.AssignmentExpression
+			e := n.ArgumentExpressionList.Expression
 			if n.ArgumentExpressionList.ArgumentExpressionList != nil {
 				c.errors.add(errorf("%v: expected one expression", e.Position()))
 				break
@@ -1981,7 +1981,7 @@ func (n *AttributeValue) check(c *ctx, attr *Attributes) {
 			"__vector_size__",
 			"vector_size":
 
-			e := n.ArgumentExpressionList.AssignmentExpression
+			e := n.ArgumentExpressionList.Expression
 			if n.ArgumentExpressionList.ArgumentExpressionList != nil {
 				c.errors.add(errorf("%v: expected one expression", e.Position()))
 				break
@@ -2020,9 +2020,9 @@ func (n *AttributeValue) check(c *ctx, attr *Attributes) {
 //  |       ArgumentExpressionList ',' AssignmentExpression
 func (n *ArgumentExpressionList) check(c *ctx, mode flags) (r []Expression) {
 	for ; n != nil; n = n.ArgumentExpressionList {
-		n.AssignmentExpression.check(c, mode)
-		n.AssignmentExpression.eval(c, mode)
-		r = append(r, n.AssignmentExpression)
+		n.Expression.check(c, mode)
+		n.Expression.eval(c, mode)
+		r = append(r, n.Expression)
 	}
 	return r
 }
@@ -2035,7 +2035,7 @@ func (n *AlignmentSpecifier) check(c *ctx) (r Type) {
 	case AlignmentSpecifierType: // "_Alignas" '(' TypeName ')'
 		return n.TypeName.check(c)
 	case AlignmentSpecifierExpr: // "_Alignas" '(' ConstantExpression ')'
-		return n.ConstantExpression.check(c, decay)
+		return n.Expression.check(c, decay)
 	default:
 		c.errors.add(errorf("internal error: %v", n.Case))
 		return nil
@@ -2314,8 +2314,8 @@ func (n *Enumerator) check(c *ctx, iota int64) int64 {
 		n.typ = c.int64T
 		n.val = Int64Value(iota)
 	case EnumeratorExpr: // IDENTIFIER '=' ConstantExpression
-		n.typ = n.ConstantExpression.check(c, decay)
-		switch n.val = n.ConstantExpression.Value(); x := n.Value().(type) {
+		n.typ = n.Expression.check(c, decay)
+		switch n.val = n.Expression.Value(); x := n.Value().(type) {
 		case Int64Value:
 			return int64(x) + 1
 		case UInt64Value:
@@ -2650,21 +2650,21 @@ func (n *StructDeclarator) check(c *ctx, t Type, isAtomic, isConst, isVolatile, 
 	case StructDeclaratorDecl: // Declarator
 		return &Field{declarator: n.Declarator, typ: newTyper(n.Declarator.check(c, t))}
 	case StructDeclaratorBitField: // Declarator ':' ConstantExpression
-		et := n.ConstantExpression.check(c, decay)
+		et := n.Expression.check(c, decay)
 		if !IsIntegerType(et) {
-			c.errors.add(errorf("%v: expected integer expression: %s", n.ConstantExpression.Position(), et))
+			c.errors.add(errorf("%v: expected integer expression: %s", n.Expression.Position(), et))
 			break
 		}
 
 		var bits int64
-		switch x := n.ConstantExpression.Value().(type) {
+		switch x := n.Expression.Value().(type) {
 		case Int64Value:
 			bits = int64(x)
 		case UInt64Value:
 			bits = int64(x)
 		}
 		if bits < 0 || bits > 64 {
-			c.errors.add(errorf("%v: value out of range: %v", n.ConstantExpression.Position(), bits))
+			c.errors.add(errorf("%v: value out of range: %v", n.Expression.Position(), bits))
 			break
 		}
 
@@ -2763,7 +2763,7 @@ func (c *ctx) assignTo(n Node, unread bool) {
 		case PostfixExpressionIndex: // PostfixExpression '[' ExpressionList ']'
 			//nop
 		case PostfixExpressionSelect: // PostfixExpression '.' IDENTIFIER
-			c.assignTo(x.PostfixExpression, unread)
+			c.assignTo(x.Expression, unread)
 		case PostfixExpressionPSelect: // PostfixExpression "->" IDENTIFIER
 			// nop
 		case PostfixExpressionComplit: // '(' TypeName ')' '{' InitializerList ',' '}'
@@ -2776,9 +2776,9 @@ func (c *ctx) assignTo(n Node, unread bool) {
 		case UnaryExpressionDeref: // '*' CastExpression
 			// nop
 		case UnaryExpressionReal: // "__real__" UnaryExpression
-			c.assignTo(x.UnaryExpression, unread)
+			c.assignTo(x.Expression3, unread)
 		case UnaryExpressionImag: // "__imag__" UnaryExpression
-			c.assignTo(x.UnaryExpression, unread)
+			c.assignTo(x.Expression3, unread)
 		default:
 			c.errors.add(errorf("internal error: %v", x.Case))
 		}
@@ -3043,19 +3043,19 @@ func (n *UnaryExpression) check(c *ctx, mode flags) (r Type) {
 
 	switch n.Case {
 	case UnaryExpressionPostfix: // PostfixExpression
-		n.typ = n.PostfixExpression.check(c, mode)
+		n.typ = n.Expression2.check(c, mode)
 	case
 		UnaryExpressionInc, // "++" UnaryExpression
 		UnaryExpressionDec: // "--" UnaryExpression
 
-		n.typ = n.UnaryExpression.check(c, mode.add(decay))
-		c.assignTo(n.UnaryExpression, false)
+		n.typ = n.Expression3.check(c, mode.add(decay))
+		c.assignTo(n.Expression3, false)
 		if !IsRealType(n.Type()) && !isPointerType(n.Type()) {
-			c.errors.add(errorf("%v: operand shall have real or pointer type: %s", n.UnaryExpression.Position(), n.Type()))
+			c.errors.add(errorf("%v: operand shall have real or pointer type: %s", n.Expression3.Position(), n.Type()))
 		}
 	case UnaryExpressionAddrof: // '&' CastExpression
-		t := n.CastExpression.check(c, mode.del(decay))
-		c.takeAddr(n.CastExpression)
+		t := n.Expression.check(c, mode.del(decay))
+		c.takeAddr(n.Expression)
 		switch {
 		case
 			// The operand of the unary & operator shall be either a function designator,
@@ -3071,42 +3071,42 @@ func (n *UnaryExpression) check(c *ctx, mode flags) (r Type) {
 
 			n.typ = c.newPointerType(t)
 		default:
-			c.errors.add(errorf("%v: invalid operand: %s", n.CastExpression.Position(), t))
+			c.errors.add(errorf("%v: invalid operand: %s", n.Expression.Position(), t))
 		}
 	case UnaryExpressionDeref: // '*' CastExpression
-		switch t := n.CastExpression.check(c, mode.add(decay)); t.Kind() {
+		switch t := n.Expression.check(c, mode.add(decay)); t.Kind() {
 		case Ptr:
 			n.typ = c.decay(t.(*PointerType).Elem(), mode)
 		default:
-			c.errors.add(errorf("%v: operand shall be a pointer: %s", n.CastExpression.Position(), t))
+			c.errors.add(errorf("%v: operand shall be a pointer: %s", n.Expression.Position(), t))
 		}
 	case
 		UnaryExpressionPlus,  // '+' CastExpression
 		UnaryExpressionMinus: // '-' CastExpression
 
-		n.typ = IntegerPromotion(n.CastExpression.check(c, mode.add(decay)))
+		n.typ = IntegerPromotion(n.Expression.check(c, mode.add(decay)))
 		if !IsArithmeticType(n.Type()) {
-			c.errors.add(errorf("%v: expected arithmetic type: %s", n.Position(), n.CastExpression.Type()))
+			c.errors.add(errorf("%v: expected arithmetic type: %s", n.Position(), n.Expression.Type()))
 		}
 	case UnaryExpressionCpl: // '~' CastExpression
-		t := n.CastExpression.check(c, mode.add(decay))
+		t := n.Expression.check(c, mode.add(decay))
 		switch {
 		case IsIntegerType(t):
 			n.typ = IntegerPromotion(t)
 		case IsComplexType(t): // GCC extension, complex conjugate
 			n.typ = t
 		default:
-			c.errors.add(errorf("%v: expected integer type: %s", n.Position(), n.CastExpression.Type()))
+			c.errors.add(errorf("%v: expected integer type: %s", n.Position(), n.Expression.Type()))
 		}
 	case UnaryExpressionNot: // '!' CastExpression
-		t := n.CastExpression.check(c, mode.add(decay))
+		t := n.Expression.check(c, mode.add(decay))
 		if !IsScalarType(t) {
-			c.errors.add(errorf("%v: expected scalar type: %s", n.Position(), n.CastExpression.Type()))
+			c.errors.add(errorf("%v: expected scalar type: %s", n.Position(), n.Expression.Type()))
 		}
 		n.typ = c.intT
 	case UnaryExpressionSizeofExpr: // "sizeof" UnaryExpression
 		n.typ = c.sizeT(n)
-		t := n.UnaryExpression.check(c, mode.del(decay))
+		t := n.Expression3.check(c, mode.del(decay))
 		if t.Kind() == Function {
 			t = c.newPointerType(t)
 		}
@@ -3115,7 +3115,7 @@ func (n *UnaryExpression) check(c *ctx, mode flags) (r Type) {
 				break
 			}
 
-			c.errors.add(errorf("%v: sizeof incomplete type: %s", n.UnaryExpression.Position(), t))
+			c.errors.add(errorf("%v: sizeof incomplete type: %s", n.Expression3.Position(), t))
 		}
 		n.val = UInt64Value(t.Size())
 	case UnaryExpressionSizeofType: // "sizeof" '(' TypeName ')'
@@ -3132,7 +3132,7 @@ func (n *UnaryExpression) check(c *ctx, mode flags) (r Type) {
 	case UnaryExpressionLabelAddr: // "&&" IDENTIFIER
 		n.typ = c.pvoidT
 	case UnaryExpressionAlignofExpr: // "_Alignof" UnaryExpression
-		t := n.UnaryExpression.check(c, mode.add(decay))
+		t := n.Expression3.check(c, mode.add(decay))
 		n.val, n.typ = UInt64Value(t.Align()), c.sizeT(n)
 	case UnaryExpressionAlignofType: // "_Alignof" '(' TypeName ')'
 		t := n.TypeName.check(c)
@@ -3141,7 +3141,7 @@ func (n *UnaryExpression) check(c *ctx, mode flags) (r Type) {
 		UnaryExpressionImag, // "__imag__" UnaryExpression
 		UnaryExpressionReal: // "__real__" UnaryExpression
 
-		t := n.UnaryExpression.check(c, mode.add(decay))
+		t := n.Expression3.check(c, mode.add(decay))
 		if !IsComplexType(t) {
 			c.errors.add(errorf("%v: expected complex type: %s", n.Position(), t))
 			break
@@ -3181,12 +3181,12 @@ func (c *ctx) takeAddr(n Node) {
 		case PostfixExpressionIndex: // PostfixExpression '[' ExpressionList ']'
 			switch {
 			case IsIntegerType(x.ExpressionList.Type()):
-				c.takeAddr(x.PostfixExpression)
+				c.takeAddr(x.Expression)
 			default:
 				c.takeAddr(x.ExpressionList)
 			}
 		case PostfixExpressionSelect: // PostfixExpression '.' IDENTIFIER
-			c.takeAddr(x.PostfixExpression)
+			c.takeAddr(x.Expression)
 		case PostfixExpressionPSelect: // PostfixExpression "->" IDENTIFIER
 			// nop
 		case PostfixExpressionComplit: // '(' TypeName ')' '{' InitializerList ',' '}'
@@ -3201,11 +3201,11 @@ func (c *ctx) takeAddr(n Node) {
 		case UnaryExpressionDeref: // '*' CastExpression
 			// nop
 		case UnaryExpressionReal: // "__real__" UnaryExpression
-			c.takeAddr(x.UnaryExpression)
+			c.takeAddr(x.Expression3)
 		case UnaryExpressionImag: // "__imag__" UnaryExpression
-			c.takeAddr(x.UnaryExpression)
+			c.takeAddr(x.Expression3)
 		case UnaryExpressionAddrof: // '&' CastExpression
-			c.takeAddr(x.CastExpression)
+			c.takeAddr(x.Expression)
 		default:
 			c.errors.add(errorf("internal error: %v", x.Case))
 		}
@@ -3241,12 +3241,12 @@ func (n *PostfixExpression) check(c *ctx, mode flags) (r Type) {
 out:
 	switch n.Case {
 	case PostfixExpressionPrimary: // PrimaryExpression
-		n.typ = n.PrimaryExpression.check(c, mode)
+		n.typ = n.Expression2.check(c, mode)
 	case PostfixExpressionIndex: // PostfixExpression '[' ExpressionList ']'
 		// One of the expressions shall have type ‘‘pointer to object type’’, the other
 		// expression shall have integer type, and the result has type ‘‘type’’.
 		mode = mode.add(decay)
-		switch t1, t2 := n.PostfixExpression.check(c, mode), n.ExpressionList.check(c, mode); {
+		switch t1, t2 := n.Expression.check(c, mode), n.ExpressionList.check(c, mode); {
 		case isPointerType(t1) && IsIntegerType(t2):
 			n.typ = t1.(*PointerType).Elem().Decay()
 		case isPointerType(t2) && IsIntegerType(t1):
@@ -3260,7 +3260,7 @@ out:
 			n.typ = c.intT
 		}
 	case PostfixExpressionCall: // PostfixExpression '(' ArgumentExpressionList ')'
-		switch isName(n.PostfixExpression) {
+		switch isName(n.Expression) {
 		case "__builtin_types_compatible_p_impl":
 			n.typ = c.intT
 			args := n.ArgumentExpressionList.check(c, 0)
@@ -3272,7 +3272,7 @@ out:
 			n.val = bool2int(args[0].Type().IsCompatible(args[1].Type()))
 			break out
 		case "__builtin_constant_p":
-			n.PostfixExpression.check(c, mode.add(decay|implicitFuncDef))
+			n.Expression.check(c, mode.add(decay|implicitFuncDef))
 			n.typ = c.intT
 			args := n.ArgumentExpressionList.check(c, decay)
 			if len(args) != 1 {
@@ -3285,7 +3285,7 @@ out:
 		default:
 			mode = mode.add(implicitFuncDef)
 		}
-		t := n.PostfixExpression.check(c, mode.add(decay))
+		t := n.Expression.check(c, mode.add(decay))
 		n.ArgumentExpressionList.check(c, decay)
 		if t == nil || mode.has(asmArgList) {
 			n.typ = c.intT
@@ -3307,7 +3307,7 @@ out:
 		n.typ = ft.Result()
 	case PostfixExpressionSelect: // PostfixExpression '.' IDENTIFIER
 		nm := n.Token2.SrcStr()
-		switch t := n.PostfixExpression.check(c, mode.add(decay)); t.Kind() {
+		switch t := n.Expression.check(c, mode.add(decay)); t.Kind() {
 		case Struct:
 			st := t.(*StructType)
 			f := st.FieldByName(nm)
@@ -3333,7 +3333,7 @@ out:
 		}
 	case PostfixExpressionPSelect: // PostfixExpression "->" IDENTIFIER
 		nm := n.Token2.SrcStr()
-		switch t := n.PostfixExpression.check(c, mode.add(decay)); t.Kind() {
+		switch t := n.Expression.check(c, mode.add(decay)); t.Kind() {
 		case Ptr:
 			switch et := t.(*PointerType).Elem(); et.Kind() {
 			case Struct:
@@ -3365,8 +3365,8 @@ out:
 	case
 		PostfixExpressionInc, // PostfixExpression "++"
 		PostfixExpressionDec: // PostfixExpression "--"
-		t := n.PostfixExpression.check(c, mode.add(decay))
-		c.assignTo(n.PostfixExpression, false)
+		t := n.Expression.check(c, mode.add(decay))
+		c.assignTo(n.Expression, false)
 		switch {
 		case
 			// The operand of the postfix increment or decrement operator shall have
@@ -3376,10 +3376,10 @@ out:
 
 			n.typ = t
 			if !isModifiableLvalue(t) {
-				c.errors.add(errorf("%v: operand shall be a modifiable lvalue: %s", n.PostfixExpression.Position(), t))
+				c.errors.add(errorf("%v: operand shall be a modifiable lvalue: %s", n.Expression.Position(), t))
 			}
 		default:
-			c.errors.add(errorf("%v: invalid operand: %s", n.PostfixExpression.Position(), t))
+			c.errors.add(errorf("%v: invalid operand: %s", n.Expression.Position(), t))
 		}
 	case PostfixExpressionComplit: // '(' TypeName ')' '{' InitializerList ',' '}'
 		n.typ = n.TypeName.check(c)
@@ -3530,7 +3530,7 @@ out:
 }
 
 func (n *GenericSelection) check(c *ctx, mode flags) (r Type) {
-	n.assoc, n.typ = n.GenericAssociationList.check(c, mode, n.AssignmentExpression.check(c, mode.add(decay)))
+	n.assoc, n.typ = n.GenericAssociationList.check(c, mode, n.Expression.check(c, mode.add(decay)))
 	return n.Type()
 }
 
@@ -3541,7 +3541,7 @@ func (n *GenericAssociationList) check(c *ctx, mode flags, ctrl Type) (assoc *Ge
 		switch assoc = n.GenericAssociation; assoc.Case {
 		case GenericAssociationType: // TypeName ':' AssignmentExpression
 			if t := assoc.TypeName.check(c); ctrl.IsCompatible(t) {
-				return assoc, assoc.AssignmentExpression.check(c, decay)
+				return assoc, assoc.Expression.check(c, decay)
 			}
 		case GenericAssociationDefault: //  "default" ':' AssignmentExpression
 			if deflt != nil {
@@ -3549,14 +3549,14 @@ func (n *GenericAssociationList) check(c *ctx, mode flags, ctrl Type) (assoc *Ge
 				break
 			}
 
-			assoc.AssignmentExpression.check(c, decay)
+			assoc.Expression.check(c, decay)
 			deflt = assoc
 		default:
 			c.errors.add(errorf("TODO internal error: %v", assoc.Case))
 		}
 	}
 	if deflt != nil {
-		return deflt, deflt.AssignmentExpression.Type()
+		return deflt, deflt.Expression.Type()
 	}
 
 	c.errors.add(errorf("%v: failed to find a matching association for %s", n0.Position(), ctrl))
@@ -3820,8 +3820,8 @@ func (n *ConstantExpression) check(c *ctx, mode flags) (r Type) {
 		}
 	}()
 
-	n.typ = n.ConditionalExpression.check(c, mode)
-	if n.val = n.ConditionalExpression.eval(c, mode); n.Value() == Unknown {
+	n.typ = n.Expression.check(c, mode)
+	if n.val = n.Expression.eval(c, mode); n.Value() == Unknown {
 		c.errors.add(errorf("%v: cannot evaluate constant expression: %s", n.Position(), NodeSource(n)))
 	}
 	return n.Type()

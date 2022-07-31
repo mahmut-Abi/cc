@@ -784,12 +784,12 @@ func (p *parser) labeledStatement() (r *LabeledStatement) {
 		p.cpp.eh("%v: unexpected EOF", p.toks[0].Position())
 		return nil
 	case rune(CASE):
-		r = &LabeledStatement{Token: p.shift(false), ConstantExpression: p.constantExpression()}
+		r = &LabeledStatement{Token: p.shift(false), Expression: p.constantExpression()}
 		switch p.rune(false) {
 		case rune(DDD):
 			r.Case = LabeledStatementRange
 			r.Token2 = p.shift(false)
-			r.ConstantExpression2 = p.constantExpression()
+			r.Expression2 = p.constantExpression()
 			r.Token3 = p.must(':')
 			r.Statement = p.statement(false)
 			return r
@@ -954,10 +954,10 @@ func (p *parser) asmArgListOpt() (r *AsmArgList) {
 // 	asm-index_opt assignment-expression
 // 	asm-expression-list , asm-index_opt assignment-expression
 func (p *parser) asmExpressionList() (r *AsmExpressionList) {
-	r = &AsmExpressionList{AsmIndex: p.asmIndexOpt(), AssignmentExpression: p.assignmentExpression(true)}
+	r = &AsmExpressionList{AsmIndex: p.asmIndexOpt(), Expression: p.assignmentExpression(true)}
 	prev := r
 	for p.rune(false) == ',' {
-		ael := &AsmExpressionList{Token: p.shift(false), AsmIndex: p.asmIndexOpt(), AssignmentExpression: p.assignmentExpression(true)}
+		ael := &AsmExpressionList{Token: p.shift(false), AsmIndex: p.asmIndexOpt(), Expression: p.assignmentExpression(true)}
 		prev.AsmExpressionList = ael
 		prev = ael
 	}
@@ -1077,7 +1077,7 @@ func (p *parser) declaration(ds DeclarationSpecifiers, d *Declarator, declare bo
 //  static-assert-declaration
 //	_Static_assert ( constant-expression , string-literal )
 func (p *parser) staticAssertDeclaration() *StaticAssertDeclaration {
-	return &StaticAssertDeclaration{Token: p.must(rune(STATICASSERT)), Token2: p.must('('), ConstantExpression: p.constantExpression(), Token3: p.must(','), Token4: p.must(rune(STRINGLITERAL)), Token5: p.must(')')}
+	return &StaticAssertDeclaration{Token: p.must(rune(STATICASSERT)), Token2: p.must('('), Expression: p.constantExpression(), Token3: p.must(','), Token4: p.must(rune(STRINGLITERAL)), Token5: p.must(')')}
 }
 
 //  attribute-specifier-list:
@@ -1235,7 +1235,7 @@ func (p *parser) initializer(parent *Initializer) (r *Initializer) {
 		r.Token3 = p.must('}')
 		return r
 	default:
-		return &Initializer{Case: InitializerExpr, AssignmentExpression: p.assignmentExpression(true), parent: parent}
+		return &Initializer{Case: InitializerExpr, Expression: p.assignmentExpression(true), parent: parent}
 	}
 }
 
@@ -1858,17 +1858,17 @@ out:
 				p.cpp.eh("%v: unexpected EOF", p.toks[0].Position())
 				return nil
 			case rune(INTCONST):
-				r = &DirectAbstractDeclarator{Case: DirectAbstractDeclaratorArr, Token: lbracket, TypeQualifiers: tql, AssignmentExpression: p.assignmentExpression(true), Token2: p.must(']')}
+				r = &DirectAbstractDeclarator{Case: DirectAbstractDeclaratorArr, Token: lbracket, TypeQualifiers: tql, Expression: p.assignmentExpression(true), Token2: p.must(']')}
 				break out
 			case rune(STATIC):
-				r = &DirectAbstractDeclarator{Case: DirectAbstractDeclaratorArr, Token: lbracket, TypeQualifiers: tql, Token2: p.shift(false), AssignmentExpression: p.assignmentExpression(true), Token3: p.must(']')}
+				r = &DirectAbstractDeclarator{Case: DirectAbstractDeclaratorArr, Token: lbracket, TypeQualifiers: tql, Token2: p.shift(false), Expression: p.assignmentExpression(true), Token3: p.must(']')}
 				break out
 			default:
 				t := p.shift(false)
 				p.cpp.eh("%v: unexpected %v, expected direct abstract declarator", t.Position(), runeName(t.Ch))
 			}
 		case ch != '*' && p.isExpression(ch):
-			r = &DirectAbstractDeclarator{Case: DirectAbstractDeclaratorArr, Token: p.shift(false), AssignmentExpression: p.assignmentExpression(true), Token2: p.must(']')}
+			r = &DirectAbstractDeclarator{Case: DirectAbstractDeclaratorArr, Token: p.shift(false), Expression: p.assignmentExpression(true), Token2: p.must(']')}
 			break out
 		}
 
@@ -1879,7 +1879,7 @@ out:
 			lbracket := p.shift(false)
 			switch {
 			case p.isTypeQualifier(p.peek(1, false).Ch):
-				r = &DirectAbstractDeclarator{Case: DirectAbstractDeclaratorStaticArr, Token: lbracket, Token2: p.shift(false), TypeQualifiers: p.typeQualifierList(false, false), AssignmentExpression: p.assignmentExpression(true), Token3: p.must(']')}
+				r = &DirectAbstractDeclarator{Case: DirectAbstractDeclaratorStaticArr, Token: lbracket, Token2: p.shift(false), TypeQualifiers: p.typeQualifierList(false, false), Expression: p.assignmentExpression(true), Token3: p.must(']')}
 			default:
 				t := p.shift(false)
 				p.cpp.eh("%v: unexpected %v, expected direct abstract declarator", t.Position(), runeName(t.Ch))
@@ -1939,7 +1939,7 @@ func (p *parser) directAbstractDeclarator2(dad *DirectAbstractDeclarator) (r *Di
 			case ch == ']':
 				r = &DirectAbstractDeclarator{Case: DirectAbstractDeclaratorArr, DirectAbstractDeclarator: r, Token: p.shift(false), Token2: p.must(']')}
 			case p.isExpression(ch):
-				r = &DirectAbstractDeclarator{Case: DirectAbstractDeclaratorArr, DirectAbstractDeclarator: r, Token: p.shift(false), AssignmentExpression: p.assignmentExpression(true), Token2: p.must(']')}
+				r = &DirectAbstractDeclarator{Case: DirectAbstractDeclaratorArr, DirectAbstractDeclarator: r, Token: p.shift(false), Expression: p.assignmentExpression(true), Token2: p.must(']')}
 			default:
 				t := p.shift(false)
 				p.cpp.eh("%v: unexpected %v, expected direct abstract declarator", t.Position(), runeName(t.Ch))
@@ -2025,27 +2025,27 @@ func (p *parser) unaryExpression(lp Token, tn *TypeName, rp Token, checkTypeName
 		return nil
 	case '&':
 		r = &UnaryExpression{Case: UnaryExpressionAddrof, Token: p.shift(false)}
-		r.CastExpression, _ = p.castExpression(checkTypeName)
+		r.Expression, _ = p.castExpression(checkTypeName)
 		return r
 	case '*':
 		r = &UnaryExpression{Case: UnaryExpressionDeref, Token: p.shift(false)}
-		r.CastExpression, _ = p.castExpression(checkTypeName)
+		r.Expression, _ = p.castExpression(checkTypeName)
 		return r
 	case '+':
 		r = &UnaryExpression{Case: UnaryExpressionPlus, Token: p.shift(false)}
-		r.CastExpression, _ = p.castExpression(checkTypeName)
+		r.Expression, _ = p.castExpression(checkTypeName)
 		return r
 	case '-':
 		r = &UnaryExpression{Case: UnaryExpressionMinus, Token: p.shift(false)}
-		r.CastExpression, _ = p.castExpression(checkTypeName)
+		r.Expression, _ = p.castExpression(checkTypeName)
 		return r
 	case '~':
 		r = &UnaryExpression{Case: UnaryExpressionCpl, Token: p.shift(false)}
-		r.CastExpression, _ = p.castExpression(checkTypeName)
+		r.Expression, _ = p.castExpression(checkTypeName)
 		return r
 	case '!':
 		r = &UnaryExpression{Case: UnaryExpressionNot, Token: p.shift(false)}
-		r.CastExpression, _ = p.castExpression(checkTypeName)
+		r.Expression, _ = p.castExpression(checkTypeName)
 		return r
 	case rune(SIZEOF):
 		switch p.peek(1, false).Ch {
@@ -2058,15 +2058,15 @@ func (p *parser) unaryExpression(lp Token, tn *TypeName, rp Token, checkTypeName
 				rp := p.must(')')
 				switch p.rune(false) {
 				case '{':
-					return &UnaryExpression{Case: UnaryExpressionSizeofExpr, Token: sz, UnaryExpression: p.unaryExpression(lp, tn, rp, checkTypeName)}
+					return &UnaryExpression{Case: UnaryExpressionSizeofExpr, Token: sz, Expression3: p.unaryExpression(lp, tn, rp, checkTypeName)}
 				default:
 					return &UnaryExpression{Case: UnaryExpressionSizeofType, Token: sz, Token2: lp, TypeName: tn, Token3: rp}
 				}
 			default:
-				return &UnaryExpression{Case: UnaryExpressionSizeofExpr, Token: p.shift(false), UnaryExpression: p.unaryExpression(Token{}, nil, Token{}, checkTypeName)}
+				return &UnaryExpression{Case: UnaryExpressionSizeofExpr, Token: p.shift(false), Expression3: p.unaryExpression(Token{}, nil, Token{}, checkTypeName)}
 			}
 		default:
-			return &UnaryExpression{Case: UnaryExpressionSizeofExpr, Token: p.shift(false), UnaryExpression: p.unaryExpression(Token{}, nil, Token{}, checkTypeName)}
+			return &UnaryExpression{Case: UnaryExpressionSizeofExpr, Token: p.shift(false), Expression3: p.unaryExpression(Token{}, nil, Token{}, checkTypeName)}
 		}
 	case
 		'(',
@@ -2081,9 +2081,9 @@ func (p *parser) unaryExpression(lp Token, tn *TypeName, rp Token, checkTypeName
 
 		return p.postfixExpression(Token{}, nil, Token{}, checkTypeName)
 	case rune(INC):
-		return &UnaryExpression{Case: UnaryExpressionInc, Token: p.shift(false), UnaryExpression: p.unaryExpression(Token{}, nil, Token{}, checkTypeName)}
+		return &UnaryExpression{Case: UnaryExpressionInc, Token: p.shift(false), Expression3: p.unaryExpression(Token{}, nil, Token{}, checkTypeName)}
 	case rune(DEC):
-		return &UnaryExpression{Case: UnaryExpressionDec, Token: p.shift(false), UnaryExpression: p.unaryExpression(Token{}, nil, Token{}, checkTypeName)}
+		return &UnaryExpression{Case: UnaryExpressionDec, Token: p.shift(false), Expression3: p.unaryExpression(Token{}, nil, Token{}, checkTypeName)}
 	case rune(ALIGNOF):
 		switch p.peek(1, false).Ch {
 		case '(':
@@ -2091,7 +2091,7 @@ func (p *parser) unaryExpression(lp Token, tn *TypeName, rp Token, checkTypeName
 			case p.isSpecifierQualifer(p.peek(2, true).Ch, true):
 				return &UnaryExpression{Case: UnaryExpressionAlignofType, Token: p.shift(false), Token2: p.shift(false), TypeName: p.typeName(), Token3: p.must(')')}
 			default:
-				return &UnaryExpression{Case: UnaryExpressionAlignofExpr, Token: p.shift(false), UnaryExpression: p.unaryExpression(Token{}, nil, Token{}, checkTypeName)}
+				return &UnaryExpression{Case: UnaryExpressionAlignofExpr, Token: p.shift(false), Expression3: p.unaryExpression(Token{}, nil, Token{}, checkTypeName)}
 			}
 		default:
 			t := p.shift(false)
@@ -2101,9 +2101,9 @@ func (p *parser) unaryExpression(lp Token, tn *TypeName, rp Token, checkTypeName
 	case rune(ANDAND):
 		return &UnaryExpression{Case: UnaryExpressionLabelAddr, Token: p.shift(false), Token2: p.must(rune(IDENTIFIER))}
 	case rune(REAL):
-		return &UnaryExpression{Case: UnaryExpressionReal, Token: p.shift(false), UnaryExpression: p.unaryExpression(Token{}, nil, Token{}, checkTypeName)}
+		return &UnaryExpression{Case: UnaryExpressionReal, Token: p.shift(false), Expression3: p.unaryExpression(Token{}, nil, Token{}, checkTypeName)}
 	case rune(IMAG):
-		return &UnaryExpression{Case: UnaryExpressionImag, Token: p.shift(false), UnaryExpression: p.unaryExpression(Token{}, nil, Token{}, checkTypeName)}
+		return &UnaryExpression{Case: UnaryExpressionImag, Token: p.shift(false), Expression3: p.unaryExpression(Token{}, nil, Token{}, checkTypeName)}
 	default:
 		t := p.shift(false)
 		p.cpp.eh("%v: unexpected %v, expected unary expression", t.Position(), runeName(t.Ch))
@@ -2147,7 +2147,7 @@ func (p *parser) postfixExpression(lp Token, tn *TypeName, rp Token, checkTypeNa
 		case '(':
 			switch ch := p.peek(1, true).Ch; {
 			case p.isExpression(ch) || ch == '{':
-				r0 = &PostfixExpression{Case: PostfixExpressionPrimary, PrimaryExpression: p.primaryExpression(checkTypeName)}
+				r0 = &PostfixExpression{Case: PostfixExpressionPrimary, Expression2: p.primaryExpression(checkTypeName)}
 			case p.isSpecifierQualifer(ch, true):
 				r0 = &PostfixExpression{Case: PostfixExpressionComplit, Token: p.shift(false), TypeName: p.typeName(), Token2: p.must(')'), Token3: p.must('{'), InitializerList: p.initializerList(nil)}
 				switch p.rune(false) {
@@ -2167,12 +2167,12 @@ func (p *parser) postfixExpression(lp Token, tn *TypeName, rp Token, checkTypeNa
 				return nil
 			}
 		default:
-			r0 = &PostfixExpression{Case: PostfixExpressionPrimary, PrimaryExpression: p.primaryExpression(checkTypeName)}
+			r0 = &PostfixExpression{Case: PostfixExpressionPrimary, Expression2: p.primaryExpression(checkTypeName)}
 		}
 	}
 	r = r0
-	if r0.Case == PostfixExpressionPrimary && r0.PrimaryExpression != nil {
-		r = r0.PrimaryExpression
+	if r0.Case == PostfixExpressionPrimary && r0.Expression2 != nil {
+		r = r0.Expression2
 	}
 	for {
 		switch p.rune(false) {
@@ -2180,23 +2180,23 @@ func (p *parser) postfixExpression(lp Token, tn *TypeName, rp Token, checkTypeNa
 			p.cpp.eh("%v: unexpected EOF", p.toks[0].Position())
 			return nil
 		case '[':
-			r = &PostfixExpression{Case: PostfixExpressionIndex, PostfixExpression: r, Token: p.shift(false), ExpressionList: p.expression(false), Token2: p.must(']')}
+			r = &PostfixExpression{Case: PostfixExpressionIndex, Expression: r, Token: p.shift(false), ExpressionList: p.expression(false), Token2: p.must(']')}
 		case '(':
 			switch ch := p.peek(1, true).Ch; {
 			case p.isExpression(ch) || ch == ')':
-				r = &PostfixExpression{Case: PostfixExpressionCall, PostfixExpression: r, Token: p.shift(false), ArgumentExpressionList: p.argumentExpressionListOpt(true), Token2: p.must(')')}
+				r = &PostfixExpression{Case: PostfixExpressionCall, Expression: r, Token: p.shift(false), ArgumentExpressionList: p.argumentExpressionListOpt(true), Token2: p.must(')')}
 			default:
 				t := p.shift(false)
 				p.cpp.eh("%v: unexpected %v, expected postfix expression", t.Position(), runeName(t.Ch))
 			}
 		case '.':
-			r = &PostfixExpression{Case: PostfixExpressionSelect, PostfixExpression: r, Token: p.shift(false), Token2: p.must(rune(IDENTIFIER))}
+			r = &PostfixExpression{Case: PostfixExpressionSelect, Expression: r, Token: p.shift(false), Token2: p.must(rune(IDENTIFIER))}
 		case rune(ARROW):
-			r = &PostfixExpression{Case: PostfixExpressionPSelect, PostfixExpression: r, Token: p.shift(false), Token2: p.must(rune(IDENTIFIER))}
+			r = &PostfixExpression{Case: PostfixExpressionPSelect, Expression: r, Token: p.shift(false), Token2: p.must(rune(IDENTIFIER))}
 		case rune(INC):
-			r = &PostfixExpression{Case: PostfixExpressionInc, PostfixExpression: r, Token: p.shift(false)}
+			r = &PostfixExpression{Case: PostfixExpressionInc, Expression: r, Token: p.shift(false)}
 		case rune(DEC):
-			r = &PostfixExpression{Case: PostfixExpressionDec, PostfixExpression: r, Token: p.shift(false)}
+			r = &PostfixExpression{Case: PostfixExpressionDec, Expression: r, Token: p.shift(false)}
 		default:
 			return r
 		}
@@ -2216,10 +2216,10 @@ func (p *parser) argumentExpressionListOpt(checkTypeName bool) (r *ArgumentExpre
 		return nil
 	}
 
-	r = &ArgumentExpressionList{AssignmentExpression: p.assignmentExpression(checkTypeName)}
+	r = &ArgumentExpressionList{Expression: p.assignmentExpression(checkTypeName)}
 	prev := r
 	for p.rune(false) == ',' {
-		ael := &ArgumentExpressionList{Token: p.shift(false), AssignmentExpression: p.assignmentExpression(checkTypeName)}
+		ael := &ArgumentExpressionList{Token: p.shift(false), Expression: p.assignmentExpression(checkTypeName)}
 		prev.ArgumentExpressionList = ael
 		prev = ael
 		p.rune(false)
@@ -2277,7 +2277,7 @@ func (p *parser) primaryExpression(checkTypeName bool) (r *PrimaryExpression) {
 // generic-selection:
 //	_Generic ( assignment-expression , generic-assoc-list )
 func (p *parser) genericSelection() (r *GenericSelection) {
-	return &GenericSelection{Token: p.must(rune(GENERIC)), Token2: p.must('('), AssignmentExpression: p.assignmentExpression(true), Token3: p.must(','), GenericAssociationList: p.genericAssociationList(), Token4: p.must(')')}
+	return &GenericSelection{Token: p.must(rune(GENERIC)), Token2: p.must('('), Expression: p.assignmentExpression(true), Token3: p.must(','), GenericAssociationList: p.genericAssociationList(), Token4: p.must(')')}
 }
 
 // generic-assoc-list:
@@ -2300,9 +2300,9 @@ func (p *parser) genericAssociationList() (r *GenericAssociationList) {
 func (p *parser) genericAssociation() (r *GenericAssociation) {
 	switch {
 	case p.rune(false) == rune(DEFAULT):
-		return &GenericAssociation{Case: GenericAssociationDefault, Token: p.shift(false), Token2: p.must(':'), AssignmentExpression: p.assignmentExpression(true)}
+		return &GenericAssociation{Case: GenericAssociationDefault, Token: p.shift(false), Token2: p.must(':'), Expression: p.assignmentExpression(true)}
 	default:
-		return &GenericAssociation{Case: GenericAssociationType, TypeName: p.typeName(), Token: p.must(':'), AssignmentExpression: p.assignmentExpression(true)}
+		return &GenericAssociation{Case: GenericAssociationType, TypeName: p.typeName(), Token: p.must(':'), Expression: p.assignmentExpression(true)}
 	}
 }
 
@@ -2369,20 +2369,20 @@ func (p *parser) directDeclarator2(dd *DirectDeclarator, declare bool) (r *Direc
 			ch := p.peek(1, true).Ch
 			switch {
 			case p.isExpression(ch):
-				r = &DirectDeclarator{Case: DirectDeclaratorArr, DirectDeclarator: r, Token: p.shift(false), AssignmentExpression: p.assignmentExpression(true), Token2: p.must(']')}
+				r = &DirectDeclarator{Case: DirectDeclaratorArr, DirectDeclarator: r, Token: p.shift(false), Expression: p.assignmentExpression(true), Token2: p.must(']')}
 				continue
 			case p.isTypeQualifier(ch):
 				lbracket := p.shift(false)
 				tql := p.typeQualifierList(false, false)
 				switch p.rune(false) {
 				case rune(STATIC):
-					r = &DirectDeclarator{Case: DirectDeclaratorArrStatic, DirectDeclarator: r, Token: lbracket, TypeQualifiers: tql, Token2: p.shift(false), AssignmentExpression: p.assignmentExpression(true), Token3: p.must(']')}
+					r = &DirectDeclarator{Case: DirectDeclaratorArrStatic, DirectDeclarator: r, Token: lbracket, TypeQualifiers: tql, Token2: p.shift(false), Expression: p.assignmentExpression(true), Token3: p.must(']')}
 				case '*':
 					r = &DirectDeclarator{Case: DirectDeclaratorStar, DirectDeclarator: r, Token: lbracket, TypeQualifiers: tql, Token2: p.shift(false), Token3: p.must(']')}
 				case ']':
 					r = &DirectDeclarator{Case: DirectDeclaratorArr, DirectDeclarator: r, Token: lbracket, TypeQualifiers: tql, Token3: p.must(']')}
 				default:
-					r = &DirectDeclarator{Case: DirectDeclaratorArr, DirectDeclarator: r, Token: lbracket, TypeQualifiers: tql, AssignmentExpression: p.assignmentExpression(true), Token3: p.must(']')}
+					r = &DirectDeclarator{Case: DirectDeclaratorArr, DirectDeclarator: r, Token: lbracket, TypeQualifiers: tql, Expression: p.assignmentExpression(true), Token3: p.must(']')}
 				}
 				continue
 			}
@@ -2391,7 +2391,7 @@ func (p *parser) directDeclarator2(dd *DirectDeclarator, declare bool) (r *Direc
 			case ']':
 				r = &DirectDeclarator{Case: DirectDeclaratorArr, DirectDeclarator: r, Token: p.shift(false), Token2: p.shift(false)}
 			case rune(STATIC):
-				r = &DirectDeclarator{Case: DirectDeclaratorStaticArr, DirectDeclarator: r, Token: p.shift(false), Token2: p.shift(false), TypeQualifiers: p.typeQualifierList(true, false), AssignmentExpression: p.assignmentExpression(true), Token3: p.must(']')}
+				r = &DirectDeclarator{Case: DirectDeclaratorStaticArr, DirectDeclarator: r, Token: p.shift(false), Token2: p.shift(false), TypeQualifiers: p.typeQualifierList(true, false), Expression: p.assignmentExpression(true), Token3: p.must(']')}
 			default:
 				t := p.shift(false)
 				p.cpp.eh("%v: unexpected %v, expected direct declarator", t.Position(), runeName(t.Ch))
@@ -2878,7 +2878,7 @@ func (p *parser) alignmentSpecifier() *AlignmentSpecifier {
 	case p.isTypeSpecifier(ch, true):
 		return &AlignmentSpecifier{Case: AlignmentSpecifierType, Token: p.must(rune(ALIGNAS)), Token2: p.must('('), TypeName: p.typeName(), Token3: p.must(')')}
 	case p.isExpression(ch):
-		return &AlignmentSpecifier{Case: AlignmentSpecifierExpr, Token: p.must(rune(ALIGNAS)), Token2: p.must('('), ConstantExpression: p.constantExpression(), Token3: p.must(')')}
+		return &AlignmentSpecifier{Case: AlignmentSpecifierExpr, Token: p.must(rune(ALIGNAS)), Token2: p.must('('), Expression: p.constantExpression(), Token3: p.must(')')}
 	default:
 		t := p.shift(false)
 		p.cpp.eh("%v: unexpected %v, expected alignment specifier", t.Position(), runeName(t.Ch))
@@ -3255,7 +3255,7 @@ func (p *parser) enumerator() (r *Enumerator) {
 	case '}', ',':
 		r = &Enumerator{Case: EnumeratorIdent, Token: p.must(rune(IDENTIFIER))}
 	case '=':
-		r = &Enumerator{Case: EnumeratorExpr, Token: p.must(rune(IDENTIFIER)), Token2: p.shift(false), ConstantExpression: p.constantExpression()}
+		r = &Enumerator{Case: EnumeratorExpr, Token: p.must(rune(IDENTIFIER)), Token2: p.shift(false), Expression: p.constantExpression()}
 	default:
 		t := p.shift(false)
 		p.cpp.eh("%v: unexpected %v, expected enumerator", t.Position(), runeName(t.Ch))
@@ -3400,13 +3400,13 @@ func (p *parser) structDeclarator() (r *StructDeclarator) {
 		p.cpp.eh("%v: unexpected EOF", p.toks[0].Position())
 		return nil
 	case ':':
-		return &StructDeclarator{Case: StructDeclaratorBitField, Token: p.shift(false), ConstantExpression: p.constantExpression()}
+		return &StructDeclarator{Case: StructDeclaratorBitField, Token: p.shift(false), Expression: p.constantExpression()}
 	default:
 		r = &StructDeclarator{Case: StructDeclaratorDecl, Declarator: p.declarator(nil, nil, false)}
 		if p.rune(false) == ':' {
 			r.Case = StructDeclaratorBitField
 			r.Token = p.shift(false)
-			r.ConstantExpression = p.constantExpression()
+			r.Expression = p.constantExpression()
 		}
 		return r
 	}
@@ -3418,7 +3418,7 @@ func (p *parser) structDeclarator() (r *StructDeclarator) {
 // 	conditional-expression
 func (p *parser) constantExpression() (r *ConstantExpression) {
 	r = &ConstantExpression{}
-	r.ConditionalExpression, _ = p.conditionalExpression(true)
+	r.Expression, _ = p.conditionalExpression(true)
 	return r
 }
 
