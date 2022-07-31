@@ -29,6 +29,7 @@ import (
 	"testing"
 
 	"github.com/dustin/go-humanize"
+	"github.com/pbnjay/memory"
 	"github.com/pmezard/go-difflib/difflib"
 	"modernc.org/ccorpus2"
 	"modernc.org/mathutil"
@@ -37,9 +38,11 @@ import (
 var (
 	cfs         = ccorpus2.FS
 	corpusIndex []string
-	re          *regexp.Regexp
 	defaultCfg0 *Config
-	oTrace      = flag.Bool("trc", false, "Print tested paths.")
+	re          *regexp.Regexp
+	totalRam    = memory.TotalMemory()
+
+	oTrace = flag.Bool("trc", false, "Print tested paths.")
 )
 
 func init() {
@@ -251,8 +254,17 @@ type parallel struct {
 }
 
 func newParallel() *parallel {
+	limit := runtime.GOMAXPROCS(0)
+	switch runtime.GOARCH {
+	case "386", "arm": // 32 bit targets
+		limit = 1
+	default:
+		if totalRam <= 1<<32 {
+			limit = 1
+		}
+	}
 	return &parallel{
-		limit: make(chan struct{}, runtime.GOMAXPROCS(0)),
+		limit: make(chan struct{}, limit),
 	}
 }
 
