@@ -173,6 +173,7 @@ int __builtin_islower(int c);
 int __builtin_isprint(int c);
 int __builtin_ispunct(int c);
 int __builtin_isspace(int c);
+int __builtin_isunordered(double, double);
 int __builtin_isupper(int c);
 int __builtin_isxdigit(int c);
 int __builtin_memcmp(const void *s1, const void *s2, __SIZE_TYPE__ n);
@@ -242,6 +243,7 @@ void __builtin_abort(void);
 void __builtin_exit(int status);
 void __builtin_free(void *ptr);
 void __builtin_prefetch (void*, ...);
+void __builtin_unreachable();
 `
 
 	//TODO
