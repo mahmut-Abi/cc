@@ -682,8 +682,8 @@ func ExampleBlockItem_decl() {
 	// · · · · · · Token: example.c:1:9: 'char' "char",
 	// · · · · · },
 	// · · · · },
-	// · · · · InitDeclaratorList: &cc.InitDeclaratorList{
-	// · · · · · InitDeclarator: &cc.InitDeclarator{
+	// · · · · InitDeclarators: []*cc.InitDeclarator{ // len 1
+	// · · · · · 0: &cc.InitDeclarator{
 	// · · · · · · Case: InitDeclaratorInit,
 	// · · · · · · Declarator: &cc.Declarator{
 	// · · · · · · · DirectDeclarator: &cc.DirectDeclarator{
@@ -715,8 +715,8 @@ func ExampleBlockItem_decl() {
 	// · · · · · · Token: example.c:1:11: 'int' "int",
 	// · · · · · },
 	// · · · · },
-	// · · · · InitDeclaratorList: &cc.InitDeclaratorList{
-	// · · · · · InitDeclarator: &cc.InitDeclarator{
+	// · · · · InitDeclarators: []*cc.InitDeclarator{ // len 1
+	// · · · · · 0: &cc.InitDeclarator{
 	// · · · · · · Case: InitDeclaratorDecl,
 	// · · · · · · Declarator: &cc.Declarator{
 	// · · · · · · · DirectDeclarator: &cc.DirectDeclarator{
@@ -773,8 +773,8 @@ func ExampleBlockItem_label() {
 	// · · · · · · Token: example.c:1:9: 'char' "char",
 	// · · · · · },
 	// · · · · },
-	// · · · · InitDeclaratorList: &cc.InitDeclaratorList{
-	// · · · · · InitDeclarator: &cc.InitDeclarator{
+	// · · · · InitDeclarators: []*cc.InitDeclarator{ // len 1
+	// · · · · · 0: &cc.InitDeclarator{
 	// · · · · · · Case: InitDeclaratorInit,
 	// · · · · · · Declarator: &cc.Declarator{
 	// · · · · · · · DirectDeclarator: &cc.DirectDeclarator{
@@ -813,8 +813,8 @@ func ExampleBlockItem_label() {
 	// · · · · · · Token: example.c:1:24: 'int' "int",
 	// · · · · · },
 	// · · · · },
-	// · · · · InitDeclaratorList: &cc.InitDeclaratorList{
-	// · · · · · InitDeclarator: &cc.InitDeclarator{
+	// · · · · InitDeclarators: []*cc.InitDeclarator{ // len 1
+	// · · · · · 0: &cc.InitDeclarator{
 	// · · · · · · Case: InitDeclaratorDecl,
 	// · · · · · · Declarator: &cc.Declarator{
 	// · · · · · · · DirectDeclarator: &cc.DirectDeclarator{
@@ -871,8 +871,8 @@ func ExampleBlockItem_stmt() {
 	// · · · · · · Token: example.c:1:9: 'char' "char",
 	// · · · · · },
 	// · · · · },
-	// · · · · InitDeclaratorList: &cc.InitDeclaratorList{
-	// · · · · · InitDeclarator: &cc.InitDeclarator{
+	// · · · · InitDeclarators: []*cc.InitDeclarator{ // len 1
+	// · · · · · 0: &cc.InitDeclarator{
 	// · · · · · · Case: InitDeclaratorInit,
 	// · · · · · · Declarator: &cc.Declarator{
 	// · · · · · · · DirectDeclarator: &cc.DirectDeclarator{
@@ -954,8 +954,8 @@ func ExampleBlockItem_funcDef() {
 	// · · · · · · Token: example.c:1:9: 'char' "char",
 	// · · · · · },
 	// · · · · },
-	// · · · · InitDeclaratorList: &cc.InitDeclaratorList{
-	// · · · · · InitDeclarator: &cc.InitDeclarator{
+	// · · · · InitDeclarators: []*cc.InitDeclarator{ // len 1
+	// · · · · · 0: &cc.InitDeclarator{
 	// · · · · · · Case: InitDeclaratorInit,
 	// · · · · · · Declarator: &cc.Declarator{
 	// · · · · · · · DirectDeclarator: &cc.DirectDeclarator{
@@ -1016,8 +1016,8 @@ func ExampleBlockItem_funcDef() {
 	// · · · · · · · · · Token: example.c:1:19: 'char' "char",
 	// · · · · · · · · },
 	// · · · · · · · },
-	// · · · · · · · InitDeclaratorList: &cc.InitDeclaratorList{
-	// · · · · · · · · InitDeclarator: &cc.InitDeclarator{
+	// · · · · · · · InitDeclarators: []*cc.InitDeclarator{ // len 1
+	// · · · · · · · · 0: &cc.InitDeclarator{
 	// · · · · · · · · · Case: InitDeclaratorInit,
 	// · · · · · · · · · Declarator: &cc.Declarator{
 	// · · · · · · · · · · DirectDeclarator: &cc.DirectDeclarator{
@@ -1091,8 +1091,8 @@ func ExampleBlockItem_case0() {
 	// · · · · · · Token: example.c:1:9: 'char' "char",
 	// · · · · · },
 	// · · · · },
-	// · · · · InitDeclaratorList: &cc.InitDeclaratorList{
-	// · · · · · InitDeclarator: &cc.InitDeclarator{
+	// · · · · InitDeclarators: []*cc.InitDeclarator{ // len 1
+	// · · · · · 0: &cc.InitDeclarator{
 	// · · · · · · Case: InitDeclaratorInit,
 	// · · · · · · Declarator: &cc.Declarator{
 	// · · · · · · · DirectDeclarator: &cc.DirectDeclarator{
@@ -1124,8 +1124,8 @@ func ExampleBlockItem_case0() {
 	// · · · · · · Token: example.c:1:11: 'int' "int",
 	// · · · · · },
 	// · · · · },
-	// · · · · InitDeclaratorList: &cc.InitDeclaratorList{
-	// · · · · · InitDeclarator: &cc.InitDeclarator{
+	// · · · · InitDeclarators: []*cc.InitDeclarator{ // len 1
+	// · · · · · 0: &cc.InitDeclarator{
 	// · · · · · · Case: InitDeclaratorDecl,
 	// · · · · · · Declarator: &cc.Declarator{
 	// · · · · · · · DirectDeclarator: &cc.DirectDeclarator{
@@ -1182,8 +1182,8 @@ func ExampleBlockItem_case1() {
 	// · · · · · · Token: example.c:1:9: 'char' "char",
 	// · · · · · },
 	// · · · · },
-	// · · · · InitDeclaratorList: &cc.InitDeclaratorList{
-	// · · · · · InitDeclarator: &cc.InitDeclarator{
+	// · · · · InitDeclarators: []*cc.InitDeclarator{ // len 1
+	// · · · · · 0: &cc.InitDeclarator{
 	// · · · · · · Case: InitDeclaratorInit,
 	// · · · · · · Declarator: &cc.Declarator{
 	// · · · · · · · DirectDeclarator: &cc.DirectDeclarator{
@@ -1215,8 +1215,8 @@ func ExampleBlockItem_case1() {
 	// · · · · · · Token: example.c:1:11: 'int' "int",
 	// · · · · · },
 	// · · · · },
-	// · · · · InitDeclaratorList: &cc.InitDeclaratorList{
-	// · · · · · InitDeclarator: &cc.InitDeclarator{
+	// · · · · InitDeclarators: []*cc.InitDeclarator{ // len 1
+	// · · · · · 0: &cc.InitDeclarator{
 	// · · · · · · Case: InitDeclaratorDecl,
 	// · · · · · · Declarator: &cc.Declarator{
 	// · · · · · · · DirectDeclarator: &cc.DirectDeclarator{
@@ -1235,8 +1235,8 @@ func ExampleBlockItem_case1() {
 	// · · · · · · Token: example.c:1:18: 'double' "double",
 	// · · · · · },
 	// · · · · },
-	// · · · · InitDeclaratorList: &cc.InitDeclaratorList{
-	// · · · · · InitDeclarator: &cc.InitDeclarator{
+	// · · · · InitDeclarators: []*cc.InitDeclarator{ // len 1
+	// · · · · · 0: &cc.InitDeclarator{
 	// · · · · · · Case: InitDeclaratorDecl,
 	// · · · · · · Declarator: &cc.Declarator{
 	// · · · · · · · DirectDeclarator: &cc.DirectDeclarator{
@@ -1318,8 +1318,8 @@ func ExampleCompoundStatement_case0() {
 	// · · · · · Token: example.c:1:9: 'char' "char",
 	// · · · · },
 	// · · · },
-	// · · · InitDeclaratorList: &cc.InitDeclaratorList{
-	// · · · · InitDeclarator: &cc.InitDeclarator{
+	// · · · InitDeclarators: []*cc.InitDeclarator{ // len 1
+	// · · · · 0: &cc.InitDeclarator{
 	// · · · · · Case: InitDeclaratorInit,
 	// · · · · · Declarator: &cc.Declarator{
 	// · · · · · · DirectDeclarator: &cc.DirectDeclarator{
@@ -1358,8 +1358,8 @@ func ExampleCompoundStatement_case0() {
 	// · · · · · Token: example.c:1:24: 'int' "int",
 	// · · · · },
 	// · · · },
-	// · · · InitDeclaratorList: &cc.InitDeclaratorList{
-	// · · · · InitDeclarator: &cc.InitDeclarator{
+	// · · · InitDeclarators: []*cc.InitDeclarator{ // len 1
+	// · · · · 0: &cc.InitDeclarator{
 	// · · · · · Case: InitDeclaratorDecl,
 	// · · · · · Declarator: &cc.Declarator{
 	// · · · · · · DirectDeclarator: &cc.DirectDeclarator{
@@ -1418,8 +1418,8 @@ func ExampleDeclaration_decl() {
 	// · · · Token: example.c:1:1: 'int' "int",
 	// · · },
 	// · },
-	// · InitDeclaratorList: &cc.InitDeclaratorList{
-	// · · InitDeclarator: &cc.InitDeclarator{
+	// · InitDeclarators: []*cc.InitDeclarator{ // len 2
+	// · · 0: &cc.InitDeclarator{
 	// · · · Case: InitDeclaratorDecl,
 	// · · · Declarator: &cc.Declarator{
 	// · · · · DirectDeclarator: &cc.DirectDeclarator{
@@ -1427,33 +1427,16 @@ func ExampleDeclaration_decl() {
 	// · · · · · Token: example.c:1:5: identifier "i",
 	// · · · · },
 	// · · · },
+	// · · · Token2: example.c:1:6: ',' ",",
 	// · · },
-	// · · InitDeclaratorList: &cc.InitDeclaratorList{
-	// · · · InitDeclarator: &cc.InitDeclarator{
-	// · · · · AttributeSpecifierList: &cc.AttributeSpecifierList{
-	// · · · · · AttributeSpecifier: &cc.AttributeSpecifier{
-	// · · · · · · AttributeValueList: &cc.AttributeValueList{
-	// · · · · · · · AttributeValue: &cc.AttributeValue{
-	// · · · · · · · · Case: AttributeValueIdent,
-	// · · · · · · · · Token: example.c:1:25: identifier "a",
-	// · · · · · · · },
-	// · · · · · · },
-	// · · · · · · Token: example.c:1:10: '__attribute__' "__attribute__",
-	// · · · · · · Token2: example.c:1:23: '(' "(",
-	// · · · · · · Token3: example.c:1:24: '(' "(",
-	// · · · · · · Token4: example.c:1:26: ')' ")",
-	// · · · · · · Token5: example.c:1:27: ')' ")",
-	// · · · · · },
-	// · · · · },
-	// · · · · Case: InitDeclaratorDecl,
-	// · · · · Declarator: &cc.Declarator{
-	// · · · · · DirectDeclarator: &cc.DirectDeclarator{
-	// · · · · · · Case: DirectDeclaratorIdent,
-	// · · · · · · Token: example.c:1:8: identifier "j",
-	// · · · · · },
+	// · · 1: &cc.InitDeclarator{
+	// · · · Case: InitDeclaratorDecl,
+	// · · · Declarator: &cc.Declarator{
+	// · · · · DirectDeclarator: &cc.DirectDeclarator{
+	// · · · · · Case: DirectDeclaratorIdent,
+	// · · · · · Token: example.c:1:8: identifier "j",
 	// · · · · },
 	// · · · },
-	// · · · Token: example.c:1:6: ',' ",",
 	// · · },
 	// · },
 	// · Token: example.c:1:28: ';' ";",
@@ -1519,8 +1502,8 @@ func ExampleDeclaration_case0() {
 	// · · · Token: example.c:1:10: 'int' "int",
 	// · · },
 	// · },
-	// · InitDeclaratorList: &cc.InitDeclaratorList{
-	// · · InitDeclarator: &cc.InitDeclarator{
+	// · InitDeclarators: []*cc.InitDeclarator{ // len 1
+	// · · 0: &cc.InitDeclarator{
 	// · · · Case: InitDeclaratorDecl,
 	// · · · Declarator: &cc.Declarator{
 	// · · · · DirectDeclarator: &cc.DirectDeclarator{
@@ -1547,8 +1530,8 @@ func ExampleDeclaration_case0() {
 	// · · · Token: example.c:1:17: 'char' "char",
 	// · · },
 	// · },
-	// · InitDeclaratorList: &cc.InitDeclaratorList{
-	// · · InitDeclarator: &cc.InitDeclarator{
+	// · InitDeclarators: []*cc.InitDeclarator{ // len 1
+	// · · 0: &cc.InitDeclarator{
 	// · · · Case: InitDeclaratorInit,
 	// · · · Declarator: &cc.Declarator{
 	// · · · · DirectDeclarator: &cc.DirectDeclarator{
@@ -1585,8 +1568,8 @@ func ExampleDeclaration_case1() {
 	// · · · Token: example.c:1:13: 'int' "int",
 	// · · },
 	// · },
-	// · InitDeclaratorList: &cc.InitDeclaratorList{
-	// · · InitDeclarator: &cc.InitDeclarator{
+	// · InitDeclarators: []*cc.InitDeclarator{ // len 1
+	// · · 0: &cc.InitDeclarator{
 	// · · · Case: InitDeclaratorDecl,
 	// · · · Declarator: &cc.Declarator{
 	// · · · · DirectDeclarator: &cc.DirectDeclarator{
@@ -1605,8 +1588,8 @@ func ExampleDeclaration_case1() {
 	// · · · Token: example.c:1:20: 'int' "int",
 	// · · },
 	// · },
-	// · InitDeclaratorList: &cc.InitDeclaratorList{
-	// · · InitDeclarator: &cc.InitDeclarator{
+	// · InitDeclarators: []*cc.InitDeclarator{ // len 1
+	// · · 0: &cc.InitDeclarator{
 	// · · · Case: InitDeclaratorDecl,
 	// · · · Declarator: &cc.Declarator{
 	// · · · · DirectDeclarator: &cc.DirectDeclarator{
@@ -1633,8 +1616,8 @@ func ExampleDeclaration_case1() {
 	// · · · Token: example.c:1:27: 'char' "char",
 	// · · },
 	// · },
-	// · InitDeclaratorList: &cc.InitDeclaratorList{
-	// · · InitDeclarator: &cc.InitDeclarator{
+	// · InitDeclarators: []*cc.InitDeclarator{ // len 1
+	// · · 0: &cc.InitDeclarator{
 	// · · · Case: InitDeclaratorInit,
 	// · · · Declarator: &cc.Declarator{
 	// · · · · DirectDeclarator: &cc.DirectDeclarator{
@@ -2429,8 +2412,8 @@ func ExampleExternalDeclaration_funcDef() {
 	// · · · · · · Token: example.c:1:9: 'char' "char",
 	// · · · · · },
 	// · · · · },
-	// · · · · InitDeclaratorList: &cc.InitDeclaratorList{
-	// · · · · · InitDeclarator: &cc.InitDeclarator{
+	// · · · · InitDeclarators: []*cc.InitDeclarator{ // len 1
+	// · · · · · 0: &cc.InitDeclarator{
 	// · · · · · · Case: InitDeclaratorInit,
 	// · · · · · · Declarator: &cc.Declarator{
 	// · · · · · · · DirectDeclarator: &cc.DirectDeclarator{
@@ -2475,8 +2458,8 @@ func ExampleExternalDeclaration_decl() {
 	// · · · Token: example.c:1:10: 'int' "int",
 	// · · },
 	// · },
-	// · InitDeclaratorList: &cc.InitDeclaratorList{
-	// · · InitDeclarator: &cc.InitDeclarator{
+	// · InitDeclarators: []*cc.InitDeclarator{ // len 1
+	// · · 0: &cc.InitDeclarator{
 	// · · · Asm: &cc.Asm{
 	// · · · · Token: example.c:1:16: '__asm__' "__asm__",
 	// · · · · Token2: example.c:1:23: '(' "(",
@@ -2557,8 +2540,8 @@ func ExampleFunctionDefinition_case0() {
 	// · · · · · · Token: example.c:1:9: 'char' "char",
 	// · · · · · },
 	// · · · · },
-	// · · · · InitDeclaratorList: &cc.InitDeclaratorList{
-	// · · · · · InitDeclarator: &cc.InitDeclarator{
+	// · · · · InitDeclarators: []*cc.InitDeclarator{ // len 1
+	// · · · · · 0: &cc.InitDeclarator{
 	// · · · · · · Case: InitDeclaratorInit,
 	// · · · · · · Declarator: &cc.Declarator{
 	// · · · · · · · DirectDeclarator: &cc.DirectDeclarator{
@@ -2830,61 +2813,55 @@ func ExampleInitDeclarator_init() {
 	// }
 }
 
-func ExampleInitDeclaratorList_case0() {
+func ExampleInitDeclarator_case0() {
 	fmt.Println(exampleAST(99, "int i;"))
 	// Output:
-	// &cc.InitDeclaratorList{
-	// · InitDeclarator: &cc.InitDeclarator{
-	// · · Case: InitDeclaratorDecl,
-	// · · Declarator: &cc.Declarator{
-	// · · · DirectDeclarator: &cc.DirectDeclarator{
-	// · · · · Case: DirectDeclaratorIdent,
-	// · · · · Token: example.c:1:5: identifier "i",
-	// · · · },
+	// &cc.InitDeclarator{
+	// · Case: InitDeclaratorDecl,
+	// · Declarator: &cc.Declarator{
+	// · · DirectDeclarator: &cc.DirectDeclarator{
+	// · · · Case: DirectDeclaratorIdent,
+	// · · · Token: example.c:1:5: identifier "i",
 	// · · },
 	// · },
 	// }
 }
 
-func ExampleInitDeclaratorList_case1() {
+func ExampleInitDeclarator_case1() {
 	fmt.Println(exampleAST(100, "int i, __attribute__((a)) j;"))
 	// Output:
-	// &cc.InitDeclaratorList{
-	// · InitDeclarator: &cc.InitDeclarator{
-	// · · Case: InitDeclaratorDecl,
-	// · · Declarator: &cc.Declarator{
-	// · · · DirectDeclarator: &cc.DirectDeclarator{
-	// · · · · Case: DirectDeclaratorIdent,
-	// · · · · Token: example.c:1:5: identifier "i",
-	// · · · },
+	// &cc.InitDeclarator{
+	// · Case: InitDeclaratorDecl,
+	// · Declarator: &cc.Declarator{
+	// · · DirectDeclarator: &cc.DirectDeclarator{
+	// · · · Case: DirectDeclaratorIdent,
+	// · · · Token: example.c:1:5: identifier "i",
 	// · · },
 	// · },
-	// · InitDeclaratorList: &cc.InitDeclaratorList{
-	// · · AttributeSpecifierList: &cc.AttributeSpecifierList{
-	// · · · AttributeSpecifier: &cc.AttributeSpecifier{
-	// · · · · AttributeValueList: &cc.AttributeValueList{
-	// · · · · · AttributeValue: &cc.AttributeValue{
-	// · · · · · · Case: AttributeValueIdent,
-	// · · · · · · Token: example.c:1:23: identifier "a",
-	// · · · · · },
-	// · · · · },
-	// · · · · Token: example.c:1:8: '__attribute__' "__attribute__",
-	// · · · · Token2: example.c:1:21: '(' "(",
-	// · · · · Token3: example.c:1:22: '(' "(",
-	// · · · · Token4: example.c:1:24: ')' ")",
-	// · · · · Token5: example.c:1:25: ')' ")",
-	// · · · },
-	// · · },
-	// · · InitDeclarator: &cc.InitDeclarator{
-	// · · · Case: InitDeclaratorDecl,
-	// · · · Declarator: &cc.Declarator{
-	// · · · · DirectDeclarator: &cc.DirectDeclarator{
-	// · · · · · Case: DirectDeclaratorIdent,
-	// · · · · · Token: example.c:1:27: identifier "j",
+	// · Token2: example.c:1:6: ',' ",",
+	// }
+	// &cc.InitDeclarator{
+	// · AttributeSpecifierList: &cc.AttributeSpecifierList{
+	// · · AttributeSpecifier: &cc.AttributeSpecifier{
+	// · · · AttributeValueList: &cc.AttributeValueList{
+	// · · · · AttributeValue: &cc.AttributeValue{
+	// · · · · · Case: AttributeValueIdent,
+	// · · · · · Token: example.c:1:23: identifier "a",
 	// · · · · },
 	// · · · },
+	// · · · Token: example.c:1:8: '__attribute__' "__attribute__",
+	// · · · Token2: example.c:1:21: '(' "(",
+	// · · · Token3: example.c:1:22: '(' "(",
+	// · · · Token4: example.c:1:24: ')' ")",
+	// · · · Token5: example.c:1:25: ')' ")",
 	// · · },
-	// · · Token: example.c:1:6: ',' ",",
+	// · },
+	// · Case: InitDeclaratorDecl,
+	// · Declarator: &cc.Declarator{
+	// · · DirectDeclarator: &cc.DirectDeclarator{
+	// · · · Case: DirectDeclaratorIdent,
+	// · · · Token: example.c:1:27: identifier "j",
+	// · · },
 	// · },
 	// }
 }
@@ -3131,8 +3108,8 @@ func ExampleIterationStatement_forDecl() {
 	// · · · · Token: example.c:1:16: 'int' "int",
 	// · · · },
 	// · · },
-	// · · InitDeclaratorList: &cc.InitDeclaratorList{
-	// · · · InitDeclarator: &cc.InitDeclarator{
+	// · · InitDeclarators: []*cc.InitDeclarator{ // len 1
+	// · · · 0: &cc.InitDeclarator{
 	// · · · · Case: InitDeclaratorInit,
 	// · · · · Declarator: &cc.Declarator{
 	// · · · · · DirectDeclarator: &cc.DirectDeclarator{
@@ -4234,8 +4211,8 @@ func ExampleStatement_labeled() {
 	// · · · · · Token: example.c:1:9: 'char' "char",
 	// · · · · },
 	// · · · },
-	// · · · InitDeclaratorList: &cc.InitDeclaratorList{
-	// · · · · InitDeclarator: &cc.InitDeclarator{
+	// · · · InitDeclarators: []*cc.InitDeclarator{ // len 1
+	// · · · · 0: &cc.InitDeclarator{
 	// · · · · · Case: InitDeclaratorInit,
 	// · · · · · Declarator: &cc.Declarator{
 	// · · · · · · DirectDeclarator: &cc.DirectDeclarator{
@@ -4303,8 +4280,8 @@ func ExampleStatement_compound() {
 	// · · · · · Token: example.c:1:9: 'char' "char",
 	// · · · · },
 	// · · · },
-	// · · · InitDeclaratorList: &cc.InitDeclaratorList{
-	// · · · · InitDeclarator: &cc.InitDeclarator{
+	// · · · InitDeclarators: []*cc.InitDeclarator{ // len 1
+	// · · · · 0: &cc.InitDeclarator{
 	// · · · · · Case: InitDeclaratorInit,
 	// · · · · · Declarator: &cc.Declarator{
 	// · · · · · · DirectDeclarator: &cc.DirectDeclarator{
@@ -4373,8 +4350,8 @@ func ExampleStatement_expr() {
 	// · · · · · Token: example.c:1:9: 'char' "char",
 	// · · · · },
 	// · · · },
-	// · · · InitDeclaratorList: &cc.InitDeclaratorList{
-	// · · · · InitDeclarator: &cc.InitDeclarator{
+	// · · · InitDeclarators: []*cc.InitDeclarator{ // len 1
+	// · · · · 0: &cc.InitDeclarator{
 	// · · · · · Case: InitDeclaratorInit,
 	// · · · · · Declarator: &cc.Declarator{
 	// · · · · · · DirectDeclarator: &cc.DirectDeclarator{
@@ -4428,8 +4405,8 @@ func ExampleStatement_selection() {
 	// · · · · · Token: example.c:1:9: 'char' "char",
 	// · · · · },
 	// · · · },
-	// · · · InitDeclaratorList: &cc.InitDeclaratorList{
-	// · · · · InitDeclarator: &cc.InitDeclarator{
+	// · · · InitDeclarators: []*cc.InitDeclarator{ // len 1
+	// · · · · 0: &cc.InitDeclarator{
 	// · · · · · Case: InitDeclaratorInit,
 	// · · · · · Declarator: &cc.Declarator{
 	// · · · · · · DirectDeclarator: &cc.DirectDeclarator{
@@ -4502,8 +4479,8 @@ func ExampleStatement_iteration() {
 	// · · · · · Token: example.c:1:9: 'char' "char",
 	// · · · · },
 	// · · · },
-	// · · · InitDeclaratorList: &cc.InitDeclaratorList{
-	// · · · · InitDeclarator: &cc.InitDeclarator{
+	// · · · InitDeclarators: []*cc.InitDeclarator{ // len 1
+	// · · · · 0: &cc.InitDeclarator{
 	// · · · · · Case: InitDeclaratorInit,
 	// · · · · · Declarator: &cc.Declarator{
 	// · · · · · · DirectDeclarator: &cc.DirectDeclarator{
@@ -4574,8 +4551,8 @@ func ExampleStatement_jump() {
 	// · · · · · Token: example.c:1:9: 'char' "char",
 	// · · · · },
 	// · · · },
-	// · · · InitDeclaratorList: &cc.InitDeclaratorList{
-	// · · · · InitDeclarator: &cc.InitDeclarator{
+	// · · · InitDeclarators: []*cc.InitDeclarator{ // len 1
+	// · · · · 0: &cc.InitDeclarator{
 	// · · · · · Case: InitDeclaratorInit,
 	// · · · · · Declarator: &cc.Declarator{
 	// · · · · · · DirectDeclarator: &cc.DirectDeclarator{
@@ -4635,8 +4612,8 @@ func ExampleStatement_asm() {
 	// · · · · · Token: example.c:1:9: 'char' "char",
 	// · · · · },
 	// · · · },
-	// · · · InitDeclaratorList: &cc.InitDeclaratorList{
-	// · · · · InitDeclarator: &cc.InitDeclarator{
+	// · · · InitDeclarators: []*cc.InitDeclarator{ // len 1
+	// · · · · 0: &cc.InitDeclarator{
 	// · · · · · Case: InitDeclaratorInit,
 	// · · · · · Declarator: &cc.Declarator{
 	// · · · · · · DirectDeclarator: &cc.DirectDeclarator{
@@ -5134,8 +5111,8 @@ func ExampleExternalDeclaration_case0() {
 	// · · · Token: example.c:1:1: 'int' "int",
 	// · · },
 	// · },
-	// · InitDeclaratorList: &cc.InitDeclaratorList{
-	// · · InitDeclarator: &cc.InitDeclarator{
+	// · InitDeclarators: []*cc.InitDeclarator{ // len 1
+	// · · 0: &cc.InitDeclarator{
 	// · · · Case: InitDeclaratorDecl,
 	// · · · Declarator: &cc.Declarator{
 	// · · · · DirectDeclarator: &cc.DirectDeclarator{
@@ -5161,8 +5138,8 @@ func ExampleExternalDeclaration_case1() {
 	// · · · Token: example.c:1:1: 'int' "int",
 	// · · },
 	// · },
-	// · InitDeclaratorList: &cc.InitDeclaratorList{
-	// · · InitDeclarator: &cc.InitDeclarator{
+	// · InitDeclarators: []*cc.InitDeclarator{ // len 1
+	// · · 0: &cc.InitDeclarator{
 	// · · · Case: InitDeclaratorDecl,
 	// · · · Declarator: &cc.Declarator{
 	// · · · · DirectDeclarator: &cc.DirectDeclarator{
@@ -5181,8 +5158,8 @@ func ExampleExternalDeclaration_case1() {
 	// · · · Token: example.c:1:8: 'int' "int",
 	// · · },
 	// · },
-	// · InitDeclaratorList: &cc.InitDeclaratorList{
-	// · · InitDeclarator: &cc.InitDeclarator{
+	// · InitDeclarators: []*cc.InitDeclarator{ // len 1
+	// · · 0: &cc.InitDeclarator{
 	// · · · Case: InitDeclaratorDecl,
 	// · · · Declarator: &cc.Declarator{
 	// · · · · DirectDeclarator: &cc.DirectDeclarator{

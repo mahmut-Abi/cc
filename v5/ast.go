@@ -875,7 +875,7 @@ func (*AutoDeclaration) isDeclaration()         {}
 
 type CommonDeclaration struct {
 	DeclarationSpecifiers  DeclarationSpecifiers
-	InitDeclaratorList     *InitDeclaratorList
+	InitDeclarators        []*InitDeclarator
 	AttributeSpecifierList *AttributeSpecifierList
 	Token                  Token
 }
@@ -894,8 +894,10 @@ func (n *CommonDeclaration) Position() (r token.Position) {
 		}
 	}
 
-	if p := n.InitDeclaratorList.Position(); p.IsValid() {
-		return p
+	for _, d := range n.InitDeclarators {
+		if p := d.Position(); p.IsValid() {
+			return p
+		}
 	}
 
 	if p := n.AttributeSpecifierList.Position(); p.IsValid() {
@@ -2211,6 +2213,7 @@ type InitDeclarator struct {
 	Declarator             *Declarator
 	Initializer            *Initializer
 	Token                  Token
+	Token2                 Token
 }
 
 // String implements fmt.Stringer.
@@ -2246,30 +2249,6 @@ func (n *InitDeclarator) Position() (r token.Position) {
 	default:
 		panic("internal error")
 	}
-}
-
-// InitDeclaratorList represents data reduced by productions:
-//
-//	InitDeclaratorList:
-//	        InitDeclarator
-//	|       InitDeclaratorList ',' InitDeclarator
-type InitDeclaratorList struct {
-	AttributeSpecifierList *AttributeSpecifierList
-	InitDeclarator         *InitDeclarator
-	InitDeclaratorList     *InitDeclaratorList
-	Token                  Token
-}
-
-// String implements fmt.Stringer.
-func (n *InitDeclaratorList) String() string { return PrettyString(n) }
-
-// Position reports the position of the first component of n, if available.
-func (n *InitDeclaratorList) Position() (r token.Position) {
-	if n == nil {
-		return r
-	}
-
-	return n.InitDeclarator.Position()
 }
 
 // InitializerCase represents case numbers of production Initializer

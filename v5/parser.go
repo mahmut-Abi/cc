@@ -1071,7 +1071,7 @@ func (p *parser) declaration(ds DeclarationSpecifiers, d *Declarator, declare bo
 		}
 	}
 
-	return &CommonDeclaration{DeclarationSpecifiers: ds, InitDeclaratorList: p.initDeclaratorListOpt(ds, d, declare), AttributeSpecifierList: p.attributeSpecifierListOpt(), Token: p.must(';')}
+	return &CommonDeclaration{DeclarationSpecifiers: ds, InitDeclarators: p.initDeclaratorListOpt(ds, d, declare), AttributeSpecifierList: p.attributeSpecifierListOpt(), Token: p.must(';')}
 }
 
 //  static-assert-declaration
@@ -1163,7 +1163,7 @@ func (p *parser) attributeValue() (r *AttributeValue) {
 //  init-declarator-list:
 // 	init-declarator
 // 	init-declarator-list , init-declarator
-func (p *parser) initDeclaratorListOpt(ds DeclarationSpecifiers, d *Declarator, declare bool) (r *InitDeclaratorList) {
+func (p *parser) initDeclaratorListOpt(ds DeclarationSpecifiers, d *Declarator, declare bool) (r []*InitDeclarator) {
 	switch {
 	case d == nil:
 		switch p.rune(false) {
@@ -1184,14 +1184,17 @@ func (p *parser) initDeclaratorListOpt(ds DeclarationSpecifiers, d *Declarator, 
 			return nil
 		}
 	}
-	r = &InitDeclaratorList{InitDeclarator: p.initDeclarator(ds, d, declare)}
-	prev := r
+	var list []*InitDeclarator
+	prev := p.initDeclarator(ds, d, declare)
+	list = append(list, prev)
 	for p.rune(false) == ',' {
-		idl := &InitDeclaratorList{Token: p.shift(false), AttributeSpecifierList: p.attributeSpecifierListOpt(), InitDeclarator: p.initDeclarator(ds, nil, declare)}
-		prev.InitDeclaratorList = idl
-		prev = idl
+		prev.Token2 = p.shift(false)
+		attr := p.attributeSpecifierListOpt()
+		prev = p.initDeclarator(ds, nil, declare)
+		prev.AttributeSpecifierList = attr
+		list = append(list, prev)
 	}
-	return r
+	return list
 }
 
 //  init-declarator:

@@ -573,8 +573,8 @@ func (c *ctx) checkFunctionDefinition(sc *Scope, ds DeclarationSpecifiers, d *De
 		for _, n := range dl {
 			n.check(c)
 			if n, ok := n.(*CommonDeclaration); ok {
-				for l := n.InitDeclaratorList; l != nil; l = l.InitDeclaratorList {
-					d := l.InitDeclarator.Declarator
+				for _, l := range n.InitDeclarators {
+					d := l.Declarator
 					nm := d.Name()
 					if x := m[nm]; x != nil {
 						c.errors.add(errorf("%v: %s redeclared, previous declaration at %v:", d.Position(), nm, x.Position()))
@@ -832,8 +832,8 @@ func (n *CommonDeclaration) check(c *ctx) Type {
 	var alignas int
 	t := checkDeclarationSpecifiers(c, n.DeclarationSpecifiers, &isExtern, &isStatic, &isAtomic, &isThreadLocal, &isConst, &isVolatile, &isInline, &isRegister, &isAuto, &isNoreturn, &isRestrict, &alignas)
 	if attr := n.AttributeSpecifierList.check(c); attr != nil {
-		for l := n.InitDeclaratorList; l != nil; l = l.InitDeclaratorList {
-			d := l.InitDeclarator.Declarator
+		for _, l := range n.InitDeclarators {
+			d := l.Declarator
 			t := d.Type()
 			new, err := attr.merge(d, t.Attributes())
 			if err != nil {
@@ -846,8 +846,8 @@ func (n *CommonDeclaration) check(c *ctx) Type {
 			}
 		}
 	}
-	for l := n.InitDeclaratorList; l != nil; l = l.InitDeclaratorList {
-		l.InitDeclarator.check(c, t, isExtern, isStatic, isAtomic, isThreadLocal, isConst, isVolatile, isInline, isRegister, isAuto, alignas)
+	for _, d := range n.InitDeclarators {
+		d.check(c, t, isExtern, isStatic, isAtomic, isThreadLocal, isConst, isVolatile, isInline, isRegister, isAuto, alignas)
 	}
 	return c.voidT
 }
