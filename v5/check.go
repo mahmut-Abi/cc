@@ -485,7 +485,7 @@ func (n *AST) check() error {
 //          Asm ';'
 func (n *AsmStatement) check(c *ctx) Type {
 	n.Asm.check(c)
-	return nil
+	return c.voidT
 }
 
 //  Asm:
@@ -554,7 +554,7 @@ func (n *AsmQualifier) check(c *ctx) {
 //          DeclarationSpecifiers Declarator DeclarationList CompoundStatement
 func (n *FunctionDefinition) check(c *ctx) Type {
 	c.checkFunctionDefinition(n.scope, n.Specifiers, n.Declarator, n.Declarations, n.Body)
-	return nil
+	return c.voidT
 }
 
 func (c *ctx) checkFunctionDefinition(sc *Scope, ds DeclarationSpecifiers, d *Declarator, dl []Declaration, cs *CompoundStatement) {
@@ -619,7 +619,7 @@ func (c *ctx) checkFunctionDefinition(sc *Scope, ds DeclarationSpecifiers, d *De
 //          '{' LabelDeclarationList BlockItemList '}'
 func (n *CompoundStatement) check(c *ctx) (r Type) {
 	if n == nil {
-		return
+		return c.voidT
 	}
 
 	r = c.voidT
@@ -632,17 +632,17 @@ func (n *CompoundStatement) check(c *ctx) (r Type) {
 
 func (n *LabelDeclaration) check(c *ctx) Type {
 	//TODO
-	return nil
+	return c.voidT
 }
 
-func (n *LabeledStatement) check(c *ctx) (r Type) {
+func (n *LabeledStatement) check(c *ctx) Type {
 	if n == nil {
-		return nil
+		return c.voidT
 	}
 
 	switch n.Case {
 	case LabeledStatementLabel: // IDENTIFIER ':' Statement
-		return n.Statement.check(c)
+		n.Statement.check(c)
 	case LabeledStatementCaseLabel: // "case" ConstantExpression ':' Statement
 		if c.inSwitch == 0 {
 			c.errors.add(errorf("%v: case label not within a switch statement", n.Position()))
@@ -650,7 +650,7 @@ func (n *LabeledStatement) check(c *ctx) (r Type) {
 		n.caseOrdinal = c.switchCases
 		c.switchCases++
 		n.ConstantExpression.check(c, decay)
-		return n.Statement.check(c)
+		n.Statement.check(c)
 	case LabeledStatementRange: // "case" ConstantExpression "..." ConstantExpression ':' Statement
 		if c.inSwitch == 0 {
 			c.errors.add(errorf("%v: case label not within a switch statement", n.Position()))
@@ -659,23 +659,23 @@ func (n *LabeledStatement) check(c *ctx) (r Type) {
 		c.switchCases++
 		n.ConstantExpression.check(c, decay)
 		n.ConstantExpression2.check(c, decay)
-		return n.Statement.check(c)
+		n.Statement.check(c)
 	case LabeledStatementDefault: // "default" ':' Statement
 		if c.inSwitch == 0 {
 			c.errors.add(errorf("%v: default label not within a switch statement", n.Position()))
 		}
 		n.caseOrdinal = c.switchCases
 		c.switchCases++
-		return n.Statement.check(c)
+		n.Statement.check(c)
 	default:
 		c.errors.add(errorf("internal error: %v", n.Case))
 	}
-	return nil
+	return c.voidT
 }
 
-func (n *IterationStatement) check(c *ctx) (r Type) {
+func (n *IterationStatement) check(c *ctx) Type {
 	if n == nil {
-		return nil
+		return c.voidT
 	}
 
 	switch n.Case {
@@ -686,16 +686,15 @@ func (n *IterationStatement) check(c *ctx) (r Type) {
 		}
 		c.inLoop++
 		defer func() { c.inLoop-- }()
-		return n.Statement.check(c)
+		n.Statement.check(c)
 	case IterationStatementDo: // "do" Statement "while" '(' ExpressionList ')' ';'
 		c.inLoop++
 		defer func() { c.inLoop-- }()
-		r = n.Statement.check(c)
+		n.Statement.check(c)
 		if n.ExpressionList != nil {
 			n.ExpressionList.check(c, decay)
 			n.ExpressionList.eval(c, decay)
 		}
-		return r
 	case IterationStatementFor: // "for" '(' ExpressionList ';' ExpressionList ';' ExpressionList ')' Statement
 		if n.ExpressionList != nil {
 			n.ExpressionList.check(c, decay)
@@ -711,7 +710,7 @@ func (n *IterationStatement) check(c *ctx) (r Type) {
 		}
 		c.inLoop++
 		defer func() { c.inLoop-- }()
-		return n.Statement.check(c)
+		n.Statement.check(c)
 	case IterationStatementForDecl: // "for" '(' Declaration ExpressionList ';' ExpressionList ')' Statement
 		n.Declaration.check(c)
 		if n.ExpressionList != nil {
@@ -724,16 +723,16 @@ func (n *IterationStatement) check(c *ctx) (r Type) {
 		}
 		c.inLoop++
 		defer func() { c.inLoop-- }()
-		return n.Statement.check(c)
+		n.Statement.check(c)
 	default:
 		c.errors.add(errorf("internal error: %v", n.Case))
 	}
-	return nil
+	return c.voidT
 }
 
-func (n *JumpStatement) check(c *ctx) (r Type) {
+func (n *JumpStatement) check(c *ctx) Type {
 	if n == nil {
-		return
+		return c.voidT
 	}
 
 out:
@@ -762,20 +761,19 @@ out:
 		}
 	case JumpStatementReturn: // "return" ExpressionList ';'
 		if n.ExpressionList != nil {
-			r = n.ExpressionList.check(c, decay)
+			n.ExpressionList.check(c, decay)
 			n.ExpressionList.eval(c, decay)
 		}
 		//TODO check assignable to fn result
-		return r
 	default:
 		c.errors.add(errorf("internal error: %v", n.Case))
 	}
 	return c.voidT
 }
 
-func (n *SelectionStatement) check(c *ctx) (r Type) {
+func (n *SelectionStatement) check(c *ctx) Type {
 	if n == nil {
-		return nil
+		return c.voidT
 	}
 
 	switch n.Case {
@@ -784,19 +782,14 @@ func (n *SelectionStatement) check(c *ctx) (r Type) {
 			n.ExpressionList.check(c, decay)
 			n.ExpressionList.eval(c, decay)
 		}
-		return n.Statement.check(c)
+		n.Statement.check(c)
 	case SelectionStatementIfElse: // "if" '(' ExpressionList ')' Statement "else" Statement
 		if n.ExpressionList != nil {
 			n.ExpressionList.check(c, decay)
 			n.ExpressionList.eval(c, decay)
 		}
-		r1 := n.Statement.check(c)
-		r2 := n.Statement2.check(c)
-		if r1 != nil && r1 != Invalid {
-			return r1
-		}
-
-		return r2
+		n.Statement.check(c)
+		n.Statement2.check(c)
 	case SelectionStatementSwitch: // "switch" '(' ExpressionList ')' Statement
 		if n.ExpressionList != nil {
 			n.ExpressionList.check(c, decay)
@@ -810,22 +803,23 @@ func (n *SelectionStatement) check(c *ctx) (r Type) {
 			n.switchCases = c.switchCases
 			c.switchCases = switchCases
 		}()
-		return n.Statement.check(c)
+		n.Statement.check(c)
 	default:
 		c.errors.add(errorf("internal error: %v", n.Case))
 	}
-	return nil
+	return c.voidT
 }
 
 func (n *ExpressionStatement) check(c *ctx) (r Type) {
 	if n == nil {
-		return nil
+		return c.voidT
 	}
 
 	if n.ExpressionList == nil {
 		return c.voidT
 	}
 
+	r = c.voidT
 	if n.ExpressionList != nil {
 		r = n.ExpressionList.check(c, decay)
 		n.ExpressionList.eval(c, decay)
@@ -855,18 +849,18 @@ func (n *CommonDeclaration) check(c *ctx) Type {
 	for l := n.InitDeclaratorList; l != nil; l = l.InitDeclaratorList {
 		l.InitDeclarator.check(c, t, isExtern, isStatic, isAtomic, isThreadLocal, isConst, isVolatile, isInline, isRegister, isAuto, alignas)
 	}
-	return nil
+	return c.voidT
 }
 
 func (n *AutoDeclaration) check(c *ctx) Type {
 	if n.Initializer.Case != InitializerExpr {
 		c.errors.add(errorf("%v: expected assignment expression", n.Initializer.Position()))
-		return nil
+		return c.voidT
 	}
 
 	n.Declarator.typ = n.Initializer.AssignmentExpression.check(c, decay)
 	n.Declarator.write++
-	return nil
+	return c.voidT
 }
 
 //  StaticAssertDeclaration:
@@ -879,7 +873,7 @@ func (n *StaticAssertDeclaration) check(c *ctx) Type {
 		}, n.Token4)
 		c.errors.add(errorf("%v: assertion failed: %s", n.ConstantExpression.Position(), s[:len(s)-1]))
 	}
-	return nil
+	return c.voidT
 }
 
 //  InitDeclarator:
