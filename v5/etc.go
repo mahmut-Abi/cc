@@ -351,7 +351,7 @@ func decodeEscapeSequence(eh errHandler, tok Token, s string) (rune, int) {
 	}
 
 	if r < '0' || r > '7' {
-		panic(todo(""))
+		return r, 2
 	}
 
 	v, n := 0, 1
