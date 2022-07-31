@@ -150,6 +150,7 @@ func newCtx(ast *AST) *ctx {
 	ast.Float = c.ast.kinds[Float]
 	ast.LongDouble = c.ast.kinds[LongDouble]
 	ast.Void = c.voidT
+	ast.PVoid = c.pvoidT
 	return c
 }
 
@@ -445,6 +446,7 @@ type AST struct {
 	SizeT                 Type   // Valid only after Translate
 	Declarations          []ExternalDeclaration
 	Void                  Type // Valid only after Translate
+	PVoid                 Type // Valid only after Translate
 	kinds                 map[Kind]Type
 	predefinedDeclarator0 *Declarator // `int __predefined_declarator`
 }
@@ -594,7 +596,7 @@ func (c *ctx) checkFunctionDefinition(sc *Scope, ds DeclarationSpecifiers, d *De
 				d.lexicalScope = d.DirectDeclarator.params
 				d.resolved = d.lexicalScope
 				param.Declarator = d
-				param.typ = d.Type()
+				param.typ = d.Type().Decay()
 			}
 			ft.fp = append(ft.fp, param)
 		}
@@ -1530,6 +1532,9 @@ func (n *Declarator) check(c *ctx, t Type) (r Type) {
 		r = r.setName(n)
 	}
 	n.typ = r
+	if n.IsParam() {
+		n.typ = r.Decay()
+	}
 	return n.Type()
 }
 
@@ -1638,7 +1643,11 @@ func (n *ParameterDeclaration) check(c *ctx) {
 			c.errors.add(errorf("%v: invalid specifier(s) for parameter: abc", n.Declarator.Position()))
 		}
 	case ParameterDeclarationAbstract: // DeclarationSpecifiers AbstractDeclarator
-		n.typ = n.AbstractDeclarator.check(c, checkDeclarationSpecifiers(c, n.DeclarationSpecifiers, &isExtern, &isStatic, &isAtomic, &isThreadLocal, &isConst, &isVolatile, &isInline, &isRegister, &isAuto, &isNoreturn, &isRestrict, &alignas))
+		t := n.AbstractDeclarator.check(c, checkDeclarationSpecifiers(c, n.DeclarationSpecifiers, &isExtern, &isStatic, &isAtomic, &isThreadLocal, &isConst, &isVolatile, &isInline, &isRegister, &isAuto, &isNoreturn, &isRestrict, &alignas))
+		n.typ = t
+		if n.AbstractDeclarator != nil {
+			n.AbstractDeclarator.typ = t
+		}
 		if isExtern || isStatic || isAtomic || isThreadLocal || isInline || isAuto || isNoreturn || alignas != 0 {
 			c.errors.add(errorf("%v: invalid specifier(s) for unnamed parameter", n.Position()))
 		}
@@ -3093,7 +3102,7 @@ func (c *ctx) takeAddr(n Node) {
 
 //  PostfixExpression:
 //          PrimaryExpression                                 // Case PostfixExpressionPrimary
-//  |       PostfixExpression '[' ExpressionList ']'          ;// Case PostfixExpressionIndex
+//  |       PostfixExpression '[' ExpressionList ']'          // Case PostfixExpressionIndex
 //  |       PostfixExpression '(' ArgumentExpressionList ')'  // Case PostfixExpressionCall
 //  |       PostfixExpression '.' IDENTIFIER                  // Case PostfixExpressionSelect
 //  |       PostfixExpression "->" IDENTIFIER                 // Case PostfixExpressionPSelect
@@ -3125,9 +3134,9 @@ out:
 		mode = mode.add(decay)
 		switch t1, t2 := n.PostfixExpression.check(c, mode), n.ExpressionList.check(c, mode); {
 		case isPointerType(t1) && IsIntegerType(t2):
-			n.typ = t1.(*PointerType).Elem()
+			n.typ = t1.(*PointerType).Elem().Decay()
 		case isPointerType(t2) && IsIntegerType(t1):
-			n.typ = t2.(*PointerType).Elem()
+			n.typ = t2.(*PointerType).Elem().Decay()
 		case isVectorType(t1) && IsIntegerType(t2):
 			n.typ = t1
 		case isVectorType(t2) && IsIntegerType(t1):
