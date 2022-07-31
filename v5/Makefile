@@ -28,7 +28,7 @@ clean:
 
 cpu:
 	go test -c -o cpu.test
-	./cpu.test -test.run TestTranslationPhase4 -re 20001226-1.c -test.cpuprofile cpu.out
+	./mem.test -test.run TestParserBug -re 9.c -test.memprofile mem.out
 	go tool pprof --lines cpu.test cpu.out
 
 edit:
