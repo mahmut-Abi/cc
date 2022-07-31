@@ -1819,6 +1819,12 @@ func (c *cpp) eval(s0 []Token) interface{} {
 	s1 := cppTokens(tokens2CppTokens(s0, false))
 	p := &cppTokens{}
 	c.expand(false, true, &s1, p)
+	p.skipBlank()
+	if len(*p) == 0 {
+		c.eh("%v: expected expression", s0[0])
+		return int64(0)
+	}
+
 	val := c.expression(p, true)
 	switch t := p.token(); t.Ch {
 	case eof, '#':
@@ -2602,10 +2608,12 @@ func (c *cpp) primaryExpression(s *cppTokens, eval bool) interface{} {
 			panic(todo(""))
 		}
 		return expr
+	case '#':
+		c.eh("%v: assertions are a deprecated extension", t.Position())
 	default:
-		panic(todo("", &t))
-		// return int64(0)
+		c.eh("%v: internal error", t.Position())
 	}
+	return int64(0)
 }
 
 // [0], 6.4.4.1 Integer constants
