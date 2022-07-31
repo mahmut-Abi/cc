@@ -2442,7 +2442,10 @@ func (n *StructDeclarationList) check(c *ctx, s *StructOrUnionSpecifier) {
 		}
 
 		f.index = i
-
+		al := f.Type().Align()
+		if al > maxAlignBytes {
+			maxAlignBytes = al
+		}
 		switch {
 		case f.isBitField:
 			f.accessBytes = bits2AccessBytes(f.valueBits + brk&7)
@@ -2467,10 +2470,6 @@ func (n *StructDeclarationList) check(c *ctx, s *StructOrUnionSpecifier) {
 			if f.Type().IsIncomplete() && f.Type().Kind() == Array { // Flexible array member
 				sz = 0
 			}
-			al := f.Type().Align()
-			if al > maxAlignBytes {
-				maxAlignBytes = al
-			}
 			if !isUnion {
 				brk = roundup(brk, 8*int64(al))
 			}
@@ -2485,18 +2484,21 @@ func (n *StructDeclarationList) check(c *ctx, s *StructOrUnionSpecifier) {
 			}
 		}
 	}
+	brk0 := roundup(brk, 8)
 	brk = roundup(brk, int64(maxAlignBytes*8))
 	switch {
 	case isUnion:
 		t := s.typ.(*UnionType)
-		t.fields = fields
-		t.size = unionBits >> 3
 		t.align = maxAlignBytes
+		t.fields = fields
+		t.padding = int(brk-brk0) >> 3
+		t.size = unionBits >> 3
 	default:
 		t := s.typ.(*StructType)
-		t.fields = fields
-		t.size = brk >> 3
 		t.align = maxAlignBytes
+		t.fields = fields
+		t.padding = int(brk-brk0) >> 3
+		t.size = brk >> 3
 	}
 
 	type bitFieldGroup struct {
