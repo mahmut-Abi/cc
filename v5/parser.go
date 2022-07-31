@@ -502,7 +502,7 @@ func (p *parser) compoundStatement(isFnScope bool, d *Declarator) (r *CompoundSt
 	if isFnScope && d != nil && !p.cpp.cfg.doNotInjectFunc {
 		p.injectFuncTokens(lbrace, d.Name())
 	}
-	return &CompoundStatement{Lbrace: lbrace, List: p.blockItemListOpt(), Rbrace: p.must('}'), lexicalScoper: newLexicalScoper(p.scope)}
+	return &CompoundStatement{Lbrace: lbrace, List: p.blockItemListOpt(), Rbrace: p.must('}'), lexicalScope: (*lexicalScope)(p.scope)}
 }
 
 var funcTokensText = [][]byte{
@@ -2252,7 +2252,7 @@ func (p *parser) primaryExpression(checkTypeName bool) (r *PrimaryExpression) {
 	case rune(FLOATCONST):
 		r = &PrimaryExpression{Case: PrimaryExpressionFloat, Token: p.shift(false)}
 	case rune(IDENTIFIER):
-		r = &PrimaryExpression{Case: PrimaryExpressionIdent, Token: p.shift(false), lexicalScoper: newLexicalScoper(p.scope)}
+		r = &PrimaryExpression{Case: PrimaryExpressionIdent, Token: p.shift(false), lexicalScope: (*lexicalScope)(p.scope)}
 	case rune(INTCONST):
 		r = &PrimaryExpression{Case: PrimaryExpressionInt, Token: p.shift(false)}
 	case rune(LONGCHARCONST):
@@ -2319,7 +2319,7 @@ func (p *parser) declarator(ptr *Pointer, ds DeclarationSpecifiers, declare bool
 	if ptr == nil {
 		ptr = p.pointer(true)
 	}
-	r = &Declarator{Pointer: ptr, DirectDeclarator: p.directDeclarator(declare), lexicalScoper: newLexicalScoper(p.scope), isTypename: ds.IsTypedef()}
+	r = &Declarator{Pointer: ptr, DirectDeclarator: p.directDeclarator(declare), lexicalScope: (*lexicalScope)(p.scope), isTypename: ds.IsTypedef()}
 	if declare {
 		r.visible = visible(p.seq) // [0]6.2.1,7
 		p.scope.declare(p.cpp.eh, r.Name(), r)
@@ -2918,6 +2918,7 @@ func (p *parser) isFunctionSpecifier(ch rune) bool { return ch == rune(INLINE) |
 // 	restrict
 // 	volatile
 // 	_Atomic
+//	__attribute__
 func (p *parser) typeQualifier(acceptAttributes bool) *TypeQualifier {
 	switch p.rune(false) {
 	case eof:
@@ -3055,7 +3056,7 @@ func (p *parser) typeSpecifier() *TypeSpecifier {
 	case rune(DOUBLE):
 		return &TypeSpecifier{Case: TypeSpecifierDouble, Token: p.shift(false)}
 	case rune(ENUM):
-		return &TypeSpecifier{Case: TypeSpecifierEnum, EnumSpecifier: p.enumSpecifier(), lexicalScoper: newLexicalScoper(p.scope)}
+		return &TypeSpecifier{Case: TypeSpecifierEnum, EnumSpecifier: p.enumSpecifier(), lexicalScope: (*lexicalScope)(p.scope)}
 	case rune(FLOAT):
 		return &TypeSpecifier{Case: TypeSpecifierFloat, Token: p.shift(false)}
 	case rune(INT):
@@ -3067,7 +3068,7 @@ func (p *parser) typeSpecifier() *TypeSpecifier {
 	case rune(SHORT):
 		return &TypeSpecifier{Case: TypeSpecifierShort, Token: p.shift(false)}
 	case rune(TYPENAME):
-		return &TypeSpecifier{Case: TypeSpecifierTypeName, Token: p.shift(true), lexicalScoper: newLexicalScoper(p.scope)}
+		return &TypeSpecifier{Case: TypeSpecifierTypeName, Token: p.shift(true), lexicalScope: (*lexicalScope)(p.scope)}
 	case rune(UNSIGNED):
 		return &TypeSpecifier{Case: TypeSpecifierUnsigned, Token: p.shift(false)}
 	case
@@ -3188,14 +3189,14 @@ func (p *parser) enumSpecifier() (r *EnumSpecifier) {
 	case rune(IDENTIFIER):
 		switch p.peek(2, true).Ch {
 		case '{':
-			r = &EnumSpecifier{Case: EnumSpecifierDef, Token: p.shift(false), Token2: p.shift(false), Token3: p.shift(false), EnumeratorList: p.enumeratorList(), lexicalScoper: newLexicalScoper(p.scope)}
+			r = &EnumSpecifier{Case: EnumSpecifierDef, Token: p.shift(false), Token2: p.shift(false), Token3: p.shift(false), EnumeratorList: p.enumeratorList(), lexicalScope: (*lexicalScope)(p.scope)}
 			r.visible = visible(r.Token.seq + 1) // [0]6.2.1,7
 			p.scope.declare(p.cpp.eh, r.Token2.SrcStr(), r)
 		default:
-			return &EnumSpecifier{Case: EnumSpecifierTag, Token: p.shift(false), Token2: p.shift(false), lexicalScoper: newLexicalScoper(p.scope)}
+			return &EnumSpecifier{Case: EnumSpecifierTag, Token: p.shift(false), Token2: p.shift(false), lexicalScope: (*lexicalScope)(p.scope)}
 		}
 	case '{':
-		r = &EnumSpecifier{Case: EnumSpecifierDef, Token: p.shift(false), Token3: p.shift(false), EnumeratorList: p.enumeratorList(), lexicalScoper: newLexicalScoper(p.scope)}
+		r = &EnumSpecifier{Case: EnumSpecifierDef, Token: p.shift(false), Token3: p.shift(false), EnumeratorList: p.enumeratorList(), lexicalScope: (*lexicalScope)(p.scope)}
 	default:
 		t := p.shift(false)
 		p.cpp.eh("%v: unexpected %v, expected enum specifier", t.Position(), runeName(t.Ch))
@@ -3280,9 +3281,9 @@ func (p *parser) structOrUnionSpecifier() (r *StructOrUnionSpecifier) {
 		p.cpp.eh("%v: unexpected EOF", p.toks[0].Position())
 		return nil
 	case '{':
-		return &StructOrUnionSpecifier{Case: StructOrUnionSpecifierDef, StructOrUnion: sou, AttributeSpecifierList: attrs, Token2: p.shift(false), StructDeclarationList: p.structDeclarationList(), Token3: p.must('}'), AttributeSpecifierList2: p.attributeSpecifierListOpt(), lexicalScoper: newLexicalScoper(p.scope)}
+		return &StructOrUnionSpecifier{Case: StructOrUnionSpecifierDef, StructOrUnion: sou, AttributeSpecifierList: attrs, Token2: p.shift(false), StructDeclarationList: p.structDeclarationList(), Token3: p.must('}'), AttributeSpecifierList2: p.attributeSpecifierListOpt(), lexicalScope: (*lexicalScope)(p.scope)}
 	case rune(IDENTIFIER):
-		r = &StructOrUnionSpecifier{StructOrUnion: sou, AttributeSpecifierList: attrs, Token: p.shift(false), lexicalScoper: newLexicalScoper(p.scope)}
+		r = &StructOrUnionSpecifier{StructOrUnion: sou, AttributeSpecifierList: attrs, Token: p.shift(false), lexicalScope: (*lexicalScope)(p.scope)}
 		r.visible = visible(r.Token.seq + 1) // [0]6.2.1,7
 		switch p.rune(false) {
 		case eof:
@@ -3620,11 +3621,7 @@ type visible int32
 // Visible reports the token sequence number where the visibility of a name starts.
 func (v visible) Visible() int { return int(v) }
 
-type lexicalScoper struct {
-	lexicalScope *Scope
-}
-
-func newLexicalScoper(s *Scope) lexicalScoper { return lexicalScoper{s} }
+type lexicalScope Scope
 
 // LexicalScope provides the scope a node appears in.
-func (n lexicalScoper) LexicalScope() *Scope { return n.lexicalScope }
+func (n *lexicalScope) LexicalScope() *Scope { return (*Scope)(n) }
