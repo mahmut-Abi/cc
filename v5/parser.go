@@ -1197,7 +1197,7 @@ func (p *parser) initDeclarator(ds DeclarationSpecifiers, d *Declarator, declare
 		d = p.declarator(nil, ds, declare)
 	}
 
-	r = &InitDeclarator{Case: InitDeclaratorDecl, Declarator: d}
+	r = &InitDeclarator{Declarator: d}
 	if p.rune(false) == rune(ASM) {
 		r.Asm = p.asm()
 	}
@@ -1208,7 +1208,6 @@ func (p *parser) initDeclarator(ds DeclarationSpecifiers, d *Declarator, declare
 		if d.isTypename {
 			p.cpp.eh("%v: typedef '%s' is initialized", p.toks[0].Position(), d.Name())
 		}
-		r.Case = InitDeclaratorInit
 		r.Token = p.shift(false)
 		r.Initializer = p.initializer(nil)
 	}

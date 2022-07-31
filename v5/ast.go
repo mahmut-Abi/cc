@@ -2160,27 +2160,6 @@ func (n *IdentifierList) Position() (r token.Position) {
 	return n.Token.Position()
 }
 
-// InitDeclaratorCase represents case numbers of production InitDeclarator
-type InitDeclaratorCase int
-
-// Values of type InitDeclaratorCase
-const (
-	InitDeclaratorDecl InitDeclaratorCase = iota
-	InitDeclaratorInit
-)
-
-// String implements fmt.Stringer
-func (n InitDeclaratorCase) String() string {
-	switch n {
-	case InitDeclaratorDecl:
-		return "InitDeclaratorDecl"
-	case InitDeclaratorInit:
-		return "InitDeclaratorInit"
-	default:
-		return fmt.Sprintf("InitDeclaratorCase(%v)", int(n))
-	}
-}
-
 // InitDeclarator represents data reduced by productions:
 //
 //	InitDeclarator:
@@ -2189,7 +2168,6 @@ func (n InitDeclaratorCase) String() string {
 type InitDeclarator struct {
 	AttributeSpecifiers []*AttributeSpecifier
 	Asm                 *Asm
-	Case                InitDeclaratorCase `PrettyPrint:"stringer,zero"`
 	Declarator          *Declarator
 	Initializer         *Initializer
 	Token               Token
@@ -2205,30 +2183,19 @@ func (n *InitDeclarator) Position() (r token.Position) {
 		return r
 	}
 
-	switch n.Case {
-	case 0:
-		if p := n.Declarator.Position(); p.IsValid() {
-			return p
-		}
-
-		return n.Asm.Position()
-	case 1:
-		if p := n.Declarator.Position(); p.IsValid() {
-			return p
-		}
-
-		if p := n.Asm.Position(); p.IsValid() {
-			return p
-		}
-
-		if p := n.Token.Position(); p.IsValid() {
-			return p
-		}
-
-		return n.Initializer.Position()
-	default:
-		panic("internal error")
+	if p := n.Declarator.Position(); p.IsValid() {
+		return p
 	}
+
+	if p := n.Asm.Position(); p.IsValid() {
+		return p
+	}
+
+	if p := n.Token.Position(); p.IsValid() {
+		return p
+	}
+
+	return n.Initializer.Position()
 }
 
 // InitializerCase represents case numbers of production Initializer

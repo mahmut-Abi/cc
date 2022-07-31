@@ -909,7 +909,7 @@ func (n *InitDeclarator) check(c *ctx, t Type, isExtern, isStatic, isAtomic, isT
 		return
 	}
 
-	if n.Case == InitDeclaratorInit {
+	if n.Initializer != nil {
 		n.Initializer.check(c, nil, t, 0, nil)
 		n.Declarator.write++
 	}
