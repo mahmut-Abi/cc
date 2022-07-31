@@ -845,6 +845,27 @@ type Field struct {
 	isBitField bool
 }
 
+// IsBitfield reports whether n is a bit field.
+func (n *Field) IsBitfield() bool { return n.isBitField }
+
+// AccessBytes reports the size in bytes used to access n. AccessBytes can be
+// smaller than size of n's type when n is a bit field.
+func (n *Field) AccessBytes() int64 { return n.accessBytes }
+
+// Mask reports the mask used to access n. It is non zero only for bit fields.
+func (n *Field) Mask() uint64 { return n.mask }
+
+// Declarator reports n's declarator, if any.
+func (n *Field) Declarator() *Declarator { return n.declarator }
+
+// ValueBits reports n's size in bits.
+func (n *Field) ValueBits() int64 { return n.valueBits }
+
+// OffsetBits report n's additional bit offset to Offset. Non zero only for bit
+// fields but can be zero even for a bit field, for example, the first bit
+// field after a non bit field will have OffsetBits zero.
+func (n *Field) OffsetBits() int { return n.offsetBits }
+
 // Parent reports the parent of n, if any. A field has a parent when it's
 // resolved in certain contexts, for example:
 //
@@ -885,6 +906,7 @@ func (n *Field) Name() string {
 	return ""
 }
 
+// Offset reports the offset of n in bytes.
 func (n *Field) Offset() int64 { return n.offsetBytes }
 
 type structType struct {
