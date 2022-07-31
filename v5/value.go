@@ -63,12 +63,15 @@ func (v valuer) Value() Value {
 }
 
 type Value interface {
-	isValue()
+	// Convert attempts to convert the value to a different type. It returns
+	// Unknown values unchanged.  Convert returns Unknown for values it does not
+	// support.
+	Convert(to Type) Value
 }
 
 type UnknownValue struct{}
 
-func (*UnknownValue) isValue() {}
+func (*UnknownValue) Convert(to Type) Value { return Unknown }
 
 func (*UnknownValue) String() string { return "<unknown value>" }
 
@@ -76,54 +79,54 @@ type ZeroValue struct{}
 
 func (*ZeroValue) isValue() {}
 
-func (*ZeroValue) String() string { return "{}" }
+func (n *ZeroValue) Convert(to Type) Value { return convert(n, to) }
 
 type ComplexLongDoubleValue struct {
 	Re *LongDoubleValue
 	Im *LongDoubleValue
 }
 
-func (n *ComplexLongDoubleValue) isValue() {}
+func (n *ComplexLongDoubleValue) Convert(to Type) Value { return convert(n, to) }
 
 type LongDoubleValue big.Float
 
-func (*LongDoubleValue) isValue() {}
+func (n *LongDoubleValue) Convert(to Type) Value { return convert(n, to) }
 
 type Complex128Value complex128
 
-func (Complex128Value) isValue() {}
+func (n Complex128Value) Convert(to Type) Value { return convert(n, to) }
 
 type Complex64Value complex64
 
-func (Complex64Value) isValue() {}
+func (n Complex64Value) Convert(to Type) Value { return convert(n, to) }
 
 type Float64Value float64
 
-func (Float64Value) isValue() {}
+func (n Float64Value) Convert(to Type) Value { return convert(n, to) }
 
 type Int64Value int64
 
-func (Int64Value) isValue() {}
+func (n Int64Value) Convert(to Type) Value { return convert(n, to) }
 
 type UInt64Value uint64
 
-func (UInt64Value) isValue() {}
+func (n UInt64Value) Convert(to Type) Value { return convert(n, to) }
 
 type VoidValue struct{}
 
-func (VoidValue) isValue() {}
+func (n VoidValue) Convert(to Type) Value { return convert(n, to) }
 
 type StringValue string
 
-func (StringValue) isValue() {}
+func (n StringValue) Convert(to Type) Value { return convert(n, to) }
 
 type UTF16StringValue []uint16
 
-func (UTF16StringValue) isValue() {}
+func (n UTF16StringValue) Convert(to Type) Value { return convert(n, to) }
 
 type UTF32StringValue []rune
 
-func (UTF32StringValue) isValue() {}
+func (n UTF32StringValue) Convert(to Type) Value { return convert(n, to) }
 
 func (n *ConstantExpression) eval(c *ctx, mode flags) (r Value) {
 	n.val = n.ConditionalExpression.eval(c, mode)
@@ -138,9 +141,9 @@ func (n *ConditionalExpression) eval(c *ctx, mode flags) (r Value) {
 
 	switch val := n.Condition.eval(c, mode); {
 	case isNonzero(val):
-		n.val = c.convert(n.Then.eval(c, mode), n.Type())
+		n.val = convert(n.Then.eval(c, mode), n.Type())
 	case isZero(val):
-		n.val = c.convert(n.Else.eval(c, mode), n.Type())
+		n.val = convert(n.Else.eval(c, mode), n.Type())
 	}
 	return n.Value()
 }
@@ -153,24 +156,24 @@ func (n *BinaryExpression) eval(c *ctx, mode flags) (r Value) {
 
 	switch n.Op {
 	case BinaryOperationAdd:
-		switch x := c.convert(n.Lhs.eval(c, mode), n.Type()).(type) {
+		switch x := convert(n.Lhs.eval(c, mode), n.Type()).(type) {
 		case *UnknownValue:
 			// nop
 		case Int64Value:
-			switch y := c.convert(n.Rhs.eval(c, mode), n.Type()).(type) {
+			switch y := convert(n.Rhs.eval(c, mode), n.Type()).(type) {
 			case *UnknownValue:
 				// nop
 			case Int64Value:
-				n.val = c.convert(x+y, n.Type())
+				n.val = convert(x+y, n.Type())
 			default:
 				c.errors.add(errorf("TODO %v TYPE %T", n.Op, y))
 			}
 		case UInt64Value:
-			switch y := c.convert(n.Rhs.eval(c, mode), n.Type()).(type) {
+			switch y := convert(n.Rhs.eval(c, mode), n.Type()).(type) {
 			case *UnknownValue:
 				// nop
 			case UInt64Value:
-				n.val = c.convert(x+y, n.Type())
+				n.val = convert(x+y, n.Type())
 			default:
 				c.errors.add(errorf("TODO %v TYPE %T", n.Op, y))
 			}
@@ -180,24 +183,24 @@ func (n *BinaryExpression) eval(c *ctx, mode flags) (r Value) {
 			c.errors.add(errorf("TODO %v TYPE %T", n.Op, x))
 		}
 	case BinaryOperationSub:
-		switch x := c.convert(n.Lhs.eval(c, mode), n.Type()).(type) {
+		switch x := convert(n.Lhs.eval(c, mode), n.Type()).(type) {
 		case *UnknownValue:
 			// nop
 		case UInt64Value:
-			switch y := c.convert(n.Rhs.eval(c, mode), n.Type()).(type) {
+			switch y := convert(n.Rhs.eval(c, mode), n.Type()).(type) {
 			case *UnknownValue:
 				// nop
 			case UInt64Value:
-				n.val = c.convert(x-y, n.Type())
+				n.val = convert(x-y, n.Type())
 			default:
 				c.errors.add(errorf("TODO %v TYPE %T", n.Op, y))
 			}
 		case Int64Value:
-			switch y := c.convert(n.Rhs.eval(c, mode), n.Type()).(type) {
+			switch y := convert(n.Rhs.eval(c, mode), n.Type()).(type) {
 			case *UnknownValue:
 				// nop
 			case Int64Value:
-				n.val = c.convert(x-y, n.Type())
+				n.val = convert(x-y, n.Type())
 			default:
 				c.errors.add(errorf("TODO %v TYPE %T", n.Op, y))
 			}
@@ -205,24 +208,24 @@ func (n *BinaryExpression) eval(c *ctx, mode flags) (r Value) {
 			c.errors.add(errorf("TODO %v TYPE %T", n.Op, x))
 		}
 	case BinaryOperationMul:
-		switch x := c.convert(n.Lhs.eval(c, mode), n.Type()).(type) {
+		switch x := convert(n.Lhs.eval(c, mode), n.Type()).(type) {
 		case *UnknownValue:
 			// nop
 		case UInt64Value:
-			switch y := c.convert(n.Rhs.eval(c, mode), n.Type()).(type) {
+			switch y := convert(n.Rhs.eval(c, mode), n.Type()).(type) {
 			case *UnknownValue:
 				// nop
 			case UInt64Value:
-				n.val = c.convert(x*y, n.Type())
+				n.val = convert(x*y, n.Type())
 			default:
 				c.errors.add(errorf("TODO %v TYPE %T", n.Op, y))
 			}
 		case Int64Value:
-			switch y := c.convert(n.Rhs.eval(c, mode), n.Type()).(type) {
+			switch y := convert(n.Rhs.eval(c, mode), n.Type()).(type) {
 			case *UnknownValue:
 				// nop
 			case Int64Value:
-				n.val = c.convert(x*y, n.Type())
+				n.val = convert(x*y, n.Type())
 			default:
 				c.errors.add(errorf("TODO %v TYPE %T", n.Op, y))
 			}
@@ -230,28 +233,28 @@ func (n *BinaryExpression) eval(c *ctx, mode flags) (r Value) {
 			c.errors.add(errorf("TODO %v TYPE %T", n.Op, x))
 		}
 	case BinaryOperationDiv:
-		switch x := c.convert(n.Lhs.eval(c, mode), n.Type()).(type) {
+		switch x := convert(n.Lhs.eval(c, mode), n.Type()).(type) {
 		case *UnknownValue:
 			// nop
 		case Int64Value:
-			switch y := c.convert(n.Rhs.eval(c, mode), n.Type()).(type) {
+			switch y := convert(n.Rhs.eval(c, mode), n.Type()).(type) {
 			case *UnknownValue:
 				// nop
 			case Int64Value:
 				if y != 0 {
-					n.val = c.convert(x/y, n.Type())
+					n.val = convert(x/y, n.Type())
 					break
 				}
 			default:
 				c.errors.add(errorf("TODO %v TYPE %T", n.Op, y))
 			}
 		case UInt64Value:
-			switch y := c.convert(n.Rhs.eval(c, mode), n.Type()).(type) {
+			switch y := convert(n.Rhs.eval(c, mode), n.Type()).(type) {
 			case *UnknownValue:
 				// nop
 			case UInt64Value:
 				if y != 0 {
-					n.val = c.convert(x/y, n.Type())
+					n.val = convert(x/y, n.Type())
 					break
 				}
 			default:
@@ -261,28 +264,28 @@ func (n *BinaryExpression) eval(c *ctx, mode flags) (r Value) {
 			c.errors.add(errorf("TODO %v TYPE %T", n.Op, x))
 		}
 	case BinaryOperationMod:
-		switch x := c.convert(n.Lhs.eval(c, mode), n.Type()).(type) {
+		switch x := convert(n.Lhs.eval(c, mode), n.Type()).(type) {
 		case *UnknownValue:
 			// nop
 		case Int64Value:
-			switch y := c.convert(n.Rhs.eval(c, mode), n.Type()).(type) {
+			switch y := convert(n.Rhs.eval(c, mode), n.Type()).(type) {
 			case *UnknownValue:
 				// nop
 			case Int64Value:
 				if y != 0 {
-					n.val = c.convert(x%y, n.Type())
+					n.val = convert(x%y, n.Type())
 					break
 				}
 			default:
 				c.errors.add(errorf("TODO %v TYPE %T", n.Op, y))
 			}
 		case UInt64Value:
-			switch y := c.convert(n.Rhs.eval(c, mode), n.Type()).(type) {
+			switch y := convert(n.Rhs.eval(c, mode), n.Type()).(type) {
 			case *UnknownValue:
 				// nop
 			case UInt64Value:
 				if y != 0 {
-					n.val = c.convert(x%y, n.Type())
+					n.val = convert(x%y, n.Type())
 					break
 				}
 			default:
@@ -292,9 +295,9 @@ func (n *BinaryExpression) eval(c *ctx, mode flags) (r Value) {
 			c.errors.add(errorf("TODO %v TYPE %T", n.Op, x))
 		}
 	case BinaryOperationLOr:
-		switch v := c.convert(n.Lhs.eval(c, mode), n.Type()); {
+		switch v := convert(n.Lhs.eval(c, mode), n.Type()); {
 		case isZero(v):
-			switch v := c.convert(n.Rhs.eval(c, mode), n.Type()); {
+			switch v := convert(n.Rhs.eval(c, mode), n.Type()); {
 			case isZero(v):
 				n.val = int0
 			case isNonzero(v):
@@ -316,24 +319,24 @@ func (n *BinaryExpression) eval(c *ctx, mode flags) (r Value) {
 			}
 		}
 	case BinaryOperationOr:
-		switch x := c.convert(n.Lhs.eval(c, mode), n.Type()).(type) {
+		switch x := convert(n.Lhs.eval(c, mode), n.Type()).(type) {
 		case *UnknownValue:
 			// nop
 		case Int64Value:
-			switch y := c.convert(n.Rhs.eval(c, mode), n.Type()).(type) {
+			switch y := convert(n.Rhs.eval(c, mode), n.Type()).(type) {
 			case *UnknownValue:
 				// nop
 			case Int64Value:
-				n.val = c.convert(x|y, n.Type())
+				n.val = convert(x|y, n.Type())
 			default:
 				c.errors.add(errorf("TODO %v TYPE %T", n.Op, y))
 			}
 		case UInt64Value:
-			switch y := c.convert(n.Rhs.eval(c, mode), n.Type()).(type) {
+			switch y := convert(n.Rhs.eval(c, mode), n.Type()).(type) {
 			case *UnknownValue:
 				// nop
 			case UInt64Value:
-				n.val = c.convert(x|y, n.Type())
+				n.val = convert(x|y, n.Type())
 			default:
 				c.errors.add(errorf("TODO %v TYPE %T", n.Op, y))
 			}
@@ -341,24 +344,24 @@ func (n *BinaryExpression) eval(c *ctx, mode flags) (r Value) {
 			c.errors.add(errorf("TODO %v TYPE %T", n.Op, x))
 		}
 	case BinaryOperationXor:
-		switch x := c.convert(n.Lhs.eval(c, mode), n.Type()).(type) {
+		switch x := convert(n.Lhs.eval(c, mode), n.Type()).(type) {
 		case *UnknownValue:
 			// ok
 		case Int64Value:
-			switch y := c.convert(n.Rhs.eval(c, mode), n.Type()).(type) {
+			switch y := convert(n.Rhs.eval(c, mode), n.Type()).(type) {
 			case *UnknownValue:
 				// ok
 			case Int64Value:
-				n.val = c.convert(x^y, n.Type())
+				n.val = convert(x^y, n.Type())
 			default:
 				c.errors.add(errorf("TODO %v TYPE %T", n.Op, y))
 			}
 		case UInt64Value:
-			switch y := c.convert(n.Rhs.eval(c, mode), n.Type()).(type) {
+			switch y := convert(n.Rhs.eval(c, mode), n.Type()).(type) {
 			case *UnknownValue:
 				// ok
 			case UInt64Value:
-				n.val = c.convert(x^y, n.Type())
+				n.val = convert(x^y, n.Type())
 			default:
 				c.errors.add(errorf("TODO %v TYPE %T", n.Op, y))
 			}
@@ -366,24 +369,24 @@ func (n *BinaryExpression) eval(c *ctx, mode flags) (r Value) {
 			c.errors.add(errorf("TODO %v TYPE %T", n.Op, x))
 		}
 	case BinaryOperationAnd:
-		switch x := c.convert(n.Lhs.eval(c, mode), n.Type()).(type) {
+		switch x := convert(n.Lhs.eval(c, mode), n.Type()).(type) {
 		case *UnknownValue:
 			// ok
 		case Int64Value:
-			switch y := c.convert(n.Rhs.eval(c, mode), n.Type()).(type) {
+			switch y := convert(n.Rhs.eval(c, mode), n.Type()).(type) {
 			case *UnknownValue:
 				// ok
 			case Int64Value:
-				n.val = c.convert(x&y, n.Type())
+				n.val = convert(x&y, n.Type())
 			default:
 				c.errors.add(errorf("TODO %v TYPE %T", n.Op, y))
 			}
 		case UInt64Value:
-			switch y := c.convert(n.Rhs.eval(c, mode), n.Type()).(type) {
+			switch y := convert(n.Rhs.eval(c, mode), n.Type()).(type) {
 			case *UnknownValue:
 				// ok
 			case UInt64Value:
-				n.val = c.convert(x&y, n.Type())
+				n.val = convert(x&y, n.Type())
 			default:
 				c.errors.add(errorf("TODO %v TYPE %T", n.Op, y))
 			}
@@ -397,11 +400,11 @@ func (n *BinaryExpression) eval(c *ctx, mode flags) (r Value) {
 			t1 = UsualArithmeticConversions(t1, t2)
 			t2 = t1
 		}
-		switch x := c.convert(n.Lhs.eval(c, mode), t1).(type) {
+		switch x := convert(n.Lhs.eval(c, mode), t1).(type) {
 		case *UnknownValue:
 			// ok
 		case Int64Value:
-			switch y := c.convert(n.Rhs.eval(c, mode), t2).(type) {
+			switch y := convert(n.Rhs.eval(c, mode), t2).(type) {
 			case *UnknownValue:
 				// ok
 			case Int64Value:
@@ -410,7 +413,7 @@ func (n *BinaryExpression) eval(c *ctx, mode flags) (r Value) {
 				c.errors.add(errorf("TODO %v TYPE %T", n.Op, y))
 			}
 		case UInt64Value:
-			switch y := c.convert(n.Rhs.eval(c, mode), t2).(type) {
+			switch y := convert(n.Rhs.eval(c, mode), t2).(type) {
 			case *UnknownValue:
 				// ok
 			case UInt64Value:
@@ -428,11 +431,11 @@ func (n *BinaryExpression) eval(c *ctx, mode flags) (r Value) {
 			t1 = UsualArithmeticConversions(t1, t2)
 			t2 = t1
 		}
-		switch x := c.convert(n.Lhs.eval(c, mode), t1).(type) {
+		switch x := convert(n.Lhs.eval(c, mode), t1).(type) {
 		case *UnknownValue:
 			// ok
 		case Int64Value:
-			switch y := c.convert(n.Rhs.eval(c, mode), t2).(type) {
+			switch y := convert(n.Rhs.eval(c, mode), t2).(type) {
 			case *UnknownValue:
 				// ok
 			case Int64Value:
@@ -441,7 +444,7 @@ func (n *BinaryExpression) eval(c *ctx, mode flags) (r Value) {
 				c.errors.add(errorf("TODO %v TYPE %T", n.Op, y))
 			}
 		case UInt64Value:
-			switch y := c.convert(n.Rhs.eval(c, mode), t2).(type) {
+			switch y := convert(n.Rhs.eval(c, mode), t2).(type) {
 			case *UnknownValue:
 				// ok
 			case UInt64Value:
@@ -459,11 +462,11 @@ func (n *BinaryExpression) eval(c *ctx, mode flags) (r Value) {
 			t1 = UsualArithmeticConversions(t1, t2)
 			t2 = t1
 		}
-		switch x := c.convert(n.Lhs.eval(c, mode), t1).(type) {
+		switch x := convert(n.Lhs.eval(c, mode), t1).(type) {
 		case *UnknownValue:
 			// ok
 		case Int64Value:
-			switch y := c.convert(n.Rhs.eval(c, mode), t1).(type) {
+			switch y := convert(n.Rhs.eval(c, mode), t1).(type) {
 			case *UnknownValue:
 				// ok
 			case Int64Value:
@@ -477,7 +480,7 @@ func (n *BinaryExpression) eval(c *ctx, mode flags) (r Value) {
 				c.errors.add(errorf("TODO %v TYPE %T", n.Op, y))
 			}
 		case UInt64Value:
-			switch y := c.convert(n.Rhs.eval(c, mode), t2).(type) {
+			switch y := convert(n.Rhs.eval(c, mode), t2).(type) {
 			case *UnknownValue:
 				// ok
 			case UInt64Value:
@@ -500,11 +503,11 @@ func (n *BinaryExpression) eval(c *ctx, mode flags) (r Value) {
 			t1 = UsualArithmeticConversions(t1, t2)
 			t2 = t1
 		}
-		switch x := c.convert(n.Lhs.eval(c, mode), t1).(type) {
+		switch x := convert(n.Lhs.eval(c, mode), t1).(type) {
 		case *UnknownValue:
 			// ok
 		case Int64Value:
-			switch y := c.convert(n.Rhs.eval(c, mode), t2).(type) {
+			switch y := convert(n.Rhs.eval(c, mode), t2).(type) {
 			case *UnknownValue:
 				// ok
 			case Int64Value:
@@ -518,7 +521,7 @@ func (n *BinaryExpression) eval(c *ctx, mode flags) (r Value) {
 				c.errors.add(errorf("TODO %v TYPE %T", n.Op, y))
 			}
 		case UInt64Value:
-			switch y := c.convert(n.Rhs.eval(c, mode), t2).(type) {
+			switch y := convert(n.Rhs.eval(c, mode), t2).(type) {
 			case *UnknownValue:
 				// ok
 			case UInt64Value:
@@ -541,11 +544,11 @@ func (n *BinaryExpression) eval(c *ctx, mode flags) (r Value) {
 			t1 = UsualArithmeticConversions(t1, t2)
 			t2 = t1
 		}
-		switch x := c.convert(n.Lhs.eval(c, mode), t1).(type) {
+		switch x := convert(n.Lhs.eval(c, mode), t1).(type) {
 		case *UnknownValue:
 			// ok
 		case Int64Value:
-			switch y := c.convert(n.Rhs.eval(c, mode), t2).(type) {
+			switch y := convert(n.Rhs.eval(c, mode), t2).(type) {
 			case *UnknownValue:
 				// ok
 			case Int64Value:
@@ -559,7 +562,7 @@ func (n *BinaryExpression) eval(c *ctx, mode flags) (r Value) {
 				c.errors.add(errorf("TODO %v TYPE %T", n.Op, y))
 			}
 		case UInt64Value:
-			switch y := c.convert(n.Rhs.eval(c, mode), t2).(type) {
+			switch y := convert(n.Rhs.eval(c, mode), t2).(type) {
 			case *UnknownValue:
 				// ok
 			case UInt64Value:
@@ -582,11 +585,11 @@ func (n *BinaryExpression) eval(c *ctx, mode flags) (r Value) {
 			t1 = UsualArithmeticConversions(t1, t2)
 			t2 = t1
 		}
-		switch x := c.convert(n.Lhs.eval(c, mode), t1).(type) {
+		switch x := convert(n.Lhs.eval(c, mode), t1).(type) {
 		case *UnknownValue:
 			// ok
 		case Int64Value:
-			switch y := c.convert(n.Rhs.eval(c, mode), t2).(type) {
+			switch y := convert(n.Rhs.eval(c, mode), t2).(type) {
 			case *UnknownValue:
 				// ok
 			case Int64Value:
@@ -600,7 +603,7 @@ func (n *BinaryExpression) eval(c *ctx, mode flags) (r Value) {
 				c.errors.add(errorf("TODO %v TYPE %T", n.Op, y))
 			}
 		case UInt64Value:
-			switch y := c.convert(n.Rhs.eval(c, mode), t2).(type) {
+			switch y := convert(n.Rhs.eval(c, mode), t2).(type) {
 			case *UnknownValue:
 				// ok
 			case UInt64Value:
@@ -617,7 +620,7 @@ func (n *BinaryExpression) eval(c *ctx, mode flags) (r Value) {
 			c.errors.add(errorf("TODO %v TYPE %T", n.Op, x))
 		}
 	case BinaryOperationLsh:
-		switch x := c.convert(n.Lhs.eval(c, mode), n.Type()).(type) {
+		switch x := convert(n.Lhs.eval(c, mode), n.Type()).(type) {
 		case *UnknownValue:
 			// nop
 		case Int64Value:
@@ -625,9 +628,9 @@ func (n *BinaryExpression) eval(c *ctx, mode flags) (r Value) {
 			case *UnknownValue:
 				// nop
 			case Int64Value:
-				n.val = c.convert(x<<y, n.Type())
+				n.val = convert(x<<y, n.Type())
 			case UInt64Value:
-				n.val = c.convert(x<<y, n.Type())
+				n.val = convert(x<<y, n.Type())
 			default:
 				c.errors.add(errorf("TODO %v TYPE %T", n.Op, y))
 			}
@@ -636,9 +639,9 @@ func (n *BinaryExpression) eval(c *ctx, mode flags) (r Value) {
 			case *UnknownValue:
 				// nop
 			case Int64Value:
-				n.val = c.convert(x<<y, n.Type())
+				n.val = convert(x<<y, n.Type())
 			case UInt64Value:
-				n.val = c.convert(x<<y, n.Type())
+				n.val = convert(x<<y, n.Type())
 			default:
 				c.errors.add(errorf("TODO %v TYPE %T", n.Op, y))
 			}
@@ -646,7 +649,7 @@ func (n *BinaryExpression) eval(c *ctx, mode flags) (r Value) {
 			c.errors.add(errorf("TODO %v TYPE %T", n.Op, x))
 		}
 	case BinaryOperationRsh:
-		switch x := c.convert(n.Lhs.eval(c, mode), n.Type()).(type) {
+		switch x := convert(n.Lhs.eval(c, mode), n.Type()).(type) {
 		case *UnknownValue:
 			// nop
 		case Int64Value:
@@ -654,9 +657,9 @@ func (n *BinaryExpression) eval(c *ctx, mode flags) (r Value) {
 			case *UnknownValue:
 				// nop
 			case Int64Value:
-				n.val = c.convert(x>>y, n.Type())
+				n.val = convert(x>>y, n.Type())
 			case UInt64Value:
-				n.val = c.convert(x>>y, n.Type())
+				n.val = convert(x>>y, n.Type())
 			default:
 				c.errors.add(errorf("TODO %v TYPE %T", n.Op, y))
 			}
@@ -665,9 +668,9 @@ func (n *BinaryExpression) eval(c *ctx, mode flags) (r Value) {
 			case *UnknownValue:
 				// nop
 			case Int64Value:
-				n.val = c.convert(x>>y, n.Type())
+				n.val = convert(x>>y, n.Type())
 			case UInt64Value:
-				n.val = c.convert(x>>y, n.Type())
+				n.val = convert(x>>y, n.Type())
 			default:
 				c.errors.add(errorf("TODO %v TYPE %T", n.Op, y))
 			}
@@ -686,7 +689,7 @@ func (n *CastExpression) eval(c *ctx, mode flags) (r Value) {
 		return n.Value()
 	}
 
-	n.val = c.convert(n.Expr.eval(c, mode), n.TypeName.Type())
+	n.val = convert(n.Expr.eval(c, mode), n.TypeName.Type())
 	return n.Value()
 }
 
@@ -707,7 +710,7 @@ func (n *UnaryExpression) eval(c *ctx, mode flags) (r Value) {
 				// ok
 			case UInt64Value:
 				if _, ok := n.CastExpression.Type().(*PointerType); ok {
-					n.val = c.convert(x, n.CastExpression.Type())
+					n.val = convert(x, n.CastExpression.Type())
 				}
 			default:
 				c.errors.add(errorf("TODO %v %v %T", n.Case, mode.has(addrOf), x))
@@ -753,26 +756,26 @@ func (n *UnaryExpression) eval(c *ctx, mode flags) (r Value) {
 	case UnaryExpressionDec: // "--" UnaryExpression
 		// nop
 	case UnaryExpressionAddrof: // '&' CastExpression
-		n.val = c.convert(n.CastExpression.eval(c, mode.add(addrOf)), n.Type())
+		n.val = convert(n.CastExpression.eval(c, mode.add(addrOf)), n.Type())
 	case UnaryExpressionDeref: // '*' CastExpression
 		// nop
 	case UnaryExpressionPlus: // '+' CastExpression
-		switch x := c.convert(n.CastExpression.eval(c, mode), n.Type()).(type) {
+		switch x := convert(n.CastExpression.eval(c, mode), n.Type()).(type) {
 		case *UnknownValue:
 			// nop
 		case Int64Value:
-			n.val = c.convert(x, n.Type())
+			n.val = convert(x, n.Type())
 		default:
 			c.errors.add(errorf("TODO %v TYPE %T", n.Case, x))
 		}
 	case UnaryExpressionMinus: // '-' CastExpression
-		switch x := c.convert(n.CastExpression.eval(c, mode), n.Type()).(type) {
+		switch x := convert(n.CastExpression.eval(c, mode), n.Type()).(type) {
 		case *UnknownValue:
 			// nop
 		case Int64Value:
-			n.val = c.convert(-x, n.Type())
+			n.val = convert(-x, n.Type())
 		case UInt64Value:
-			n.val = c.convert(-x, n.Type())
+			n.val = convert(-x, n.Type())
 		case Float64Value:
 			// nop
 		default:
@@ -783,9 +786,9 @@ func (n *UnaryExpression) eval(c *ctx, mode flags) (r Value) {
 		case *UnknownValue:
 			// nop
 		case Int64Value:
-			n.val = c.convert(^x, n.Type())
+			n.val = convert(^x, n.Type())
 		case UInt64Value:
-			n.val = c.convert(^x, n.Type())
+			n.val = convert(^x, n.Type())
 		default:
 			c.errors.add(errorf("TODO %v TYPE %T", n.Case, x))
 		}
@@ -794,11 +797,11 @@ func (n *UnaryExpression) eval(c *ctx, mode flags) (r Value) {
 		case *UnknownValue:
 			// nop
 		case Int64Value:
-			n.val = c.convert(bool2int(x == 0), n.Type())
+			n.val = convert(bool2int(x == 0), n.Type())
 		case UInt64Value:
-			n.val = c.convert(bool2int(x == 0), n.Type())
+			n.val = convert(bool2int(x == 0), n.Type())
 		case StringValue, UTF16StringValue, UTF32StringValue:
-			n.val = c.convert(int0, n.Type())
+			n.val = convert(int0, n.Type())
 		default:
 			c.errors.add(errorf("TODO %v TYPE %T", n.Case, x))
 		}
@@ -835,7 +838,7 @@ func (n *PostfixExpression) eval(c *ctx, mode flags) (r Value) {
 				if p, ok := n.PostfixExpression.Type().(*PointerType); ok {
 					if ix, ok := int64Value(c, n.ExpressionList); ok && ix >= 0 {
 						if esz := p.Elem().Size(); esz >= 0 {
-							n.val = c.convert(x+UInt64Value(ix*esz), c.newPointerType(p.Elem()))
+							n.val = convert(x+UInt64Value(ix*esz), c.newPointerType(p.Elem()))
 						}
 					}
 				}
@@ -852,7 +855,7 @@ func (n *PostfixExpression) eval(c *ctx, mode flags) (r Value) {
 					// ok
 				case UInt64Value:
 					if f := x.FieldByName(n.Token2.SrcStr()); f != nil {
-						n.val = c.convert(y+UInt64Value(f.Offset()), c.newPointerType(f.Type()))
+						n.val = convert(y+UInt64Value(f.Offset()), c.newPointerType(f.Type()))
 					}
 				default:
 					c.errors.add(errorf("TODO %T %T", x, y))
@@ -863,7 +866,7 @@ func (n *PostfixExpression) eval(c *ctx, mode flags) (r Value) {
 					// ok
 				case UInt64Value:
 					if f := x.FieldByName(n.Token2.SrcStr()); f != nil {
-						n.val = c.convert(y+UInt64Value(f.Offset()), c.newPointerType(f.Type()))
+						n.val = convert(y+UInt64Value(f.Offset()), c.newPointerType(f.Type()))
 					}
 				default:
 					c.errors.add(errorf("TODO %T %T", x, y))
@@ -881,11 +884,11 @@ func (n *PostfixExpression) eval(c *ctx, mode flags) (r Value) {
 					switch z := x.Elem().(type) {
 					case *StructType:
 						if f := z.FieldByName(n.Token2.SrcStr()); f != nil {
-							n.val = c.convert(y+UInt64Value(f.Offset()), c.newPointerType(f.Type()))
+							n.val = convert(y+UInt64Value(f.Offset()), c.newPointerType(f.Type()))
 						}
 					case *UnionType:
 						if f := z.FieldByName(n.Token2.SrcStr()); f != nil {
-							n.val = c.convert(y+UInt64Value(f.Offset()), c.newPointerType(f.Type()))
+							n.val = convert(y+UInt64Value(f.Offset()), c.newPointerType(f.Type()))
 						}
 					default:
 						c.errors.add(errorf("TODO %T %T", x, y, z))
@@ -923,11 +926,11 @@ func (n *PostfixExpression) eval(c *ctx, mode flags) (r Value) {
 					// nop
 				case Int64Value:
 					if x >= 0 && x < Int64Value(len(v)) {
-						n.val = c.convert(Int64Value(v[x]), n.Type())
+						n.val = convert(Int64Value(v[x]), n.Type())
 					}
 				case UInt64Value:
 					if x < UInt64Value(len(v)) {
-						n.val = c.convert(Int64Value(v[x]), n.Type())
+						n.val = convert(Int64Value(v[x]), n.Type())
 					}
 				default:
 					c.errors.add(errorf("TODO %v %T", n.Case, x))
@@ -938,11 +941,11 @@ func (n *PostfixExpression) eval(c *ctx, mode flags) (r Value) {
 					// nop
 				case Int64Value:
 					if x >= 0 && x < Int64Value(len(v)) {
-						n.val = c.convert(Int64Value(v[x]), n.Type())
+						n.val = convert(Int64Value(v[x]), n.Type())
 					}
 				case UInt64Value:
 					if x < UInt64Value(len(v)) {
-						n.val = c.convert(Int64Value(v[x]), n.Type())
+						n.val = convert(Int64Value(v[x]), n.Type())
 					}
 				default:
 					c.errors.add(errorf("TODO %v %T", n.Case, x))
@@ -953,11 +956,11 @@ func (n *PostfixExpression) eval(c *ctx, mode flags) (r Value) {
 					// nop
 				case Int64Value:
 					if x >= 0 && x < Int64Value(len(v)) {
-						n.val = c.convert(Int64Value(v[x]), n.Type())
+						n.val = convert(Int64Value(v[x]), n.Type())
 					}
 				case UInt64Value:
 					if x < UInt64Value(len(v)) {
-						n.val = c.convert(Int64Value(v[x]), n.Type())
+						n.val = convert(Int64Value(v[x]), n.Type())
 					}
 				default:
 					c.errors.add(errorf("TODO %v %T", n.Case, x))
@@ -978,11 +981,11 @@ func (n *PostfixExpression) eval(c *ctx, mode flags) (r Value) {
 					// nop
 				case Int64Value:
 					if x >= 0 && x < Int64Value(len(v)) {
-						n.val = c.convert(Int64Value(v[x]), n.Type())
+						n.val = convert(Int64Value(v[x]), n.Type())
 					}
 				case UInt64Value:
 					if x < UInt64Value(len(v)) {
-						n.val = c.convert(Int64Value(v[x]), n.Type())
+						n.val = convert(Int64Value(v[x]), n.Type())
 					}
 				default:
 					c.errors.add(errorf("TODO %v %T", n.Case, x))
@@ -1007,7 +1010,7 @@ func (n *PostfixExpression) eval(c *ctx, mode flags) (r Value) {
 			break
 		}
 
-		v := c.convert(n.InitializerList.Initializer.AssignmentExpression.eval(c, mode), n.Type())
+		v := convert(n.InitializerList.Initializer.AssignmentExpression.eval(c, mode), n.Type())
 		switch n.Type().(type) {
 		case *PredefinedType:
 			n.val = v
@@ -1103,7 +1106,7 @@ func (n *AssignmentExpression) eval(c *ctx, mode flags) (r Value) {
 
 	switch n.Op {
 	case AssignmentOperationAssign:
-		n.val = c.convert(n.Rhs.eval(c, mode), n.Lhs.Type())
+		n.val = convert(n.Rhs.eval(c, mode), n.Lhs.Type())
 	case AssignmentOperationMul,
 		AssignmentOperationDiv,
 		AssignmentOperationMod,
