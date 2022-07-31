@@ -157,7 +157,6 @@ type Token struct { // 32 bytes on a 64 bit machine.
 
 // newToken returns a newly created Token. The pos field is set equal to src.
 func newToken(s *scannerSource, ch rune, sep, src, len uint32) (r Token) {
-	// defer func() { trc("", r) }() //TODO-
 	return Token{
 		s:   s,
 		Ch:  ch,

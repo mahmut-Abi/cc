@@ -5,6 +5,7 @@
 package cc // import "modernc.org/cc/v5"
 
 import (
+	"bytes"
 	"fmt"
 	"strings"
 )
@@ -168,7 +169,11 @@ func (p *parser) isKeyword(s []byte) (r rune, ok bool) {
 
 func (p *parser) next() {
 	var b []byte
-	var set bool
+	set := false
+	if p.prevNL.Ch != 0 {
+		b = p.prevNL.Sep()
+		set = true
+	}
 	for {
 		p.cpp.rune()
 		t := p.cpp.shift()
@@ -176,18 +181,14 @@ func (p *parser) next() {
 		case ' ':
 			// nop
 		case '\n':
-			var sep []byte
 			if p.prevNL.Ch != 0 {
-				sep = append(p.prevNL.Sep(), p.prevNL.Src()...)
-			}
-			p.prevNL = t
-			if len(sep) != 0 {
-				sep = append(sep, p.prevNL.Sep()...)
-				b = append(b, sep...)
+				b = append(b, p.prevNL.Src()...)
 				set = true
 			}
+			p.prevNL = t
+			b = append(b, t.Sep()...)
 		default:
-			if set {
+			if set && !bytes.Equal(b, p.prevNL.Sep()) {
 				p.prevNL.Set(b, p.prevNL.Src())
 			}
 			p.seq++
