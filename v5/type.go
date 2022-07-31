@@ -1037,8 +1037,12 @@ type StructType struct {
 	vectorSizer
 }
 
-func (c *ctx) newStructType(scope *Scope, tag Token, fields []*Field, size int64, align int) (r *StructType) {
+func (c *ctx) newStructType(scope *Scope, tag Token, fields []*Field, size int64, align int, attr *Attributes) (r *StructType) {
 	r = &StructType{c: c, structType: structType{tag: tag, fields: fields, size: size, align: align, scope: scope}}
+	if attr != nil {
+		return r.setAttr(attr).(*StructType)
+	}
+
 	return r
 }
 
@@ -1277,8 +1281,13 @@ type UnionType struct {
 	vectorSizer
 }
 
-func (c *ctx) newUnionType(scope *Scope, tag Token, fields []*Field, size int64, align int) *UnionType {
-	return &UnionType{c: c, structType: structType{tag: tag, fields: fields, size: size, align: align, isUnion: true, scope: scope}}
+func (c *ctx) newUnionType(scope *Scope, tag Token, fields []*Field, size int64, align int, attr *Attributes) *UnionType {
+	r := &UnionType{c: c, structType: structType{tag: tag, fields: fields, size: size, align: align, isUnion: true, scope: scope}}
+	if attr != nil {
+		return r.setAttr(attr).(*UnionType)
+	}
+
+	return r
 }
 
 // Pointer implements Type.
@@ -2160,6 +2169,73 @@ func newAttributes() *Attributes {
 func (n *Attributes) setAlias(v string)     { n.alias = v; n.isNonZero = true }
 func (n *Attributes) setAligned(v int64)    { n.aligned = v; n.isNonZero = true }
 func (n *Attributes) setVectorSize(v int64) { n.vectorSize = v; n.isNonZero = true }
+
+func (n *Attributes) merge(nd Node, m *Attributes) (r *Attributes, err error) {
+	if n == nil {
+		return m, nil
+	}
+
+	if m == nil {
+		return n, nil
+	}
+
+	if !n.isNonZero {
+		return m, nil
+	}
+
+	if !m.isNonZero {
+		return n, nil
+	}
+
+	r = &Attributes{isNonZero: true}
+
+	switch {
+	case n.alias == "" && m.alias == "":
+		// nop
+	case n.alias == "" && m.alias != "":
+		r.alias = m.alias
+	case n.alias != "" && m.alias == "":
+		r.alias = n.alias
+	default:
+		if n.alias != m.alias {
+			return nil, fmt.Errorf("%v: conflicting attributes", nd.Position())
+		}
+
+		r.alias = n.alias
+	}
+
+	switch {
+	case n.aligned < 0 && m.aligned < 0:
+		r.aligned = -1
+	case n.aligned < 0 && m.aligned >= 0:
+		r.aligned = m.aligned
+	case n.aligned >= 0 && m.aligned < 0:
+		r.aligned = n.aligned
+	default:
+		if n.aligned != m.aligned {
+			return nil, fmt.Errorf("%v: conflicting attributes", nd.Position())
+		}
+
+		r.aligned = n.aligned
+	}
+
+	switch {
+	case n.vectorSize < 0 && m.vectorSize < 0:
+		r.vectorSize = -1
+	case n.vectorSize < 0 && m.vectorSize >= 0:
+		r.vectorSize = m.vectorSize
+	case n.vectorSize >= 0 && m.vectorSize < 0:
+		r.vectorSize = n.vectorSize
+	default:
+		if n.vectorSize != m.vectorSize {
+			return nil, fmt.Errorf("%v: conflicting attributes", nd.Position())
+		}
+
+		r.vectorSize = n.vectorSize
+	}
+
+	return r, nil
+}
 
 // Alias returns S from __attribute__((alias("S"))) or "" if not present
 func (n *Attributes) Alias() string { return n.alias }

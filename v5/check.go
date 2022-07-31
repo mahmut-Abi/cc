@@ -2296,6 +2296,10 @@ func (n *StructOrUnionSpecifier) check(c *ctx) (r Type) {
 		return n.Type()
 	}
 
+	attr, err := n.AttributeSpecifierList.check(c).merge(n, n.AttributeSpecifierList2.check(c))
+	if err != nil {
+		c.errors.add(err)
+	}
 	tag := n.Token
 	switch n.Case {
 	case StructOrUnionSpecifierDef: // StructOrUnion IDENTIFIER '{' StructDeclarationList '}'
@@ -2307,9 +2311,9 @@ func (n *StructOrUnionSpecifier) check(c *ctx) (r Type) {
 
 		switch {
 		case n.StructOrUnion.Case == StructOrUnionUnion:
-			n.typ = c.newUnionType(n.LexicalScope(), tag, nil, -1, 1)
+			n.typ = c.newUnionType(n.LexicalScope(), tag, nil, -1, 1, attr)
 		default:
-			n.typ = c.newStructType(n.LexicalScope(), tag, nil, -1, 1)
+			n.typ = c.newStructType(n.LexicalScope(), tag, nil, -1, 1, attr)
 		}
 
 		n.StructDeclarationList.check(c, n)
@@ -2324,11 +2328,11 @@ func (n *StructOrUnionSpecifier) check(c *ctx) (r Type) {
 			case x.typ == nil:
 				switch {
 				case n.StructOrUnion.Case == StructOrUnionUnion:
-					t := c.newUnionType(n.LexicalScope(), tag, nil, -1, 1)
+					t := c.newUnionType(n.LexicalScope(), tag, nil, -1, 1, attr)
 					t.forward = x
 					n.typ = t
 				default:
-					t := c.newStructType(n.LexicalScope(), tag, nil, -1, 1)
+					t := c.newStructType(n.LexicalScope(), tag, nil, -1, 1, attr)
 					t.forward = x
 					n.typ = t
 				}
@@ -2340,11 +2344,11 @@ func (n *StructOrUnionSpecifier) check(c *ctx) (r Type) {
 
 		switch {
 		case n.StructOrUnion.Case == StructOrUnionUnion:
-			t := c.newUnionType(n.LexicalScope(), tag, nil, -1, 1)
+			t := c.newUnionType(n.LexicalScope(), tag, nil, -1, 1, attr)
 			t.isIncomplete0 = true
 			n.typ = t
 		default:
-			t := c.newStructType(n.LexicalScope(), tag, nil, -1, 1)
+			t := c.newStructType(n.LexicalScope(), tag, nil, -1, 1, attr)
 			t.isIncomplete0 = true
 			n.typ = t
 		}
