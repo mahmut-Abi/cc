@@ -831,7 +831,7 @@ func (n *CommonDeclaration) check(c *ctx) Type {
 	var isExtern, isStatic, isAtomic, isThreadLocal, isConst, isVolatile, isInline, isRegister, isAuto, isNoreturn, isRestrict bool
 	var alignas int
 	t := checkDeclarationSpecifiers(c, n.DeclarationSpecifiers, &isExtern, &isStatic, &isAtomic, &isThreadLocal, &isConst, &isVolatile, &isInline, &isRegister, &isAuto, &isNoreturn, &isRestrict, &alignas)
-	if attr := n.AttributeSpecifierList.check(c); attr != nil {
+	if attr := checkAttributeSpecifiers(c, n.AttributeSpecifiers); attr != nil {
 		for _, l := range n.InitDeclarators {
 			d := l.Declarator
 			t := d.Type()
@@ -900,7 +900,7 @@ func (n *InitDeclarator) check(c *ctx, t Type, isExtern, isStatic, isAtomic, isT
 	n.Declarator.isVolatile = isVolatile
 	n.Declarator.alignas = alignas
 	t = n.Declarator.check(c, t)
-	if attr := n.AttributeSpecifierList.check(c); attr != nil {
+	if attr := checkAttributeSpecifiers(c, n.AttributeSpecifiers); attr != nil {
 		t = t.setAttr(attr)
 		n.Declarator.typ = t
 	}
@@ -1856,9 +1856,11 @@ func checkDeclarationSpecifiers(c *ctx, list DeclarationSpecifiers, isExtern, is
 			if v := n.check(c).Align(); v > 0 {
 				*alignas = v
 			}
-		case *AttributeSpecifierList:
-			if attr := n.check(c); attr != nil {
-				attrs = append(attrs, attr)
+		case *AttributeSpecifier:
+			a := newAttributes()
+			n.check(c, a)
+			if a.isNonZero {
+				attrs = append(attrs, a)
 			}
 		default:
 			c.errors.add(errorf("internal error: %T", n))
@@ -1900,10 +1902,10 @@ func checkDeclarationSpecifiers(c *ctx, list DeclarationSpecifiers, isExtern, is
 //  AttributeSpecifierList:
 //          AttributeSpecifier
 //  |       AttributeSpecifierList AttributeSpecifier
-func (n *AttributeSpecifierList) check(c *ctx) *Attributes {
+func checkAttributeSpecifiers(c *ctx, list []*AttributeSpecifier) *Attributes {
 	attr := newAttributes()
-	for ; n != nil; n = n.AttributeSpecifierList {
-		n.AttributeSpecifier.check(c, attr)
+	for _, n := range list {
+		n.check(c, attr)
 	}
 	if attr.isNonZero {
 		return attr
@@ -2074,7 +2076,7 @@ func (n *TypeQualifier) check(c *ctx, isConst, isVolatile, isAtomic, isRestrict 
 	case TypeQualifierNonnull: // "_Nonnull"
 		c.errors.add(errorf("TODO %v", n.Case))
 	case TypeQualifierAttr: // AttributeSpecifierList
-		r = n.AttributeSpecifierList.check(c)
+		r = checkAttributeSpecifiers(c, n.AttributeSpecifiers)
 	default:
 		c.errors.add(errorf("internal error: %v", n.Case))
 	}
@@ -2341,7 +2343,7 @@ func (n *StructOrUnionSpecifier) check(c *ctx) (r Type) {
 		return n.Type()
 	}
 
-	attr, err := n.AttributeSpecifierList.check(c).merge(n, n.AttributeSpecifierList2.check(c))
+	attr, err := checkAttributeSpecifiers(c, n.AttributeSpecifiers).merge(n, checkAttributeSpecifiers(c, n.AttributeSpecifiers2))
 	if err != nil {
 		c.errors.add(err)
 	}

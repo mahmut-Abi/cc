@@ -571,7 +571,7 @@ again:
 		}
 
 		if r0 == rune(ATTRIBUTE) && p.rune(false) == ';' {
-			return &ExpressionStatement{declarationSpecifiers: ds, AttributeSpecifierList: p.attributeSpecifierListOpt(), Token: p.shift(false)}
+			return &ExpressionStatement{declarationSpecifiers: ds, AttributeSpecifiers: p.attributeSpecifierListOpt(), Token: p.shift(false)}
 		}
 
 		var d *Declarator
@@ -1071,7 +1071,7 @@ func (p *parser) declaration(ds DeclarationSpecifiers, d *Declarator, declare bo
 		}
 	}
 
-	return &CommonDeclaration{DeclarationSpecifiers: ds, InitDeclarators: p.initDeclaratorListOpt(ds, d, declare), AttributeSpecifierList: p.attributeSpecifierListOpt(), Token: p.must(';')}
+	return &CommonDeclaration{DeclarationSpecifiers: ds, InitDeclarators: p.initDeclaratorListOpt(ds, d, declare), AttributeSpecifiers: p.attributeSpecifierListOpt(), Token: p.must(';')}
 }
 
 //  static-assert-declaration
@@ -1083,17 +1083,9 @@ func (p *parser) staticAssertDeclaration() *StaticAssertDeclaration {
 //  attribute-specifier-list:
 // 	attribute-specifier
 // 	attribute-specifier-list attribute-specifier
-func (p *parser) attributeSpecifierListOpt() (r *AttributeSpecifierList) {
-	if p.rune(false) != rune(ATTRIBUTE) {
-		return nil
-	}
-
-	r = &AttributeSpecifierList{AttributeSpecifier: p.attributeSpecifier()}
-	prev := r
+func (p *parser) attributeSpecifierListOpt() (r []*AttributeSpecifier) {
 	for p.rune(false) == rune(ATTRIBUTE) {
-		asl := &AttributeSpecifierList{AttributeSpecifier: p.attributeSpecifier()}
-		prev.AttributeSpecifierList = asl
-		prev = asl
+		r = append(r, p.attributeSpecifier())
 	}
 	return r
 }
@@ -1189,9 +1181,9 @@ func (p *parser) initDeclaratorListOpt(ds DeclarationSpecifiers, d *Declarator, 
 	list = append(list, prev)
 	for p.rune(false) == ',' {
 		prev.Token2 = p.shift(false)
-		attr := p.attributeSpecifierListOpt()
+		attrs := p.attributeSpecifierListOpt()
 		prev = p.initDeclarator(ds, nil, declare)
-		prev.AttributeSpecifierList = attr
+		prev.AttributeSpecifiers = attrs
 		list = append(list, prev)
 	}
 	return list
@@ -1210,7 +1202,7 @@ func (p *parser) initDeclarator(ds DeclarationSpecifiers, d *Declarator, declare
 		r.Asm = p.asm()
 	}
 	if p.rune(false) == rune(ATTRIBUTE) {
-		r.AttributeSpecifierList = p.attributeSpecifierListOpt()
+		r.AttributeSpecifiers = p.attributeSpecifierListOpt()
 	}
 	if p.rune(false) == '=' {
 		if d.isTypename {
@@ -2510,7 +2502,7 @@ func (p *parser) parameterDeclaration() (r *ParameterDeclaration) {
 		case *AbstractDeclarator:
 			return &ParameterDeclaration{Case: ParameterDeclarationAbstract, DeclarationSpecifiers: ds, AbstractDeclarator: x}
 		case *Declarator:
-			return &ParameterDeclaration{Case: ParameterDeclarationDecl, DeclarationSpecifiers: ds, Declarator: x, AttributeSpecifierList: p.attributeSpecifierListOpt()}
+			return &ParameterDeclaration{Case: ParameterDeclarationDecl, DeclarationSpecifiers: ds, Declarator: x, AttributeSpecifiers: p.attributeSpecifierListOpt()}
 		default:
 			t := p.shift(false)
 			p.cpp.eh("%v: unexpected %v, expected parameter declaration", t.Position(), runeName(t.Ch))
@@ -2859,7 +2851,10 @@ func (p *parser) declarationSpecifiers() (r DeclarationSpecifiers, ok bool) {
 		case p.in(ch, rune(INLINE), rune(NORETURN)):
 			ds = p.functionSpecifier()
 		case ch == rune(ATTRIBUTE):
-			ds = p.attributeSpecifierListOpt()
+			for _, a := range p.attributeSpecifierListOpt() {
+				r = append(r, a)
+			}
+			continue
 		case ch == rune(ALIGNAS):
 			ds = p.alignmentSpecifier()
 		default:
@@ -2940,7 +2935,7 @@ func (p *parser) typeQualifier(acceptAttributes bool) *TypeQualifier {
 		return &TypeQualifier{Case: TypeQualifierNonnull, Token: p.shift(false)}
 	case rune(ATTRIBUTE):
 		if acceptAttributes {
-			return &TypeQualifier{Case: TypeQualifierAttr, AttributeSpecifierList: p.attributeSpecifierListOpt()}
+			return &TypeQualifier{Case: TypeQualifierAttr, AttributeSpecifiers: p.attributeSpecifierListOpt()}
 		}
 
 		fallthrough
@@ -3285,9 +3280,9 @@ func (p *parser) structOrUnionSpecifier() (r *StructOrUnionSpecifier) {
 		p.cpp.eh("%v: unexpected EOF", p.toks[0].Position())
 		return nil
 	case '{':
-		return &StructOrUnionSpecifier{Case: StructOrUnionSpecifierDef, StructOrUnion: sou, AttributeSpecifierList: attrs, Token2: p.shift(false), StructDeclarationList: p.structDeclarationList(), Token3: p.must('}'), AttributeSpecifierList2: p.attributeSpecifierListOpt(), lexicalScope: (*lexicalScope)(p.scope)}
+		return &StructOrUnionSpecifier{Case: StructOrUnionSpecifierDef, StructOrUnion: sou, AttributeSpecifiers: attrs, Token2: p.shift(false), StructDeclarationList: p.structDeclarationList(), Token3: p.must('}'), AttributeSpecifiers2: p.attributeSpecifierListOpt(), lexicalScope: (*lexicalScope)(p.scope)}
 	case rune(IDENTIFIER):
-		r = &StructOrUnionSpecifier{StructOrUnion: sou, AttributeSpecifierList: attrs, Token: p.shift(false), lexicalScope: (*lexicalScope)(p.scope)}
+		r = &StructOrUnionSpecifier{StructOrUnion: sou, AttributeSpecifiers: attrs, Token: p.shift(false), lexicalScope: (*lexicalScope)(p.scope)}
 		r.visible = visible(r.Token.seq + 1) // [0]6.2.1,7
 		switch p.rune(false) {
 		case eof:
@@ -3299,7 +3294,7 @@ func (p *parser) structOrUnionSpecifier() (r *StructOrUnionSpecifier) {
 			r.Token2 = p.shift(false)
 			r.StructDeclarationList = p.structDeclarationList()
 			r.Token3 = p.must('}')
-			r.AttributeSpecifierList = p.attributeSpecifierListOpt()
+			r.AttributeSpecifiers = p.attributeSpecifierListOpt()
 			return r
 		default:
 			r.Case = StructOrUnionSpecifierTag
@@ -3353,7 +3348,7 @@ func (p *parser) structDeclaration() (r *StructDeclaration) {
 		return r
 	}
 
-	r = &StructDeclaration{Case: StructDeclarationDecl, SpecifierQualifierList: p.specifierQualifierList(), StructDeclaratorList: p.structDeclaratorListOpt(), AttributeSpecifierList: p.attributeSpecifierListOpt()}
+	r = &StructDeclaration{Case: StructDeclarationDecl, SpecifierQualifierList: p.specifierQualifierList(), StructDeclaratorList: p.structDeclaratorListOpt(), AttributeSpecifiers: p.attributeSpecifierListOpt()}
 	switch p.rune(false) {
 	case ';':
 		r.Token = p.shift(false)

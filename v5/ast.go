@@ -582,28 +582,6 @@ func (n *AttributeSpecifier) Position() (r token.Position) {
 	return n.Token5.Position()
 }
 
-// AttributeSpecifierList represents data reduced by productions:
-//
-//	AttributeSpecifierList:
-//	        AttributeSpecifier
-//	|       AttributeSpecifierList AttributeSpecifier
-type AttributeSpecifierList struct {
-	AttributeSpecifier     *AttributeSpecifier
-	AttributeSpecifierList *AttributeSpecifierList
-}
-
-// String implements fmt.Stringer.
-func (n *AttributeSpecifierList) String() string { return PrettyString(n) }
-
-// Position reports the position of the first component of n, if available.
-func (n *AttributeSpecifierList) Position() (r token.Position) {
-	if n == nil {
-		return r
-	}
-
-	return n.AttributeSpecifier.Position()
-}
-
 // AttributeValueCase represents case numbers of production AttributeValue
 type AttributeValueCase int
 
@@ -874,10 +852,10 @@ func (*StaticAssertDeclaration) isDeclaration() {}
 func (*AutoDeclaration) isDeclaration()         {}
 
 type CommonDeclaration struct {
-	DeclarationSpecifiers  DeclarationSpecifiers
-	InitDeclarators        []*InitDeclarator
-	AttributeSpecifierList *AttributeSpecifierList
-	Token                  Token
+	DeclarationSpecifiers DeclarationSpecifiers
+	InitDeclarators       []*InitDeclarator
+	AttributeSpecifiers   []*AttributeSpecifier
+	Token                 Token
 }
 
 // String implements fmt.Stringer.
@@ -900,8 +878,10 @@ func (n *CommonDeclaration) Position() (r token.Position) {
 		}
 	}
 
-	if p := n.AttributeSpecifierList.Position(); p.IsValid() {
-		return p
+	for _, a := range n.AttributeSpecifiers {
+		if p := a.Position(); p.IsValid() {
+			return p
+		}
 	}
 
 	return n.Token.Position()
@@ -957,12 +937,12 @@ type DeclarationSpecifier interface {
 	isDeclarationSpecifier()
 }
 
-func (*StorageClassSpecifier) isDeclarationSpecifier()  {}
-func (*TypeSpecifier) isDeclarationSpecifier()          {}
-func (*TypeQualifier) isDeclarationSpecifier()          {}
-func (*FunctionSpecifier) isDeclarationSpecifier()      {}
-func (*AlignmentSpecifier) isDeclarationSpecifier()     {}
-func (*AttributeSpecifierList) isDeclarationSpecifier() {}
+func (*StorageClassSpecifier) isDeclarationSpecifier() {}
+func (*TypeSpecifier) isDeclarationSpecifier()         {}
+func (*TypeQualifier) isDeclarationSpecifier()         {}
+func (*FunctionSpecifier) isDeclarationSpecifier()     {}
+func (*AlignmentSpecifier) isDeclarationSpecifier()    {}
+func (*AttributeSpecifier) isDeclarationSpecifier()    {}
 
 type DeclarationSpecifiers []DeclarationSpecifier
 
@@ -1884,10 +1864,10 @@ func (n *ExpressionList) Position() (r token.Position) {
 //	ExpressionStatement:
 //	        ExpressionList ';'
 type ExpressionStatement struct {
-	AttributeSpecifierList *AttributeSpecifierList
-	declarationSpecifiers  DeclarationSpecifiers
-	ExpressionList         Expression
-	Token                  Token
+	AttributeSpecifiers   []*AttributeSpecifier
+	declarationSpecifiers DeclarationSpecifiers
+	ExpressionList        Expression
+	Token                 Token
 }
 
 // String implements fmt.Stringer.
@@ -2207,13 +2187,13 @@ func (n InitDeclaratorCase) String() string {
 //	        Declarator Asm                  // Case InitDeclaratorDecl
 //	|       Declarator Asm '=' Initializer  // Case InitDeclaratorInit
 type InitDeclarator struct {
-	AttributeSpecifierList *AttributeSpecifierList
-	Asm                    *Asm
-	Case                   InitDeclaratorCase `PrettyPrint:"stringer,zero"`
-	Declarator             *Declarator
-	Initializer            *Initializer
-	Token                  Token
-	Token2                 Token
+	AttributeSpecifiers []*AttributeSpecifier
+	Asm                 *Asm
+	Case                InitDeclaratorCase `PrettyPrint:"stringer,zero"`
+	Declarator          *Declarator
+	Initializer         *Initializer
+	Token               Token
+	Token2              Token
 }
 
 // String implements fmt.Stringer.
@@ -2797,7 +2777,7 @@ func (n ParameterDeclarationCase) String() string {
 //	        DeclarationSpecifiers Declarator          // Case ParameterDeclarationDecl
 //	|       DeclarationSpecifiers AbstractDeclarator  // Case ParameterDeclarationAbstract
 type ParameterDeclaration struct {
-	AttributeSpecifierList *AttributeSpecifierList
+	AttributeSpecifiers []*AttributeSpecifier
 	typer
 	AbstractDeclarator    *AbstractDeclarator
 	Case                  ParameterDeclarationCase `PrettyPrint:"stringer,zero"`
@@ -3401,7 +3381,7 @@ func (n SpecifierQualifierListCase) String() string {
 //	|       TypeQualifier SpecifierQualifierList       // Case SpecifierQualifierListTypeQual
 //	|       AlignmentSpecifier SpecifierQualifierList  // Case SpecifierQualifierListAlignSpec
 type SpecifierQualifierList struct {
-	AttributeSpecifierList *AttributeSpecifierList
+	AttributeSpecifiers    []*AttributeSpecifier
 	AlignmentSpecifier     *AlignmentSpecifier
 	Case                   SpecifierQualifierListCase `PrettyPrint:"stringer,zero"`
 	SpecifierQualifierList *SpecifierQualifierList
@@ -3620,7 +3600,7 @@ func (n StructDeclarationCase) String() string {
 //	        SpecifierQualifierList StructDeclaratorList ';'  // Case StructDeclarationDecl
 //	|       StaticAssertDeclaration                          // Case StructDeclarationAssert
 type StructDeclaration struct {
-	AttributeSpecifierList  *AttributeSpecifierList
+	AttributeSpecifiers     []*AttributeSpecifier
 	Case                    StructDeclarationCase `PrettyPrint:"stringer,zero"`
 	SpecifierQualifierList  *SpecifierQualifierList
 	StaticAssertDeclaration *StaticAssertDeclaration
@@ -3830,8 +3810,8 @@ func (n StructOrUnionSpecifierCase) String() string {
 //	        StructOrUnion IDENTIFIER '{' StructDeclarationList '}'  // Case StructOrUnionSpecifierDef
 //	|       StructOrUnion IDENTIFIER                                // Case StructOrUnionSpecifierTag
 type StructOrUnionSpecifier struct {
-	AttributeSpecifierList  *AttributeSpecifierList
-	AttributeSpecifierList2 *AttributeSpecifierList
+	AttributeSpecifiers  []*AttributeSpecifier
+	AttributeSpecifiers2 []*AttributeSpecifier
 	*lexicalScope
 	visible
 	typer
@@ -3951,9 +3931,9 @@ func (n TypeQualifierCase) String() string {
 //	|       "_Nonnull"       // Case TypeQualifierNonnull
 //	|       "__attribute__"  // Case TypeQualifierAttr
 type TypeQualifier struct {
-	AttributeSpecifierList *AttributeSpecifierList
-	Case                   TypeQualifierCase `PrettyPrint:"stringer,zero"`
-	Token                  Token
+	AttributeSpecifiers []*AttributeSpecifier
+	Case                TypeQualifierCase `PrettyPrint:"stringer,zero"`
+	Token               Token
 }
 
 // String implements fmt.Stringer.

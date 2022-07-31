@@ -533,58 +533,52 @@ func ExampleAttributeSpecifier_case0() {
 	// }
 }
 
-func ExampleAttributeSpecifierList_case0() {
+func ExampleAttributeSpecifier_case1() {
 	fmt.Println(exampleAST(272, "int i __attribute__((a));"))
 	// Output:
-	// &cc.AttributeSpecifierList{
-	// · AttributeSpecifier: &cc.AttributeSpecifier{
-	// · · AttributeValueList: &cc.AttributeValueList{
-	// · · · AttributeValue: &cc.AttributeValue{
-	// · · · · Case: AttributeValueIdent,
-	// · · · · Token: example.c:1:22: identifier "a",
-	// · · · },
+	// &cc.AttributeSpecifier{
+	// · AttributeValueList: &cc.AttributeValueList{
+	// · · AttributeValue: &cc.AttributeValue{
+	// · · · Case: AttributeValueIdent,
+	// · · · Token: example.c:1:22: identifier "a",
 	// · · },
-	// · · Token: example.c:1:7: '__attribute__' "__attribute__",
-	// · · Token2: example.c:1:20: '(' "(",
-	// · · Token3: example.c:1:21: '(' "(",
-	// · · Token4: example.c:1:23: ')' ")",
-	// · · Token5: example.c:1:24: ')' ")",
 	// · },
+	// · Token: example.c:1:7: '__attribute__' "__attribute__",
+	// · Token2: example.c:1:20: '(' "(",
+	// · Token3: example.c:1:21: '(' "(",
+	// · Token4: example.c:1:23: ')' ")",
+	// · Token5: example.c:1:24: ')' ")",
 	// }
 }
 
-func ExampleAttributeSpecifierList_case1() {
+func ExampleAttributeSpecifier_case2() {
 	fmt.Println(exampleAST(273, "int i __attribute__((a)) __attribute__((b));"))
 	// Output:
-	// &cc.AttributeSpecifierList{
-	// · AttributeSpecifier: &cc.AttributeSpecifier{
-	// · · AttributeValueList: &cc.AttributeValueList{
-	// · · · AttributeValue: &cc.AttributeValue{
-	// · · · · Case: AttributeValueIdent,
-	// · · · · Token: example.c:1:22: identifier "a",
-	// · · · },
-	// · · },
-	// · · Token: example.c:1:7: '__attribute__' "__attribute__",
-	// · · Token2: example.c:1:20: '(' "(",
-	// · · Token3: example.c:1:21: '(' "(",
-	// · · Token4: example.c:1:23: ')' ")",
-	// · · Token5: example.c:1:24: ')' ")",
-	// · },
-	// · AttributeSpecifierList: &cc.AttributeSpecifierList{
-	// · · AttributeSpecifier: &cc.AttributeSpecifier{
-	// · · · AttributeValueList: &cc.AttributeValueList{
-	// · · · · AttributeValue: &cc.AttributeValue{
-	// · · · · · Case: AttributeValueIdent,
-	// · · · · · Token: example.c:1:41: identifier "b",
-	// · · · · },
-	// · · · },
-	// · · · Token: example.c:1:26: '__attribute__' "__attribute__",
-	// · · · Token2: example.c:1:39: '(' "(",
-	// · · · Token3: example.c:1:40: '(' "(",
-	// · · · Token4: example.c:1:42: ')' ")",
-	// · · · Token5: example.c:1:43: ')' ")",
+	// &cc.AttributeSpecifier{
+	// · AttributeValueList: &cc.AttributeValueList{
+	// · · AttributeValue: &cc.AttributeValue{
+	// · · · Case: AttributeValueIdent,
+	// · · · Token: example.c:1:22: identifier "a",
 	// · · },
 	// · },
+	// · Token: example.c:1:7: '__attribute__' "__attribute__",
+	// · Token2: example.c:1:20: '(' "(",
+	// · Token3: example.c:1:21: '(' "(",
+	// · Token4: example.c:1:23: ')' ")",
+	// · Token5: example.c:1:24: ')' ")",
+	// }
+	// &cc.AttributeSpecifier{
+	// · AttributeValueList: &cc.AttributeValueList{
+	// · · AttributeValue: &cc.AttributeValue{
+	// · · · Case: AttributeValueIdent,
+	// · · · Token: example.c:1:41: identifier "b",
+	// · · },
+	// · },
+	// · Token: example.c:1:26: '__attribute__' "__attribute__",
+	// · Token2: example.c:1:39: '(' "(",
+	// · Token3: example.c:1:40: '(' "(",
+	// · Token4: example.c:1:42: ')' ")",
+	// · Token5: example.c:1:43: ')' ")",
 	// }
 }
 
@@ -1270,8 +1264,8 @@ func ExampleCastExpression_cast() {
 	// · · · · },
 	// · · · },
 	// · · · TypeQualifier: &cc.TypeQualifier{
-	// · · · · AttributeSpecifierList: &cc.AttributeSpecifierList{
-	// · · · · · AttributeSpecifier: &cc.AttributeSpecifier{
+	// · · · · AttributeSpecifiers: []*cc.AttributeSpecifier{ // len 1
+	// · · · · · 0: &cc.AttributeSpecifier{
 	// · · · · · · AttributeValueList: &cc.AttributeValueList{
 	// · · · · · · · AttributeValue: &cc.AttributeValue{
 	// · · · · · · · · Case: AttributeValueIdent,
@@ -1647,20 +1641,18 @@ func ExampleDeclaration_case1() {
 func ExampleDeclarationSpecifier_storage() {
 	fmt.Println(exampleAST(93, "__attribute__((a)) static int i;"))
 	// Output:
-	// &cc.AttributeSpecifierList{
-	// · AttributeSpecifier: &cc.AttributeSpecifier{
-	// · · AttributeValueList: &cc.AttributeValueList{
-	// · · · AttributeValue: &cc.AttributeValue{
-	// · · · · Case: AttributeValueIdent,
-	// · · · · Token: example.c:1:16: identifier "a",
-	// · · · },
+	// &cc.AttributeSpecifier{
+	// · AttributeValueList: &cc.AttributeValueList{
+	// · · AttributeValue: &cc.AttributeValue{
+	// · · · Case: AttributeValueIdent,
+	// · · · Token: example.c:1:16: identifier "a",
 	// · · },
-	// · · Token: example.c:1:1: '__attribute__' "__attribute__",
-	// · · Token2: example.c:1:14: '(' "(",
-	// · · Token3: example.c:1:15: '(' "(",
-	// · · Token4: example.c:1:17: ')' ")",
-	// · · Token5: example.c:1:18: ')' ")",
 	// · },
+	// · Token: example.c:1:1: '__attribute__' "__attribute__",
+	// · Token2: example.c:1:14: '(' "(",
+	// · Token3: example.c:1:15: '(' "(",
+	// · Token4: example.c:1:17: ')' ")",
+	// · Token5: example.c:1:18: ')' ")",
 	// }
 	// &cc.StorageClassSpecifier{
 	// · Case: StorageClassSpecifierStatic,
@@ -1746,20 +1738,18 @@ func ExampleDeclarationSpecifier_alignSpec() {
 func ExampleDeclarationSpecifier_attr() {
 	fmt.Println(exampleAST(98, "__attribute__((a)) int i;"))
 	// Output:
-	// &cc.AttributeSpecifierList{
-	// · AttributeSpecifier: &cc.AttributeSpecifier{
-	// · · AttributeValueList: &cc.AttributeValueList{
-	// · · · AttributeValue: &cc.AttributeValue{
-	// · · · · Case: AttributeValueIdent,
-	// · · · · Token: example.c:1:16: identifier "a",
-	// · · · },
+	// &cc.AttributeSpecifier{
+	// · AttributeValueList: &cc.AttributeValueList{
+	// · · AttributeValue: &cc.AttributeValue{
+	// · · · Case: AttributeValueIdent,
+	// · · · Token: example.c:1:16: identifier "a",
 	// · · },
-	// · · Token: example.c:1:1: '__attribute__' "__attribute__",
-	// · · Token2: example.c:1:14: '(' "(",
-	// · · Token3: example.c:1:15: '(' "(",
-	// · · Token4: example.c:1:17: ')' ")",
-	// · · Token5: example.c:1:18: ')' ")",
 	// · },
+	// · Token: example.c:1:1: '__attribute__' "__attribute__",
+	// · Token2: example.c:1:14: '(' "(",
+	// · Token3: example.c:1:15: '(' "(",
+	// · Token4: example.c:1:17: ')' ")",
+	// · Token5: example.c:1:18: ')' ")",
 	// }
 	// &cc.TypeSpecifier{
 	// · Case: TypeSpecifierInt,
@@ -2841,8 +2831,8 @@ func ExampleInitDeclarator_case1() {
 	// · Token2: example.c:1:6: ',' ",",
 	// }
 	// &cc.InitDeclarator{
-	// · AttributeSpecifierList: &cc.AttributeSpecifierList{
-	// · · AttributeSpecifier: &cc.AttributeSpecifier{
+	// · AttributeSpecifiers: []*cc.AttributeSpecifier{ // len 1
+	// · · 0: &cc.AttributeSpecifier{
 	// · · · AttributeValueList: &cc.AttributeValueList{
 	// · · · · AttributeValue: &cc.AttributeValue{
 	// · · · · · Case: AttributeValueIdent,
@@ -3434,8 +3424,8 @@ func ExampleParameterDeclaration_decl() {
 	fmt.Println(exampleAST(190, "int f(int i __attribute__((a))) {}"))
 	// Output:
 	// &cc.ParameterDeclaration{
-	// · AttributeSpecifierList: &cc.AttributeSpecifierList{
-	// · · AttributeSpecifier: &cc.AttributeSpecifier{
+	// · AttributeSpecifiers: []*cc.AttributeSpecifier{ // len 1
+	// · · 0: &cc.AttributeSpecifier{
 	// · · · AttributeValueList: &cc.AttributeValueList{
 	// · · · · AttributeValue: &cc.AttributeValue{
 	// · · · · · Case: AttributeValueIdent,
@@ -4750,8 +4740,8 @@ func ExampleStructDeclaration_decl() {
 	fmt.Println(exampleAST(146, "struct{ int i __attribute__((a)); };"))
 	// Output:
 	// &cc.StructDeclaration{
-	// · AttributeSpecifierList: &cc.AttributeSpecifierList{
-	// · · AttributeSpecifier: &cc.AttributeSpecifier{
+	// · AttributeSpecifiers: []*cc.AttributeSpecifier{ // len 1
+	// · · 0: &cc.AttributeSpecifier{
 	// · · · AttributeValueList: &cc.AttributeValueList{
 	// · · · · AttributeValue: &cc.AttributeValue{
 	// · · · · · Case: AttributeValueIdent,
@@ -4834,8 +4824,8 @@ func ExampleStructDeclarationList_case0() {
 	// · · · · },
 	// · · · },
 	// · · · TypeQualifier: &cc.TypeQualifier{
-	// · · · · AttributeSpecifierList: &cc.AttributeSpecifierList{
-	// · · · · · AttributeSpecifier: &cc.AttributeSpecifier{
+	// · · · · AttributeSpecifiers: []*cc.AttributeSpecifier{ // len 1
+	// · · · · · 0: &cc.AttributeSpecifier{
 	// · · · · · · AttributeValueList: &cc.AttributeValueList{
 	// · · · · · · · AttributeValue: &cc.AttributeValue{
 	// · · · · · · · · Case: AttributeValueIdent,
@@ -5022,8 +5012,8 @@ func ExampleStructOrUnionSpecifier_def() {
 	fmt.Println(exampleAST(140, "struct s { int i; } __attribute__((a));"))
 	// Output:
 	// &cc.StructOrUnionSpecifier{
-	// · AttributeSpecifierList: &cc.AttributeSpecifierList{
-	// · · AttributeSpecifier: &cc.AttributeSpecifier{
+	// · AttributeSpecifiers: []*cc.AttributeSpecifier{ // len 1
+	// · · 0: &cc.AttributeSpecifier{
 	// · · · AttributeValueList: &cc.AttributeValueList{
 	// · · · · AttributeValue: &cc.AttributeValue{
 	// · · · · · Case: AttributeValueIdent,
@@ -5076,8 +5066,8 @@ func ExampleStructOrUnionSpecifier_tag() {
 	fmt.Println(exampleAST(141, "struct __attribute__((a)) s v;"))
 	// Output:
 	// &cc.StructOrUnionSpecifier{
-	// · AttributeSpecifierList: &cc.AttributeSpecifierList{
-	// · · AttributeSpecifier: &cc.AttributeSpecifier{
+	// · AttributeSpecifiers: []*cc.AttributeSpecifier{ // len 1
+	// · · 0: &cc.AttributeSpecifier{
 	// · · · AttributeValueList: &cc.AttributeValueList{
 	// · · · · AttributeValue: &cc.AttributeValue{
 	// · · · · · Case: AttributeValueIdent,
@@ -5236,8 +5226,8 @@ func ExampleTypeQualifier_attr() {
 	fmt.Println(exampleAST(167, "struct { __attribute__((a)) int i; };"))
 	// Output:
 	// &cc.TypeQualifier{
-	// · AttributeSpecifierList: &cc.AttributeSpecifierList{
-	// · · AttributeSpecifier: &cc.AttributeSpecifier{
+	// · AttributeSpecifiers: []*cc.AttributeSpecifier{ // len 1
+	// · · 0: &cc.AttributeSpecifier{
 	// · · · AttributeValueList: &cc.AttributeValueList{
 	// · · · · AttributeValue: &cc.AttributeValue{
 	// · · · · · Case: AttributeValueIdent,
@@ -5267,8 +5257,8 @@ func ExampleTypeQualifiers_typeQual() {
 	// · TypeQualifiers: &cc.TypeQualifiers{
 	// · · Case: TypeQualifiersTypeQual,
 	// · · TypeQualifier: &cc.TypeQualifier{
-	// · · · AttributeSpecifierList: &cc.AttributeSpecifierList{
-	// · · · · AttributeSpecifier: &cc.AttributeSpecifier{
+	// · · · AttributeSpecifiers: []*cc.AttributeSpecifier{ // len 1
+	// · · · · 0: &cc.AttributeSpecifier{
 	// · · · · · AttributeValueList: &cc.AttributeValueList{
 	// · · · · · · AttributeValue: &cc.AttributeValue{
 	// · · · · · · · Case: AttributeValueIdent,
