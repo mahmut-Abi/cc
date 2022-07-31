@@ -1308,7 +1308,7 @@ type DirectAbstractDeclarator struct {
 	Token                    Token
 	Token2                   Token
 	Token3                   Token
-	TypeQualifiers           *TypeQualifiers
+	TypeQualifiers           []*TypeQualifier
 }
 
 // String implements fmt.Stringer.
@@ -1362,8 +1362,10 @@ func (n *DirectAbstractDeclarator) Position() (r token.Position) {
 			return p
 		}
 
-		if p := n.TypeQualifiers.Position(); p.IsValid() {
-			return p
+		for _, q := range n.TypeQualifiers {
+			if p := q.Position(); p.IsValid() {
+				return p
+			}
 		}
 
 		if p := n.AssignmentExpression.Position(); p.IsValid() {
@@ -1380,8 +1382,10 @@ func (n *DirectAbstractDeclarator) Position() (r token.Position) {
 			return p
 		}
 
-		if p := n.TypeQualifiers.Position(); p.IsValid() {
-			return p
+		for _, q := range n.TypeQualifiers {
+			if p := q.Position(); p.IsValid() {
+				return p
+			}
 		}
 
 		if p := n.AssignmentExpression.Position(); p.IsValid() {
@@ -1398,8 +1402,10 @@ func (n *DirectAbstractDeclarator) Position() (r token.Position) {
 			return p
 		}
 
-		if p := n.TypeQualifiers.Position(); p.IsValid() {
-			return p
+		for _, q := range n.TypeQualifiers {
+			if p := q.Position(); p.IsValid() {
+				return p
+			}
 		}
 
 		if p := n.Token2.Position(); p.IsValid() {
@@ -1487,7 +1493,7 @@ type DirectDeclarator struct {
 	Token                Token
 	Token2               Token
 	Token3               Token
-	TypeQualifiers       *TypeQualifiers
+	TypeQualifiers       []*TypeQualifier
 }
 
 // String implements fmt.Stringer.
@@ -1541,8 +1547,10 @@ func (n *DirectDeclarator) Position() (r token.Position) {
 			return p
 		}
 
-		if p := n.TypeQualifiers.Position(); p.IsValid() {
-			return p
+		for _, q := range n.TypeQualifiers {
+			if p := q.Position(); p.IsValid() {
+				return p
+			}
 		}
 
 		if p := n.AssignmentExpression.Position(); p.IsValid() {
@@ -1559,8 +1567,10 @@ func (n *DirectDeclarator) Position() (r token.Position) {
 			return p
 		}
 
-		if p := n.TypeQualifiers.Position(); p.IsValid() {
-			return p
+		for _, q := range n.TypeQualifiers {
+			if p := q.Position(); p.IsValid() {
+				return p
+			}
 		}
 
 		if p := n.AssignmentExpression.Position(); p.IsValid() {
@@ -1577,8 +1587,10 @@ func (n *DirectDeclarator) Position() (r token.Position) {
 			return p
 		}
 
-		if p := n.TypeQualifiers.Position(); p.IsValid() {
-			return p
+		for _, q := range n.TypeQualifiers {
+			if p := q.Position(); p.IsValid() {
+				return p
+			}
 		}
 
 		if p := n.Token2.Position(); p.IsValid() {
@@ -1599,8 +1611,10 @@ func (n *DirectDeclarator) Position() (r token.Position) {
 			return p
 		}
 
-		if p := n.TypeQualifiers.Position(); p.IsValid() {
-			return p
+		for _, q := range n.TypeQualifiers {
+			if p := q.Position(); p.IsValid() {
+				return p
+			}
 		}
 
 		if p := n.Token2.Position(); p.IsValid() {
@@ -2900,7 +2914,7 @@ type Pointer struct {
 	Case           PointerCase `PrettyPrint:"stringer,zero"`
 	Pointer        *Pointer
 	Token          Token
-	TypeQualifiers *TypeQualifiers
+	TypeQualifiers []*TypeQualifier
 }
 
 // String implements fmt.Stringer.
@@ -2918,14 +2932,22 @@ func (n *Pointer) Position() (r token.Position) {
 			return p
 		}
 
-		return n.TypeQualifiers.Position()
+		for _, q := range n.TypeQualifiers {
+			if p := q.Position(); p.IsValid() {
+				return p
+			}
+		}
+
+		return r
 	case 1:
 		if p := n.Token.Position(); p.IsValid() {
 			return p
 		}
 
-		if p := n.TypeQualifiers.Position(); p.IsValid() {
-			return p
+		for _, q := range n.TypeQualifiers {
+			if p := q.Position(); p.IsValid() {
+				return p
+			}
 		}
 
 		return n.Pointer.Position()
@@ -3913,59 +3935,6 @@ func (n *TypeQualifier) Position() (r token.Position) {
 	}
 
 	return n.Token.Position()
-}
-
-// TypeQualifiersCase represents case numbers of production TypeQualifiers
-type TypeQualifiersCase int
-
-// Values of type TypeQualifiersCase
-const (
-	TypeQualifiersTypeQual TypeQualifiersCase = iota
-	_
-)
-
-// String implements fmt.Stringer
-func (n TypeQualifiersCase) String() string {
-	switch n {
-	case TypeQualifiersTypeQual:
-		return "TypeQualifiersTypeQual"
-	default:
-		return fmt.Sprintf("TypeQualifiersCase(%v)", int(n))
-	}
-}
-
-// TypeQualifiers represents data reduced by productions:
-//
-//	TypeQualifiers:
-//	        TypeQualifier                 // Case TypeQualifiersTypeQual
-//	|       TypeQualifiers TypeQualifier  // Case 1
-type TypeQualifiers struct {
-	Case           TypeQualifiersCase `PrettyPrint:"stringer,zero"`
-	TypeQualifier  *TypeQualifier
-	TypeQualifiers *TypeQualifiers
-}
-
-// String implements fmt.Stringer.
-func (n *TypeQualifiers) String() string { return PrettyString(n) }
-
-// Position reports the position of the first component of n, if available.
-func (n *TypeQualifiers) Position() (r token.Position) {
-	if n == nil {
-		return r
-	}
-
-	switch n.Case {
-	case 0:
-		return n.TypeQualifier.Position()
-	case 1:
-		if p := n.TypeQualifiers.Position(); p.IsValid() {
-			return p
-		}
-
-		return n.TypeQualifier.Position()
-	default:
-		panic("internal error")
-	}
 }
 
 // TypeSpecifierCase represents case numbers of production TypeSpecifier

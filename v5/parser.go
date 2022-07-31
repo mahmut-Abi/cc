@@ -2731,10 +2731,10 @@ func (p *parser) in(ch rune, set ...rune) bool {
 // 	type-qualifier
 // 	type-qualifier-list type-qualifier
 // 	type-qualifier-list
-func (p *parser) typeQualifierList(opt, acceptAttributes bool) (r *TypeQualifiers) {
+func (p *parser) typeQualifierList(opt, acceptAttributes bool) (r []*TypeQualifier) {
 	switch ch := p.rune(true); {
 	case p.isTypeQualifier(ch):
-		r = &TypeQualifiers{Case: TypeQualifiersTypeQual, TypeQualifier: p.typeQualifier(false)}
+		r = append(r, p.typeQualifier(false))
 	case p.in(ch, ':', ')', ',', '[', ']', rune(STATIC)) || p.isExpression(ch) || ch == rune(TYPENAME):
 		if opt {
 			return nil
@@ -2744,7 +2744,7 @@ func (p *parser) typeQualifierList(opt, acceptAttributes bool) (r *TypeQualifier
 		p.cpp.eh("%v: unexpected %v, expected type qualifier", t.Position(), runeName(t.Ch))
 	case ch == rune(ATTRIBUTE):
 		if acceptAttributes {
-			r = &TypeQualifiers{Case: TypeQualifiersTypeQual, TypeQualifier: p.typeQualifier(true)}
+			r = append(r, p.typeQualifier(true))
 			break
 		}
 
@@ -2758,7 +2758,7 @@ func (p *parser) typeQualifierList(opt, acceptAttributes bool) (r *TypeQualifier
 		case p.in(ch, ':', ')', ',', '[', ']', rune(STATIC)) || p.isExpression(ch) || ch == rune(TYPENAME):
 			return r
 		case p.isTypeQualifier(ch):
-			r = &TypeQualifiers{Case: TypeQualifiersTypeQual, TypeQualifiers: r, TypeQualifier: p.typeQualifier(acceptAttributes)}
+			r = append(r, p.typeQualifier(acceptAttributes))
 		default:
 			t := p.shift(false)
 			p.cpp.eh("%v: unexpected %v, expected type qualifier", t.Position(), runeName(t.Ch))

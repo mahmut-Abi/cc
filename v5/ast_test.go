@@ -1902,9 +1902,8 @@ func ExampleDirectAbstractDeclarator_arr() {
 	// · Case: DirectAbstractDeclaratorArr,
 	// · Token: example.c:1:11: '[' "[",
 	// · Token2: example.c:1:20: ']' "]",
-	// · TypeQualifiers: &cc.TypeQualifiers{
-	// · · Case: TypeQualifiersTypeQual,
-	// · · TypeQualifier: &cc.TypeQualifier{
+	// · TypeQualifiers: []*cc.TypeQualifier{ // len 1
+	// · · 0: &cc.TypeQualifier{
 	// · · · Case: TypeQualifierConst,
 	// · · · Token: example.c:1:12: 'const' "const",
 	// · · },
@@ -1924,9 +1923,8 @@ func ExampleDirectAbstractDeclarator_staticArr() {
 	// · Token: example.c:1:11: '[' "[",
 	// · Token2: example.c:1:12: 'static' "static",
 	// · Token3: example.c:1:27: ']' "]",
-	// · TypeQualifiers: &cc.TypeQualifiers{
-	// · · Case: TypeQualifiersTypeQual,
-	// · · TypeQualifier: &cc.TypeQualifier{
+	// · TypeQualifiers: []*cc.TypeQualifier{ // len 1
+	// · · 0: &cc.TypeQualifier{
 	// · · · Case: TypeQualifierConst,
 	// · · · Token: example.c:1:19: 'const' "const",
 	// · · },
@@ -1946,9 +1944,8 @@ func ExampleDirectAbstractDeclarator_arrStatic() {
 	// · Token: example.c:1:11: '[' "[",
 	// · Token2: example.c:1:18: 'static' "static",
 	// · Token3: example.c:1:27: ']' "]",
-	// · TypeQualifiers: &cc.TypeQualifiers{
-	// · · Case: TypeQualifiersTypeQual,
-	// · · TypeQualifier: &cc.TypeQualifier{
+	// · TypeQualifiers: []*cc.TypeQualifier{ // len 1
+	// · · 0: &cc.TypeQualifier{
 	// · · · Case: TypeQualifierConst,
 	// · · · Token: example.c:1:12: 'const' "const",
 	// · · },
@@ -2031,9 +2028,8 @@ func ExampleDirectDeclarator_arr() {
 	// · },
 	// · Token: example.c:1:6: '[' "[",
 	// · Token3: example.c:1:15: ']' "]",
-	// · TypeQualifiers: &cc.TypeQualifiers{
-	// · · Case: TypeQualifiersTypeQual,
-	// · · TypeQualifier: &cc.TypeQualifier{
+	// · TypeQualifiers: []*cc.TypeQualifier{ // len 1
+	// · · 0: &cc.TypeQualifier{
 	// · · · Case: TypeQualifierConst,
 	// · · · Token: example.c:1:7: 'const' "const",
 	// · · },
@@ -2057,9 +2053,8 @@ func ExampleDirectDeclarator_staticArr() {
 	// · Token: example.c:1:6: '[' "[",
 	// · Token2: example.c:1:7: 'static' "static",
 	// · Token3: example.c:1:22: ']' "]",
-	// · TypeQualifiers: &cc.TypeQualifiers{
-	// · · Case: TypeQualifiersTypeQual,
-	// · · TypeQualifier: &cc.TypeQualifier{
+	// · TypeQualifiers: []*cc.TypeQualifier{ // len 1
+	// · · 0: &cc.TypeQualifier{
 	// · · · Case: TypeQualifierConst,
 	// · · · Token: example.c:1:14: 'const' "const",
 	// · · },
@@ -2083,9 +2078,8 @@ func ExampleDirectDeclarator_arrStatic() {
 	// · Token: example.c:1:6: '[' "[",
 	// · Token2: example.c:1:13: 'static' "static",
 	// · Token3: example.c:1:22: ']' "]",
-	// · TypeQualifiers: &cc.TypeQualifiers{
-	// · · Case: TypeQualifiersTypeQual,
-	// · · TypeQualifier: &cc.TypeQualifier{
+	// · TypeQualifiers: []*cc.TypeQualifier{ // len 1
+	// · · 0: &cc.TypeQualifier{
 	// · · · Case: TypeQualifierConst,
 	// · · · Token: example.c:1:7: 'const' "const",
 	// · · },
@@ -2105,9 +2099,8 @@ func ExampleDirectDeclarator_star() {
 	// · Token: example.c:1:6: '[' "[",
 	// · Token2: example.c:1:13: '*' "*",
 	// · Token3: example.c:1:14: ']' "]",
-	// · TypeQualifiers: &cc.TypeQualifiers{
-	// · · Case: TypeQualifiersTypeQual,
-	// · · TypeQualifier: &cc.TypeQualifier{
+	// · TypeQualifiers: []*cc.TypeQualifier{ // len 1
+	// · · 0: &cc.TypeQualifier{
 	// · · · Case: TypeQualifierConst,
 	// · · · Token: example.c:1:7: 'const' "const",
 	// · · },
@@ -3588,9 +3581,8 @@ func ExamplePointer_block() {
 	// &cc.Pointer{
 	// · Case: PointerBlock,
 	// · Token: example.c:1:20: '^' "^",
-	// · TypeQualifiers: &cc.TypeQualifiers{
-	// · · Case: TypeQualifiersTypeQual,
-	// · · TypeQualifier: &cc.TypeQualifier{
+	// · TypeQualifiers: []*cc.TypeQualifier{ // len 1
+	// · · 0: &cc.TypeQualifier{
 	// · · · Case: TypeQualifierNonnull,
 	// · · · Token: example.c:1:22: '_Nonnull' "_Nonnull",
 	// · · },
@@ -5205,55 +5197,43 @@ func ExampleTypeQualifier_attr() {
 	// }
 }
 
-func ExampleTypeQualifiers_typeQual() {
+func ExampleTypeQualifier_typeQual() {
 	fmt.Println(exampleAST(184, "int * __attribute__((a)) const i;"))
 	// Output:
-	// &cc.TypeQualifiers{
-	// · Case: TypeQualifiersTypeQual,
-	// · TypeQualifier: &cc.TypeQualifier{
-	// · · Case: TypeQualifierConst,
-	// · · Token: example.c:1:26: 'const' "const",
-	// · },
-	// · TypeQualifiers: &cc.TypeQualifiers{
-	// · · Case: TypeQualifiersTypeQual,
-	// · · TypeQualifier: &cc.TypeQualifier{
-	// · · · AttributeSpecifiers: []*cc.AttributeSpecifier{ // len 1
-	// · · · · 0: &cc.AttributeSpecifier{
-	// · · · · · AttributeValueList: &cc.AttributeValueList{
-	// · · · · · · AttributeValue: &cc.AttributeValue{
-	// · · · · · · · Case: AttributeValueIdent,
-	// · · · · · · · Token: example.c:1:22: identifier "a",
-	// · · · · · · },
-	// · · · · · },
-	// · · · · · Token: example.c:1:7: '__attribute__' "__attribute__",
-	// · · · · · Token2: example.c:1:20: '(' "(",
-	// · · · · · Token3: example.c:1:21: '(' "(",
-	// · · · · · Token4: example.c:1:23: ')' ")",
-	// · · · · · Token5: example.c:1:24: ')' ")",
+	// &cc.TypeQualifier{
+	// · AttributeSpecifiers: []*cc.AttributeSpecifier{ // len 1
+	// · · 0: &cc.AttributeSpecifier{
+	// · · · AttributeValueList: &cc.AttributeValueList{
+	// · · · · AttributeValue: &cc.AttributeValue{
+	// · · · · · Case: AttributeValueIdent,
+	// · · · · · Token: example.c:1:22: identifier "a",
 	// · · · · },
 	// · · · },
-	// · · · Case: TypeQualifierAttr,
+	// · · · Token: example.c:1:7: '__attribute__' "__attribute__",
+	// · · · Token2: example.c:1:20: '(' "(",
+	// · · · Token3: example.c:1:21: '(' "(",
+	// · · · Token4: example.c:1:23: ')' ")",
+	// · · · Token5: example.c:1:24: ')' ")",
 	// · · },
 	// · },
+	// · Case: TypeQualifierAttr,
+	// }
+	// &cc.TypeQualifier{
+	// · Case: TypeQualifierConst,
+	// · Token: example.c:1:26: 'const' "const",
 	// }
 }
 
-func ExampleTypeQualifiers_case1() {
+func ExampleTypeQualifier_case1() {
 	fmt.Println(exampleAST(185, "int * const volatile i;"))
 	// Output:
-	// &cc.TypeQualifiers{
-	// · Case: TypeQualifiersTypeQual,
-	// · TypeQualifier: &cc.TypeQualifier{
-	// · · Case: TypeQualifierVolatile,
-	// · · Token: example.c:1:13: 'volatile' "volatile",
-	// · },
-	// · TypeQualifiers: &cc.TypeQualifiers{
-	// · · Case: TypeQualifiersTypeQual,
-	// · · TypeQualifier: &cc.TypeQualifier{
-	// · · · Case: TypeQualifierConst,
-	// · · · Token: example.c:1:7: 'const' "const",
-	// · · },
-	// · },
+	// &cc.TypeQualifier{
+	// · Case: TypeQualifierConst,
+	// · Token: example.c:1:7: 'const' "const",
+	// }
+	// &cc.TypeQualifier{
+	// · Case: TypeQualifierVolatile,
+	// · Token: example.c:1:13: 'volatile' "volatile",
 	// }
 }
 
