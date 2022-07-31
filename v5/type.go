@@ -701,7 +701,7 @@ type PointerType struct {
 }
 
 // NewPointerType returns an elem pointer.
-func newPointerType(elem Type) (r *PointerType) {
+func NewPointerType(elem Type) (r *PointerType) {
 	panic(todo(""))
 }
 
