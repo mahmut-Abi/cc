@@ -2494,16 +2494,18 @@ func (n *StructDeclarationList) check(c *ctx, s *StructOrUnionSpecifier) {
 		}
 		switch {
 		case f.isBitField:
-			f.accessBytes = bits2AccessBytes(f.valueBits + brk&7)
 			switch {
 			case isUnion:
 				f.mask = (uint64(1)<<f.valueBits - 1)
+				f.accessBytes = bits2AccessBytes(f.valueBits + brk&7)
 				unionBits = mathutil.MaxInt64(unionBits, 8*f.accessBytes)
 			default:
 				brkOffBytes := brk >> 3
+				f.accessBytes = bits2AccessBytes(f.valueBits + brk&7)
 				if mod := brkOffBytes % f.accessBytes; mod != 0 {
 					brkOffBytes += f.accessBytes - mod
 					brk = brkOffBytes << 3
+					f.accessBytes = bits2AccessBytes(f.valueBits + brk&7)
 				}
 				f.offsetBytes = brkOffBytes
 				f.offsetBits = int(brk - 8*f.offsetBytes)
