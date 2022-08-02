@@ -12,6 +12,10 @@ func (n *Declarator) AddressTaken() bool { return n.addrTaken }
 // Translate.
 func (n *Declarator) ReadCount() int { return n.read }
 
+// SizeofCount reports the number of times n appears in sizeof(expr). The
+// result is valid after Translate.
+func (n *Declarator) SizeofCount() int { return n.sizeof }
+
 // WriteCount reports the number of times n is written. The result is valid
 // after Translate.
 func (n *Declarator) WriteCount() int { return n.write }

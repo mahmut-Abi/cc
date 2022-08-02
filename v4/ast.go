@@ -1328,6 +1328,7 @@ func (n *DeclarationSpecifiers) Position() (r token.Position) {
 type Declarator struct {
 	alignas int
 	read    int
+	sizeof  int
 	write   int
 	*lexicalScope
 	typer

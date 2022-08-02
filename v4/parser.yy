@@ -670,6 +670,7 @@ package cc // import "modernc.org/cc/v4"
 			/* [0], 6.7.5 Declarators */
 			/*yy:field	alignas		int		*/
 			/*yy:field	read		int		*/
+			/*yy:field	sizeof		int		*/
 			/*yy:field	write		int		*/
 			/*yy:field	*lexicalScope			*/
 			/*yy:field	typer				*/

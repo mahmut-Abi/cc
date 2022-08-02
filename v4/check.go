@@ -62,6 +62,8 @@ type ctx struct {
 	inSwitch    int
 	indentN     int // debug
 	switchCases int
+
+	checkingSizeof bool
 }
 
 func newCtx(ast *AST) *ctx {
@@ -3459,6 +3461,9 @@ func (n *UnaryExpression) check(c *ctx, mode flags) (r Type) {
 		}
 		n.typ = c.intT
 	case UnaryExpressionSizeofExpr: // "sizeof" UnaryExpression
+		sv := c.checkingSizeof
+		defer func() { c.checkingSizeof = sv }()
+		c.checkingSizeof = true
 		n.typ = c.sizeT(n)
 		t := n.UnaryExpression.check(c, mode.del(decay))
 		if t.Kind() == Function {
@@ -3847,6 +3852,9 @@ out:
 					n.typ = c.implicitFunc
 					d.typ = n.Type().(*PointerType).Elem()
 					d.read++
+					if c.checkingSizeof {
+						d.sizeof++
+					}
 					break out
 				}
 
@@ -3854,6 +3862,9 @@ out:
 					n.typ = c.intT
 					d.typ = n.Type()
 					d.read++
+					if c.checkingSizeof {
+						d.sizeof++
+					}
 					break out
 				}
 
@@ -3864,6 +3875,9 @@ out:
 
 		n.resolvedTo = d
 		d.read++
+		if c.checkingSizeof {
+			d.sizeof++
+		}
 		n.typ = d.Type()
 	case PrimaryExpressionInt: // INTCONST
 		n.val, n.typ = n.intConst(c)
