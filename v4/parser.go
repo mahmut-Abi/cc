@@ -138,7 +138,6 @@ func newParser(cfg *Config, fset *fset, sources []Source) (*parser, error) {
 		cfg.keywords = defaultKeywords
 	}
 	funcTokens = funcTokens[:len(funcTokens):len(funcTokens)]
-	cpp.rune()
 	return &parser{
 		cpp:        cpp,
 		funcTokens: funcTokens,
@@ -348,6 +347,7 @@ func (p *parser) parse() (ast *AST, err error) {
 		}
 		errors = append(errors, s)
 	}
+	p.cpp.rune()
 	tu := p.translationUnit()
 	p.cpp.mmap = nil
 	switch p.rune(false) {

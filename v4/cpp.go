@@ -752,10 +752,6 @@ func newCPP(cfg *Config, fset *fset, sources []Source, eh errHandler) (*cpp, err
 	c.tokenizer = newTokenizer(c)
 	c.tok.Ch = eof // Invalidate
 
-	if c.eh == nil {
-		c.eh = func(msg string, args ...interface{}) { fmt.Printf(msg, args...) }
-	}
-
 	return c, nil
 }
 
