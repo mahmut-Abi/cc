@@ -180,10 +180,21 @@ func (c *ctx) checkScope(s *Scope) {
 			ps  []*Parameter
 			sus []*StructOrUnionSpecifier
 		)
+		var firstInitialized *Declarator
+		initializers := 0
 		for _, n := range ns {
 			switch x := n.(type) {
 			case *Declarator:
 				ds = append(ds, x)
+				if x.hasInitializer {
+					if initializers == 0 {
+						firstInitialized = x
+					}
+					initializers++
+					if initializers > 1 {
+						c.errors.add(errorf("%v: multiple definitions of '%s', first definition at %v:", x.Position(), x.Name(), firstInitialized.Position()))
+					}
+				}
 			case *Enumerator:
 				es = append(es, x)
 			case *EnumSpecifier:
@@ -215,7 +226,7 @@ func (c *ctx) checkScope(s *Scope) {
 				for _, b := range ds[1:] {
 					u := b.Type()
 					if !t.IsCompatible(u) {
-						c.errors.add(errorf("%v: conflicting types for '%s', previous declaration at %v, %s and %s", b.Position(), a.Name(), a.Position(), t, u))
+						c.errors.add(errorf("%v: conflicting types for '%s', previous declaration at %v:, %s and %s", b.Position(), a.Name(), a.Position(), t, u))
 						return
 					}
 				}

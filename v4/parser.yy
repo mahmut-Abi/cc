@@ -668,14 +668,16 @@ package cc // import "modernc.org/cc/v4"
 /*yy:case Noreturn   */ |	"_Noreturn"
 
 			/* [0], 6.7.5 Declarators */
-			/*yy:field	alignas		int		*/
-			/*yy:field	read		int		*/
-			/*yy:field	sizeof		int		*/
-			/*yy:field	write		int		*/
 			/*yy:field	*lexicalScope			*/
 			/*yy:field	typer				*/
 			/*yy:field	visible				*/
 			/*yy:field	resolver			*/
+			/*yy:field	alignas		int		*/
+			/*yy:field	read		int		*/
+			/*yy:field	sizeof		int		*/
+			/*yy:field	write		int		*/
+			/*yy:field	addrTaken	bool		*/
+			/*yy:field	hasInitializer	bool		*/
 			/*yy:field	isAtomic	bool		*/
 			/*yy:field	isAuto		bool		*/
 			/*yy:field	isConst		bool		*/
@@ -690,7 +692,6 @@ package cc // import "modernc.org/cc/v4"
 			/*yy:field	isThreadLocal	bool		*/
 			/*yy:field	isTypename	bool		*/
 			/*yy:field	isVolatile	bool		*/
-			/*yy:field	addrTaken	bool		*/
 			/*yy:example int *p; */
 			Declarator:
 				Pointer DirectDeclarator

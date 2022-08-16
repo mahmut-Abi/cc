@@ -1242,6 +1242,7 @@ func (p *parser) initDeclarator(ds *DeclarationSpecifiers, d *Declarator, declar
 		r.AttributeSpecifierList = p.attributeSpecifierListOpt()
 	}
 	if p.rune(false) == '=' {
+		d.hasInitializer = true
 		if d.isTypename {
 			p.cpp.eh("%v: typedef '%s' is initialized", p.toks[0].Position(), d.Name())
 		}
