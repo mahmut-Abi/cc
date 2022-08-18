@@ -652,6 +652,7 @@ func Translate(cfg *Config, sources []Source) (*AST, error) {
 // NodeTokens returns the source tokens n consists of.
 func NodeTokens(n Node) (r []Token) {
 	nodeSource(n, &r)
+	sort.Slice(r, func(i, j int) bool { return r[i].seq < r[j].seq })
 	return r
 }
 
