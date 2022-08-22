@@ -3162,28 +3162,58 @@ func (p *parser) designator(acceptCol bool) (*Designator, bool) {
 // 	iteration-statement
 // 	jump-statement
 //	asm-statement
-func (p *parser) statement() *Statement {
-	switch p.rune() {
-	case IDENTIFIER:
-		if p.peek(false) == ':' {
-			return &Statement{Case: StatementLabeled, LabeledStatement: p.labeledStatement()}
-		}
+func (p *parser) statement() (r *Statement) {
+	type label struct {
+		name, colon Token
+		attr        *AttributeSpecifierList
+	}
+	var labels []label
 
-		return &Statement{Case: StatementExpr, ExpressionStatement: p.expressionStatement()}
-	case '{':
-		return &Statement{Case: StatementCompound, CompoundStatement: p.compoundStatement(nil, nil)}
-	case IF, SWITCH:
-		return &Statement{Case: StatementSelection, SelectionStatement: p.selectionStatement()}
-	case WHILE, DO, FOR:
-		return &Statement{Case: StatementIteration, IterationStatement: p.iterationStatement()}
-	case GOTO, BREAK, CONTINUE, RETURN:
-		return &Statement{Case: StatementJump, JumpStatement: p.jumpStatement()}
-	case CASE, DEFAULT:
-		return &Statement{Case: StatementLabeled, LabeledStatement: p.labeledStatement()}
-	case ASM:
-		return &Statement{Case: StatementAsm, AsmStatement: p.asmStatement()}
-	default:
-		return &Statement{Case: StatementExpr, ExpressionStatement: p.expressionStatement()}
+	defer func() {
+		for len(labels) != 0 {
+			l := labels[len(labels)-1]
+			labels = labels[:len(labels)-1]
+			r = &Statement{
+				Case: StatementLabeled,
+				LabeledStatement: &LabeledStatement{
+					Case:                   LabeledStatementLabel,
+					Token:                  l.name,
+					Token2:                 l.colon,
+					AttributeSpecifierList: l.attr,
+					Statement:              r,
+					lexicalScope:           p.declScope,
+					block:                  p.block,
+				},
+			}
+			p.declScope.declare(l.name.Value, r.LabeledStatement)
+		}
+	}()
+
+	for {
+		switch p.rune() {
+		case IDENTIFIER:
+			if p.peek(false) == ':' {
+				labels = append(labels, label{p.shift(), p.shift(), p.attributeSpecifierListOpt()})
+				p.block.hasLabel()
+				continue
+			}
+
+			return &Statement{Case: StatementExpr, ExpressionStatement: p.expressionStatement()}
+		case '{':
+			return &Statement{Case: StatementCompound, CompoundStatement: p.compoundStatement(nil, nil)}
+		case IF, SWITCH:
+			return &Statement{Case: StatementSelection, SelectionStatement: p.selectionStatement()}
+		case WHILE, DO, FOR:
+			return &Statement{Case: StatementIteration, IterationStatement: p.iterationStatement()}
+		case GOTO, BREAK, CONTINUE, RETURN:
+			return &Statement{Case: StatementJump, JumpStatement: p.jumpStatement()}
+		case CASE, DEFAULT:
+			return &Statement{Case: StatementLabeled, LabeledStatement: p.labeledStatement()}
+		case ASM:
+			return &Statement{Case: StatementAsm, AsmStatement: p.asmStatement()}
+		default:
+			return &Statement{Case: StatementExpr, ExpressionStatement: p.expressionStatement()}
+		}
 	}
 }
 
@@ -3203,27 +3233,6 @@ func (p *parser) labeledStatement() (r *LabeledStatement) {
 
 	var t, t2, t3 Token
 	switch p.rune() {
-	case IDENTIFIER:
-		t = p.shift()
-		switch p.rune() {
-		case ':':
-			t2 = p.shift()
-		default:
-			p.err("expected :")
-			return nil
-		}
-
-		attr := p.attributeSpecifierListOpt()
-		// if attr != nil {
-		// 	trc("%v: ATTRS", attr.Position())
-		// }
-		p.block.hasLabel()
-		r = &LabeledStatement{
-			Case: LabeledStatementLabel, Token: t, Token2: t2, AttributeSpecifierList: attr,
-			Statement: p.statement(), lexicalScope: p.declScope, block: p.block,
-		}
-		p.declScope.declare(t.Value, r)
-		return r
 	case CASE:
 		if p.switches == 0 {
 			p.err("case label not within a switch statement")
