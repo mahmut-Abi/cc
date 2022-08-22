@@ -174,6 +174,7 @@ func testTranslateDir(t *testing.T, cfg *Config, predef, dir string, hfiles bool
 		"complex-1.c":                  {}, //TODO complex num
 		"complex-5.c":                  {}, //TODO 9: unsupported type: complex int
 		"complex-6.c":                  {}, //TODO complex num
+		"limits-externdecl.c":          {}, // openbsd
 		"nestfunc-5.c":                 {}, //TODO goto from nested function to outer function label
 		"nestfunc-6.c":                 {}, //TODO goto from nested function to outer function label
 		"pr21728.c":                    {}, //TODO goto from nested function to outer function label
