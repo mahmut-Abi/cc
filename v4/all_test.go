@@ -723,7 +723,7 @@ func TestTranslationPhase4(t *testing.T) {
 		{cfg, "github.com/cxgo", nil},
 		{cfg, "github.com/gcc-mirror/gcc/gcc/testsuite", blacklistGCC},
 		{cfg, "github.com/vnmakarov", nil},
-		{cfg, "sqlite-amalgamation-3380100", nil},
+		{cfg, "sqlite-amalgamation", nil},
 		{cfg, "tcc-0.9.27/tests", blacklictTCC},
 		{cfg, "benchmarksgame-team.pages.debian.net", nil},
 	} {
@@ -1098,7 +1098,7 @@ func TestParse(t *testing.T) {
 		{cfg, "github.com/cxgo", nil},
 		{cfg, "github.com/gcc-mirror/gcc/gcc/testsuite", blacklistGCC},
 		{cfg, "github.com/vnmakarov", nil},
-		{cfg, "sqlite-amalgamation-3380100", nil},
+		{cfg, "sqlite-amalgamation", nil},
 		{cfg, "tcc-0.9.27/tests/tests2", nil},
 		{cfg, "benchmarksgame-team.pages.debian.net", nil},
 	} {
@@ -1365,7 +1365,7 @@ func TestTranslate(t *testing.T) {
 		{cfg, "github.com/cxgo", nil},
 		{cfg, "github.com/gcc-mirror/gcc/gcc/testsuite", blacklistGCC},
 		{cfg, "github.com/vnmakarov", blacklistMakarov},
-		{cfg, "sqlite-amalgamation-3380100", nil},
+		{cfg, "sqlite-amalgamation", nil},
 		{cfg, "tcc-0.9.27/tests/tests2", nil},
 		{cfg, "benchmarksgame-team.pages.debian.net", nil},
 	} {
