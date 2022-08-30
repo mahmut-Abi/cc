@@ -3022,6 +3022,7 @@ func (n JumpStatementCase) String() string {
 //	|       "break" ';'                    // Case JumpStatementBreak
 //	|       "return" ExpressionList ';'    // Case JumpStatementReturn
 type JumpStatement struct {
+	*lexicalScope
 	Case           JumpStatementCase `PrettyPrint:"stringer,zero"`
 	ExpressionList ExpressionNode
 	Token          Token
@@ -3149,7 +3150,8 @@ func (n LabeledStatementCase) String() string {
 //	|       "case" ConstantExpression "..." ConstantExpression ':' Statement  // Case LabeledStatementRange
 //	|       "default" ':' Statement                                           // Case LabeledStatementDefault
 type LabeledStatement struct {
-	caseOrdinal         int
+	caseOrdinal int
+	*lexicalScope
 	Case                LabeledStatementCase `PrettyPrint:"stringer,zero"`
 	ConstantExpression  ExpressionNode
 	ConstantExpression2 ExpressionNode

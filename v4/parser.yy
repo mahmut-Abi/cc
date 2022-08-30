@@ -848,6 +848,7 @@ package cc // import "modernc.org/cc/v4"
 
 			/* [0], 6.8.1 Labeled statements */
 			/*yy:field	caseOrdinal	int	*/
+			/*yy:field	*lexicalScope		*/
 			/*yy:example int f() { L: goto L; } */
 /*yy:case Label      */ LabeledStatement:
 				IDENTIFIER ':' Statement
@@ -913,6 +914,7 @@ package cc // import "modernc.org/cc/v4"
 /*yy:case ForDecl    */ |	"for" '(' Declaration ExpressionList ';' ExpressionList ')' Statement
 
 			/* [0], 6.8.6 Jump statements */
+			/*yy:field	*lexicalScope		*/
 			/*yy:example int f() { L: goto L; } */
 /*yy:case Goto       */ JumpStatement:
 				"goto" IDENTIFIER ';'
