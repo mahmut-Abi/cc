@@ -985,6 +985,7 @@ func (n *CastExpression) Position() (r token.Position) {
 //	        '{' BlockItemList '}'
 type CompoundStatement struct {
 	*lexicalScope
+	gotos         []*JumpStatement
 	BlockItemList *BlockItemList
 	Token         Token
 	Token2        Token
@@ -2847,6 +2848,7 @@ func (n IterationStatementCase) String() string {
 //	|       "for" '(' ExpressionList ';' ExpressionList ';' ExpressionList ')' Statement  // Case IterationStatementFor
 //	|       "for" '(' Declaration ExpressionList ';' ExpressionList ')' Statement         // Case IterationStatementForDecl
 type IterationStatement struct {
+	*lexicalScope
 	Case            IterationStatementCase `PrettyPrint:"stringer,zero"`
 	Declaration     *Declaration
 	ExpressionList  ExpressionNode
@@ -3023,6 +3025,7 @@ func (n JumpStatementCase) String() string {
 //	|       "return" ExpressionList ';'    // Case JumpStatementReturn
 type JumpStatement struct {
 	*lexicalScope
+	label          Node
 	Case           JumpStatementCase `PrettyPrint:"stringer,zero"`
 	ExpressionList ExpressionNode
 	Token          Token
@@ -4000,7 +4003,8 @@ func (n SelectionStatementCase) String() string {
 //	|       "if" '(' ExpressionList ')' Statement "else" Statement  // Case SelectionStatementIfElse
 //	|       "switch" '(' ExpressionList ')' Statement               // Case SelectionStatementSwitch
 type SelectionStatement struct {
-	switchCases    int
+	switchCases int
+	*lexicalScope
 	Case           SelectionStatementCase `PrettyPrint:"stringer,zero"`
 	ExpressionList ExpressionNode
 	Statement      *Statement

@@ -861,6 +861,7 @@ package cc // import "modernc.org/cc/v4"
 
 			/* [0], 6.8.2 Compound statement */
 			/*yy:field	*lexicalScope		*/
+			/*yy:field	gotos	[]*JumpStatement	*/
 			/*yy:example int f() { __label__ L; int i; } 		*/
 			CompoundStatement:
 				'{' BlockItemList '}'
@@ -894,6 +895,7 @@ package cc // import "modernc.org/cc/v4"
 
 			/* [0], 6.8.4 Selection statements */
 			/*yy:field	switchCases int	*/
+			/*yy:field	*lexicalScope			*/
 			/*yy:example int f() { if(x) y(); } */
 /*yy:case If         */ SelectionStatement:
 				"if" '(' ExpressionList ')' Statement %prec BELOW_ELSE
@@ -903,6 +905,7 @@ package cc // import "modernc.org/cc/v4"
 /*yy:case Switch     */ |	"switch" '(' ExpressionList ')' Statement
 
 			/* [0], 6.8.5 Iteration statements */
+			/*yy:field	*lexicalScope			*/
 			/*yy:example int f() { while(x) y(); } */
 /*yy:case While      */ IterationStatement:
 				"while" '(' ExpressionList ')' Statement
@@ -914,7 +917,8 @@ package cc // import "modernc.org/cc/v4"
 /*yy:case ForDecl    */ |	"for" '(' Declaration ExpressionList ';' ExpressionList ')' Statement
 
 			/* [0], 6.8.6 Jump statements */
-			/*yy:field	*lexicalScope		*/
+			/*yy:field	*lexicalScope			*/
+			/*yy:field	label	Node	*/
 			/*yy:example int f() { L: goto L; } */
 /*yy:case Goto       */ JumpStatement:
 				"goto" IDENTIFIER ';'

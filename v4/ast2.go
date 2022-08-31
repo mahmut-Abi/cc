@@ -208,3 +208,9 @@ func (n *SelectionStatement) Cases() int { return n.switchCases }
 // withing a switch statement.  Valid only for Case LabeledStatementCaseLabel
 // and LabeledStatementDefault.
 func (n *LabeledStatement) CaseOrdinal() int { return n.caseOrdinal }
+
+// Gotos returns a slice of all goto statements in n if n is a function block.
+func (n *CompoundStatement) Gotos() []*JumpStatement { return n.gotos }
+
+// Label returns the labeled statement or a label declaration n goto refers to.
+func (n *JumpStatement) Label() Node { return n.label }
