@@ -204,6 +204,10 @@ func (n *PostfixExpression) Field() *Field { return n.field }
 // statement. Valid for Case == SelectionStatementSwitch.
 func (n *SelectionStatement) Cases() int { return n.switchCases }
 
+// SwitchCases return the case/default labeled statements associated with n,
+// case SelectionStatementSwitch.
+func (n *SelectionStatement) SwitchCases() []*LabeledStatement { return n.cases }
+
 // CaseOrdinal returns the zero based ordinal number of a labeled statement
 // withing a switch statement.  Valid only for Case LabeledStatementCaseLabel
 // and LabeledStatementDefault.

@@ -896,6 +896,7 @@ package cc // import "modernc.org/cc/v4"
 			/* [0], 6.8.4 Selection statements */
 			/*yy:field	switchCases int	*/
 			/*yy:field	*lexicalScope			*/
+			/*yy:field	cases	[]*LabeledStatement	*/
 			/*yy:example int f() { if(x) y(); } */
 /*yy:case If         */ SelectionStatement:
 				"if" '(' ExpressionList ')' Statement %prec BELOW_ELSE

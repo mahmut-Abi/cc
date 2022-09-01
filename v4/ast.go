@@ -4005,6 +4005,7 @@ func (n SelectionStatementCase) String() string {
 type SelectionStatement struct {
 	switchCases int
 	*lexicalScope
+	cases          []*LabeledStatement
 	Case           SelectionStatementCase `PrettyPrint:"stringer,zero"`
 	ExpressionList ExpressionNode
 	Statement      *Statement
