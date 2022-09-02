@@ -847,8 +847,9 @@ package cc // import "modernc.org/cc/v4"
 /*yy:case Asm        */ |	AsmStatement
 
 			/* [0], 6.8.1 Labeled statements */
-			/*yy:field	caseOrdinal	int	*/
-			/*yy:field	*lexicalScope		*/
+			/*yy:field	caseOrdinal	int			*/
+			/*yy:field	*lexicalScope				*/
+			/*yy:field	switchCtx	*SelectionStatement	*/
 			/*yy:example int f() { L: goto L; } */
 /*yy:case Label      */ LabeledStatement:
 				IDENTIFIER ':' Statement

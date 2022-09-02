@@ -213,6 +213,10 @@ func (n *SelectionStatement) LabeledStatements() []*LabeledStatement { return n.
 // and LabeledStatementDefault.
 func (n *LabeledStatement) CaseOrdinal() int { return n.caseOrdinal }
 
+// Switch returns the switch associated with n, case LabeledStatementCaseLabel,
+// LabeledStatementDefault, LabeledStatementRange.
+func (n *LabeledStatement) Switch() *SelectionStatement { return n.switchCtx }
+
 // Gotos returns a slice of all goto statements in n if n is a function block.
 func (n *CompoundStatement) Gotos() []*JumpStatement { return n.gotos }
 

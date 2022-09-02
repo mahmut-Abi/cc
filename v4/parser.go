@@ -868,7 +868,7 @@ func (p *parser) labeledStatement() (r *LabeledStatement) {
 		p.cpp.eh("%v: unexpected EOF", p.toks[0].Position())
 		return nil
 	case rune(CASE):
-		r = &LabeledStatement{Token: p.shift(false), ConstantExpression: p.constantExpression(), lexicalScope: (*lexicalScope)(p.scope)}
+		r = &LabeledStatement{Token: p.shift(false), ConstantExpression: p.constantExpression(), lexicalScope: (*lexicalScope)(p.scope), switchCtx: p.switchCtx}
 		switch p.rune(false) {
 		case rune(DDD):
 			r.Case = LabeledStatementRange
@@ -884,9 +884,9 @@ func (p *parser) labeledStatement() (r *LabeledStatement) {
 			return r
 		}
 	case rune(DEFAULT):
-		return &LabeledStatement{Case: LabeledStatementDefault, Token: p.shift(false), Token2: p.must(':'), Statement: p.statement(false), lexicalScope: (*lexicalScope)(p.scope)}
+		return &LabeledStatement{Case: LabeledStatementDefault, Token: p.shift(false), Token2: p.must(':'), Statement: p.statement(false), lexicalScope: (*lexicalScope)(p.scope), switchCtx: p.switchCtx}
 	case rune(IDENTIFIER):
-		r = &LabeledStatement{Case: LabeledStatementLabel, Token: p.shift(false), Token2: p.must(':'), Statement: p.statement(false), lexicalScope: (*lexicalScope)(p.scope)}
+		r = &LabeledStatement{Case: LabeledStatementLabel, Token: p.shift(false), Token2: p.must(':'), Statement: p.statement(false), lexicalScope: (*lexicalScope)(p.scope), switchCtx: p.switchCtx}
 		switch {
 		case p.fnScope == nil:
 			t := p.shift(false)

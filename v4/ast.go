@@ -3155,6 +3155,7 @@ func (n LabeledStatementCase) String() string {
 type LabeledStatement struct {
 	caseOrdinal int
 	*lexicalScope
+	switchCtx           *SelectionStatement
 	Case                LabeledStatementCase `PrettyPrint:"stringer,zero"`
 	ConstantExpression  ExpressionNode
 	ConstantExpression2 ExpressionNode
