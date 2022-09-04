@@ -15,11 +15,12 @@ var (
 	}
 
 	abiSignedChar = map[[2]string]bool{
+		{"freebsd", "arm"}:   false,
 		{"linux", "arm"}:     false,
 		{"linux", "arm64"}:   false,
-		{"linux", "s390x"}:   false,
 		{"linux", "ppc64le"}: false,
 		{"linux", "riscv64"}: false,
+		{"linux", "s390x"}:   false,
 
 		{"darwin", "amd64"}:  true,
 		{"darwin", "arm64"}:  true,

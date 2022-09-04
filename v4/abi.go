@@ -21,6 +21,7 @@ var (
 	}
 
 	signedChars = map[[2]string]bool{
+		{"freebsd", "arm"}:   false,
 		{"linux", "arm"}:     false,
 		{"linux", "arm64"}:   false,
 		{"linux", "s390x"}:   false,
@@ -386,6 +387,28 @@ var (
 			ULongLong:  {8, 4, 4},
 			UShort:     {2, 2, 2},
 			Void:       {1, 1, 1},
+		},
+		// gcc (FreeBSD Ports Collection) 11.3.0
+		{"freebsd", "arm"}: {
+			Void:       {1, 1, 1},
+			Bool:       {1, 1, 1},
+			Char:       {1, 1, 1},
+			SChar:      {1, 1, 1},
+			UChar:      {1, 1, 1},
+			Short:      {2, 2, 2},
+			UShort:     {2, 2, 2},
+			Enum:       {4, 4, 4},
+			Int:        {4, 4, 4},
+			UInt:       {4, 4, 4},
+			Long:       {4, 4, 4},
+			ULong:      {4, 4, 4},
+			LongLong:   {8, 8, 8},
+			ULongLong:  {8, 8, 8},
+			Ptr:        {4, 4, 4},
+			Function:   {4, 4, 4},
+			Float:      {4, 4, 4},
+			Double:     {8, 8, 8},
+			LongDouble: {8, 8, 8},
 		},
 		// gcc (GCC) 8.4.0
 		{"openbsd", "amd64"}: {
