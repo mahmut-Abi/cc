@@ -27,6 +27,7 @@ var (
 		{"linux", "s390x"}:   false,
 		{"linux", "ppc64le"}: false,
 		{"linux", "riscv64"}: false,
+		{"netbsd", "arm"}:    false,
 
 		{"darwin", "amd64"}:  true,
 		{"darwin", "arm64"}:  true,
@@ -489,6 +490,28 @@ var (
 			ULongLong:  {8, 8, 8},
 			UShort:     {2, 2, 2},
 			Void:       {1, 1, 1},
+		},
+		// gcc (nb4 20200810) 7.5.0
+		{"netbsd", "arm"}: {
+			Void:       {1, 1, 1},
+			Bool:       {1, 1, 1},
+			Char:       {1, 1, 1},
+			SChar:      {1, 1, 1},
+			UChar:      {1, 1, 1},
+			Short:      {2, 2, 2},
+			UShort:     {2, 2, 2},
+			Enum:       {4, 4, 4},
+			Int:        {4, 4, 4},
+			UInt:       {4, 4, 4},
+			Long:       {4, 4, 4},
+			ULong:      {4, 4, 4},
+			LongLong:   {8, 8, 8},
+			ULongLong:  {8, 8, 8},
+			Ptr:        {4, 4, 4},
+			Function:   {4, 4, 4},
+			Float:      {4, 4, 4},
+			Double:     {8, 8, 8},
+			LongDouble: {8, 8, 8},
 		},
 		// gcc (Debian 10.2.1-6) 10.2.1 20210110
 		{"linux", "ppc64le"}: {
