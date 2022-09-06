@@ -2791,6 +2791,7 @@ func (n *Initializer) Position() (r token.Position) {
 //	        Designation Initializer
 //	|       InitializerList ',' Designation Initializer
 type InitializerList struct {
+	typer
 	Designation     *Designation
 	Initializer     *Initializer
 	InitializerList *InitializerList

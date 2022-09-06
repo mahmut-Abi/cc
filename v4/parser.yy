@@ -803,6 +803,7 @@ package cc // import "modernc.org/cc/v4"
 			/*yy:example int i[] = { x }; */
 /*yy:case InitList   */ |	'{' InitializerList ',' '}'
 
+			/*yy:field	typer	*/
 			/*yy:example int i[] = { [10] = x }; */
 			InitializerList:
 				Designation Initializer
