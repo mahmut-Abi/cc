@@ -1150,9 +1150,14 @@ func (n *StructType) HasFlexibleArrayMember() bool {
 	return l != 0 && n.structType.fields[l-1].IsFlexibleArrayMember()
 }
 
-func (n *StructType) flexibleArrayMember() *Field {
+// FlexibleArrayMember returns the flexible array member of n, if any.
+func (n *StructType) FlexibleArrayMember() *Field {
 	if n.forward != nil {
-		return n.forward.Type().(*StructType).flexibleArrayMember()
+		return n.forward.Type().(*StructType).FlexibleArrayMember()
+	}
+
+	if !n.HasFlexibleArrayMember() {
+		return nil
 	}
 
 	return n.structType.fields[len(n.structType.fields)-1]

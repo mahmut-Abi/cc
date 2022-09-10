@@ -2064,6 +2064,10 @@ t y = {2, "bc"};
 			t.Errorf("%s: declarator: %s, size got %v, exp %v", nm, structType, g, e)
 		}
 
+		if g, e := structType.Padding(), 0; g != e {
+			t.Errorf("%s: declarator: %s, padding got %v, exp %v", nm, structType, g, e)
+		}
+
 		field := structType.FieldByName("s")
 		if field == nil {
 			t.Fatal(nm)
@@ -2077,6 +2081,7 @@ t y = {2, "bc"};
 		if g, e := fieldType.Size(), int64(-1); g != e {
 			t.Errorf("%s.s: declarator: %s, size got %v, exp %v", nm, fieldType, g, e)
 		}
+
 	}
 	for l := ast.TranslationUnit; l != nil; l = l.TranslationUnit {
 		ed := l.ExternalDeclaration
@@ -2095,7 +2100,7 @@ t y = {2, "bc"};
 		}
 
 		id := idl.InitDeclarator
-		sz2 := int64(3)
+		sz2 := 3
 		switch nm := id.Declarator.Name(); nm {
 		case "x":
 			sz2 = 2
@@ -2110,8 +2115,12 @@ t y = {2, "bc"};
 				t.Errorf("%s: initializer: %s, IsIncomplete got %v, exp %v", nm, structType, g, e)
 			}
 
-			if g, e := structType.Size(), ast.Int.Size()+sz2; g != e {
+			if g, e := structType.Size(), 2*ast.Int.Size(); g != e {
 				t.Errorf("%s: initializer: %s, size got %v, exp %v", nm, structType, g, e)
+			}
+
+			if g, e := structType.Padding(), int(ast.Int.Size())-sz2; g != e {
+				t.Errorf("%s: initializer: %s, padding got %v, exp %v", nm, structType, g, e)
 			}
 
 			field := structType.FieldByName("s")
@@ -2124,32 +2133,9 @@ t y = {2, "bc"};
 				t.Errorf("%s.s: initializer: %s, IsIncomplete got %v, exp %v", nm, fieldType, g, e)
 			}
 
-			if g, e := fieldType.Size(), sz2; g != e {
+			if g, e := fieldType.Size(), int64(sz2); g != e {
 				t.Errorf("%s.s: initializer: %s, size got %v, exp %v", nm, fieldType, g, e)
 			}
 		}
 	}
 }
-
-/*
-
-@8e3b7f27ea8d0ce76d732c428e555912040f0035, all other tests PASS
-
-jnml@e5-1650:~/src/modernc.org/cc/v4$ go test -run 141 |& tee log
---- FAIL: TestIssue141 (0.00s)
-    all_test.go:2074: t.s: declarator: array of 2 char, IsIncomplete got false, exp true
-    all_test.go:2078: t.s: declarator: array of 2 char, size got 2, exp -1
-    all_test.go:2074: x.s: declarator: array of 2 char, IsIncomplete got false, exp true
-    all_test.go:2078: x.s: declarator: array of 2 char, size got 2, exp -1
-    all_test.go:2074: y.s: declarator: array of 2 char, IsIncomplete got false, exp true
-    all_test.go:2078: y.s: declarator: array of 2 char, size got 2, exp -1
-    all_test.go:2114: x: initializer: t, size got 4, exp 6
-    all_test.go:2114: y: initializer: t, size got 4, exp 7
-    all_test.go:2128: y.s: initializer: array of 2 char, size got 2, exp 3
-FAIL
-exit status 1
-FAIL	modernc.org/cc/v4	0.020s
-jnml@e5-1650:~/src/modernc.org/cc/v4$
-
-
-*/
