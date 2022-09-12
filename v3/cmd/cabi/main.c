@@ -16,6 +16,10 @@ typedef enum {
 } Enum;
 
 int main() {
+    char c = 0;
+    c--;
+    int i = c;
+    printf("decremented zero char: %i\n", i);
     print_entry("Void", sizeof(void), alignof(void), alignof(void));
     PRINT_TYPE("Bool", bool);
 
