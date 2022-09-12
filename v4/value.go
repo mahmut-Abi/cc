@@ -927,6 +927,8 @@ func (n *UnaryExpression) eval(c *ctx, mode flags) (r Value) {
 			// nop
 		case Int64Value:
 			n.val = convert(x, n.Type())
+		case UInt64Value:
+			n.val = convert(x, n.Type())
 		default:
 			c.errors.add(errorf("TODO %v TYPE %T", n.Case, x))
 		}

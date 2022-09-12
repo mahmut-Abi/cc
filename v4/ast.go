@@ -1348,6 +1348,7 @@ type Declarator struct {
 	isRegister       bool
 	isRestrict       bool
 	isStatic         bool
+	isSynthetic      bool
 	isThreadLocal    bool
 	isTypename       bool
 	isVolatile       bool

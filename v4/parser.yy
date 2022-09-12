@@ -689,6 +689,7 @@ package cc // import "modernc.org/cc/v4"
 			/*yy:field	isRegister	bool		*/
 			/*yy:field	isRestrict	bool		*/
 			/*yy:field	isStatic	bool		*/
+			/*yy:field	isSynthetic	bool		*/
 			/*yy:field	isThreadLocal	bool		*/
 			/*yy:field	isTypename	bool		*/
 			/*yy:field	isVolatile	bool		*/
