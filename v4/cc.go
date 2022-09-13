@@ -83,12 +83,6 @@ typedef __PTRDIFF_TYPE__ __predefined_ptrdiff_t;
 #define __builtin_convertvector(src, type) ((type)(src))
 #endif
 
-#ifdef __APPLE__
-int __darwin_check_fd_set_overflow(int, void *, int) {
-	__builtin_abort();
-}
-#endif
-
 #if sizeof(double) == sizeof(long double)
 #define __builtin_huge_vall(x) __builtin_huge_val(x)
 #endif
@@ -249,6 +243,12 @@ void __builtin_exit(int status);
 void __builtin_free(void *ptr);
 void __builtin_prefetch (void*, ...);
 void __builtin_unreachable();
+
+#ifdef __APPLE__
+int __darwin_check_fd_set_overflow(int, void *, int) {
+	__builtin_abort();
+}
+#endif
 `
 
 //TODO
