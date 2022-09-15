@@ -341,15 +341,15 @@ func adjustLongDouble(predefined string, abi *ABI) error {
 	if err != nil {
 		return fmt.Errorf("parsing %s: %v", tag, err)
 	}
-	if abi.types[LongDouble].size == n {
+	if abi.Types[LongDouble].Size == n {
 		return nil
 	}
 
-	if abi.types[Double].size != n {
+	if abi.Types[Double].Size != n {
 		return nil
 	}
 
-	abi.types[LongDouble] = abi.types[Double]
+	abi.Types[LongDouble] = abi.Types[Double]
 	return nil
 }
 
