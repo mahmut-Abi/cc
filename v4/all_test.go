@@ -2139,3 +2139,35 @@ t y = {2, "bc"};
 		}
 	}
 }
+
+func TestABI(t *testing.T) {
+	for _, osarch := range []string{
+		"darwin/amd64",
+		"darwin/arm64",
+		"freebsd/386",
+		"freebsd/amd64",
+		"freebsd/arm",
+		"freebsd/arm64",
+		"linux/386",
+		"linux/amd64",
+		"linux/arm",
+		"linux/arm64",
+		"linux/ppc64le",
+		"linux/riscv64",
+		"linux/s390x",
+		"netbsd/amd64",
+		"netbsd/arm",
+		"openbsd/amd64",
+		"openbsd/arm64",
+		"windows/386",
+		"windows/amd64",
+		"windows/arm64",
+	} {
+		a := strings.Split(osarch, "/")
+		os := a[0]
+		arch := a[1]
+		if _, err := NewABI(os, arch); err != nil {
+			t.Errorf("%s: %v", osarch, err)
+		}
+	}
+}
