@@ -88,6 +88,7 @@ var defaultKeywords = map[string]rune{
 	"__inline":      rune(INLINE),
 	"__inline__":    rune(INLINE),
 	"__int128":      rune(INT128),
+	"__int128_t":    rune(INT128),
 	"__label__":     rune(LABEL),
 	"__real":        rune(REAL),
 	"__real__":      rune(REAL),
