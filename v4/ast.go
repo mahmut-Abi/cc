@@ -2742,6 +2742,7 @@ func (n InitializerCase) String() string {
 //	        AssignmentExpression         // Case InitializerExpr
 //	|       '{' InitializerList ',' '}'  // Case InitializerInitList
 type Initializer struct {
+	field  *Field
 	nelems int64
 	off    int64
 	parent *Initializer

@@ -793,6 +793,7 @@ package cc // import "modernc.org/cc/v4"
 /*yy:case Func       */ |	DirectAbstractDeclarator '(' ParameterTypeList ')'
 
 			/* [0], 6.7.8 Initialization */
+			/*yy:field	field	*Field	*/
 			/*yy:field	nelems	int64	*/
 			/*yy:field	off	int64	*/
 			/*yy:field	parent	*Initializer	*/

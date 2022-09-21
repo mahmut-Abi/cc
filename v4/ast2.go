@@ -214,6 +214,9 @@ func (n *Initializer) Offset() int64 { return n.off }
 // can be more using the [lo ... hi] designator.
 func (n *Initializer) Len() int64 { return n.nelems }
 
+// Field returns the field associated with n, if any.
+func (n *Initializer) Field() *Field { return n.field }
+
 // Field reports the resolved field for cases PostfixExpressionSelect and
 // PostfixExpressionPSelect.
 func (n *PostfixExpression) Field() *Field { return n.field }
