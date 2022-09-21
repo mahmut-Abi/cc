@@ -5,7 +5,7 @@ go 1.17
 require (
 	github.com/dustin/go-humanize v1.0.0
 	github.com/google/go-cmp v0.5.3
-	lukechampine.com/uint128 v1.1.1
+	lukechampine.com/uint128 v1.2.0
 	modernc.org/mathutil v1.5.0
 	modernc.org/strutil v1.1.3
 	modernc.org/token v1.0.1
