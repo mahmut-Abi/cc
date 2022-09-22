@@ -840,13 +840,14 @@ func (n *PointerType) str(b *strings.Builder, useTag bool) *strings.Builder {
 }
 
 type Field struct {
-	accessBytes int64       // accessBytes < typ.Size() -> bit field.
-	declarator  *Declarator // Can be nil.
-	mask        uint64      // Non zero only for bit fields.
-	offsetBytes int64
-	parent      *Field
-	typ         typer
-	valueBits   int64
+	accessBytes           int64       // accessBytes < typ.Size() -> bit field.
+	declarator            *Declarator // Can be nil.
+	mask                  uint64      // Non zero only for bit fields.
+	offsetBytes           int64
+	outerGroupOffsetBytes int64
+	parent                *Field
+	typ                   typer
+	valueBits             int64
 
 	depth     int
 	groupSize int
@@ -968,6 +969,18 @@ func (n *Field) Name() string {
 
 // Offset reports the offset of n in bytes.
 func (n *Field) Offset() int64 { return n.offsetBytes }
+
+// OuterGroupOffset reports the non-overlapping group offset of n in bytes. If
+// n is not a bit field the value is the same as Offset(). If n is a bit field
+// the value differs from Offset for bit fields reporting InOverlapGroup() ==
+// true.
+func (n *Field) OuterGroupOffset() int64 {
+	if !n.IsBitfield() {
+		return n.Offset()
+	}
+
+	return n.outerGroupOffsetBytes
+}
 
 type structType struct {
 	fields []*Field
