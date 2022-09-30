@@ -822,6 +822,7 @@ package cc // import "modernc.org/cc/v4"
 			/*yy:example int a[100][] = { [42][12] = 314 }; */
 			|	DesignatorList Designator
 
+			/*yy:field	typer	*/
 			/*yy:example int a[] = { [42] = 314 }; */
 /*yy:case Index      */ Designator:
 				'[' ConstantExpression ']'

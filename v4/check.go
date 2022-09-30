@@ -1369,6 +1369,7 @@ func (n *InitializerList) checkArray(c *ctx, currObj Type, t *ArrayType, off int
 			}
 
 			dl := n.Designation.DesignatorList
+			dl.Designator.typ = elemT
 			n2 := *n
 			n2.Designation = nil
 			n = &n2
@@ -1403,6 +1404,7 @@ func (n *InitializerList) checkArray(c *ctx, currObj Type, t *ArrayType, off int
 			}
 
 			dl := n.Designation.DesignatorList
+			dl.Designator.typ = elemT
 			n2 := *n
 			n2.Designation = nil
 			n = &n2
@@ -1484,6 +1486,7 @@ func (n *InitializerList) checkStruct(c *ctx, currObj Type, t *StructType, off i
 			return nil
 		}
 
+		dl.Designator.typ = f.Type()
 		if dl.DesignatorList == nil {
 			n = n.Initializer.check(c, currObj, f.Type(), off+f.Offset(), n, f)
 			f = t.FieldByIndex(f.index + 1)
@@ -1530,6 +1533,7 @@ func (n *InitializerList) checkUnion(c *ctx, currObj Type, t *UnionType, off int
 		f = p
 	}
 
+	dl.Designator.typ = f.Type()
 	if dl.DesignatorList == nil {
 		return n.Initializer.check(c, f.Type(), f.Type(), off+f.Offset(), n, f)
 	}
@@ -1639,6 +1643,7 @@ func (n *InitializerList) checkDesignatorList(dl *DesignatorList, c *ctx, currOb
 			}
 
 			t = f.Type()
+			dl.Designator.typ = t
 			off += f.Offset()
 			fld = f
 		case *UnionType:
@@ -1654,9 +1659,11 @@ func (n *InitializerList) checkDesignatorList(dl *DesignatorList, c *ctx, currOb
 			}
 
 			t = f.Type()
+			dl.Designator.typ = t
 			off += f.Offset()
 			fld = f
 		case *ArrayType:
+			dl.Designator.typ = x.Elem()
 			lo, hi := dl.Designator.index(c)
 			if lo < 0 {
 				return nil
