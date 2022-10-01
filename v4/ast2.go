@@ -217,6 +217,9 @@ func (n *Initializer) Len() int64 { return n.nelems }
 // Field returns the field associated with n, if any.
 func (n *Initializer) Field() *Field { return n.field }
 
+// UnionField reports the union field initilized by n.
+func (n *InitializerList) UnionField() *Field { return n.unionField }
+
 // Field reports the resolved field for cases PostfixExpressionSelect and
 // PostfixExpressionPSelect.
 func (n *PostfixExpression) Field() *Field { return n.field }

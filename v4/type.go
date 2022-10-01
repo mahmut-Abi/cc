@@ -876,8 +876,8 @@ func (n *Field) IsFlexibleArrayMember() bool { return n.isFlexibleArrayMember }
 // IsBitfield reports whether n is a bit field.
 func (n *Field) IsBitfield() bool { return n.isBitField }
 
-// InOverlapGroup reports whether n, a bit field, is in a group that is
-// contained in a preceding larger bit field group.
+// InOverlapGroup reports whether n is emdedded in a preceding larger bit field
+// group.
 //
 // A bitfield group is the set of bit fields that share the same .Offset().
 // Consider:

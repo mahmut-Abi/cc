@@ -1508,6 +1508,7 @@ func (n *InitializerList) checkUnion(c *ctx, currObj Type, t *UnionType, off int
 			return n
 		}
 
+		n.unionField = f
 		return n.Initializer.check(c, currObj, f.Type(), off+f.Offset(), n, f)
 	}
 
@@ -1515,6 +1516,7 @@ func (n *InitializerList) checkUnion(c *ctx, currObj Type, t *UnionType, off int
 		return n
 	}
 
+	n0 := n
 	dl := n.Designation.DesignatorList
 	n2 := *n
 	n2.Designation = nil
@@ -1533,6 +1535,7 @@ func (n *InitializerList) checkUnion(c *ctx, currObj Type, t *UnionType, off int
 		f = p
 	}
 
+	n0.unionField = f
 	dl.Designator.typ = f.Type()
 	if dl.DesignatorList == nil {
 		return n.Initializer.check(c, f.Type(), f.Type(), off+f.Offset(), n, f)
@@ -2586,7 +2589,7 @@ func (n *StructDeclarationList) check(c *ctx, s *StructOrUnionSpecifier) {
 	isUnion := s.StructOrUnion.Case == StructOrUnionUnion
 	var brkBits, unionBits int64
 	maxAlignBytes := 1
-	bitFields := map[int64][]*Field{}
+	allFields := map[int64][]*Field{}
 	for i, f := range fields {
 		if f == nil {
 			c.errors.add(errorf("TODO %T", n))
@@ -2619,7 +2622,6 @@ func (n *StructDeclarationList) check(c *ctx, s *StructOrUnionSpecifier) {
 				f.mask = (uint64(1)<<f.valueBits - 1) << f.offsetBits
 				brkBits += f.valueBits
 			}
-			bitFields[f.offsetBytes] = append(bitFields[f.offsetBytes], f)
 		default:
 			sz := f.Type().Size()
 			if (f.Type().IsIncomplete() || f.Type().Size() == 0) && f.Type().Kind() == Array && i == len(fields)-1 { // https://en.wikipedia.org/wiki/Flexible_array_member
@@ -2640,6 +2642,7 @@ func (n *StructDeclarationList) check(c *ctx, s *StructOrUnionSpecifier) {
 				brkBits += 8 * sz
 			}
 		}
+		allFields[f.offsetBytes] = append(allFields[f.offsetBytes], f)
 	}
 
 	type bitFieldGroup struct {
@@ -2648,7 +2651,7 @@ func (n *StructDeclarationList) check(c *ctx, s *StructOrUnionSpecifier) {
 	}
 
 	var groups []bitFieldGroup
-	for k, v := range bitFields {
+	for k, v := range allFields {
 		ab := int64(-1)
 		for _, f := range v {
 			ab = mathutil.MaxInt64(ab, f.AccessBytes())
@@ -2666,7 +2669,7 @@ func (n *StructDeclarationList) check(c *ctx, s *StructOrUnionSpecifier) {
 			continue
 		}
 
-		for _, f := range bitFields[v.off] {
+		for _, f := range allFields[v.off] {
 			f.inOverlapGroup = true
 			f.outerGroupOffsetBytes = g.off
 			groups[i].overlaps = true
