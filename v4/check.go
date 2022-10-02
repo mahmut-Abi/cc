@@ -1458,6 +1458,9 @@ func (n *InitializerList) checkStruct(c *ctx, currObj Type, t *StructType, off i
 	}
 	f := t.FieldByIndex(0)
 	for n != nil {
+		for f != nil && f.IsBitfield() && f.ValueBits() == 0 {
+			f = t.FieldByIndex(f.index + 1)
+		}
 		if n.Designation == nil {
 			if f == nil {
 				return n
@@ -1504,6 +1507,9 @@ func (n *InitializerList) checkUnion(c *ctx, currObj Type, t *UnionType, off int
 	// defer func() { trc("%sEXIT UNION", c.indentDec()) }()
 	f := t.FieldByIndex(0)
 	if n.Designation == nil {
+		for f != nil && f.IsBitfield() && f.ValueBits() == 0 {
+			f = t.FieldByIndex(f.index + 1)
+		}
 		if f == nil {
 			return n
 		}
@@ -2632,6 +2638,9 @@ func (n *StructDeclarationList) check(c *ctx, s *StructOrUnionSpecifier) {
 				brkBits = roundup(brkBits, 8*int64(al))
 			}
 			f.accessBytes = sz
+			if sz <= 8 {
+				f.mask = uint64(1<<8*sz - 1)
+			}
 			f.offsetBytes = brkBits >> 3
 			f.outerGroupOffsetBytes = f.offsetBytes
 			f.valueBits = 8 * sz
@@ -2672,13 +2681,16 @@ func (n *StructDeclarationList) check(c *ctx, s *StructOrUnionSpecifier) {
 		for _, f := range allFields[v.off] {
 			f.inOverlapGroup = true
 			f.outerGroupOffsetBytes = g.off
+			if !v.overlaps {
+				f.outerGroupOffsetBytes = groups[i-1].off
+			}
 			groups[i].overlaps = true
 		}
 	}
 
 	// trc("====")
 	// for _, f := range fields {
-	// 	trc("%q: .accessBytes %d, .offsetBytes %d, .inOverlapGroup %v", f.Name(), f.accessBytes, f.offsetBytes, f.inOverlapGroup)
+	// 	trc("%q@%p: .accessBytes %d, .offsetBytes %d, .inOverlapGroup %v .outerGroupOffsetBytes %v", f.Name(), f, f.accessBytes, f.offsetBytes, f.inOverlapGroup, f.outerGroupOffsetBytes)
 	// }
 	// for _, g := range groups {
 	// 	trc("%#v", g)
