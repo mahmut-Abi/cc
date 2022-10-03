@@ -46,6 +46,7 @@ const longDoublePrec = 256 // mantissa bits
 type ctx struct {
 	ast          *AST
 	builtinTypes map[string]Type
+	cfg          *Config
 	errors       errors
 	fnScope      *Scope
 	implicitFunc Type
@@ -66,8 +67,8 @@ type ctx struct {
 	checkingSizeof bool
 }
 
-func newCtx(ast *AST) *ctx {
-	c := &ctx{ast: ast}
+func newCtx(ast *AST, cfg *Config) *ctx {
+	c := &ctx{ast: ast, cfg: cfg}
 	complexdouble := c.newPredefinedType(ComplexDouble)
 	complexlong := c.newPredefinedType(ComplexLong)
 	int := c.newPredefinedType(Int)
@@ -527,10 +528,14 @@ type AST struct {
 	Void                  Type // Valid only after Translate
 	kinds                 map[Kind]Type
 	predefinedDeclarator0 *Declarator // `int __predefined_declarator`
+	cfg                   *Config
 }
 
-func (n *AST) check() error {
-	c := newCtx(n)
+func (n *AST) check(cfg *Config) error {
+	c := newCtx(n, cfg)
+
+	defer func() { c.cfg = nil }()
+
 	for l := n.TranslationUnit; l != nil; l = l.TranslationUnit {
 		l.ExternalDeclaration.check(c)
 	}
@@ -2595,18 +2600,21 @@ func (n *StructDeclarationList) check(c *ctx, s *StructOrUnionSpecifier) {
 	isUnion := s.StructOrUnion.Case == StructOrUnionUnion
 	var brkBits, unionBits int64
 	maxAlignBytes := 1
-	allFields := map[int64][]*Field{}
+	bitFields := map[int64][]*Field{}
+	var prev *Field
 	for i, f := range fields {
 		if f == nil {
 			c.errors.add(errorf("TODO %T", n))
 			return
 		}
 
+		ft := f.Type()
 		f.index = i
-		al := f.Type().Align()
+		al := ft.Align()
 		if al > maxAlignBytes {
 			maxAlignBytes = al
 		}
+	again:
 		switch {
 		case f.isBitField:
 			switch {
@@ -2628,9 +2636,10 @@ func (n *StructDeclarationList) check(c *ctx, s *StructOrUnionSpecifier) {
 				f.mask = (uint64(1)<<f.valueBits - 1) << f.offsetBits
 				brkBits += f.valueBits
 			}
+			bitFields[f.offsetBytes] = append(bitFields[f.offsetBytes], f)
 		default:
-			sz := f.Type().Size()
-			if (f.Type().IsIncomplete() || f.Type().Size() == 0) && f.Type().Kind() == Array && i == len(fields)-1 { // https://en.wikipedia.org/wiki/Flexible_array_member
+			sz := ft.Size()
+			if (ft.IsIncomplete() || ft.Size() == 0) && ft.Kind() == Array && i == len(fields)-1 { // https://en.wikipedia.org/wiki/Flexible_array_member
 				f.isFlexibleArrayMember = true
 				sz = 0
 			}
@@ -2638,10 +2647,24 @@ func (n *StructDeclarationList) check(c *ctx, s *StructOrUnionSpecifier) {
 				brkBits = roundup(brkBits, 8*int64(al))
 			}
 			f.accessBytes = sz
-			if sz <= 8 {
-				f.mask = uint64(1<<8*sz - 1)
-			}
 			f.offsetBytes = brkBits >> 3
+			// ccgo support
+			if !isUnion && c.cfg.EmbeddedFieldsAreBitFields && prev != nil && prev.IsBitfield() && IsIntegerType(ft) {
+				for i := prev.Index(); i >= 0; i-- {
+					e := fields[i]
+					if !e.IsBitfield() {
+						break
+					}
+
+					et := e.Type()
+					if e.Offset()+et.Size() > f.Offset() {
+						f.isBitField = true
+						f.isPseudoBitField = true
+						f.valueBits = 8 * sz
+						goto again
+					}
+				}
+			}
 			f.outerGroupOffsetBytes = f.offsetBytes
 			f.valueBits = 8 * sz
 			switch {
@@ -2651,7 +2674,7 @@ func (n *StructDeclarationList) check(c *ctx, s *StructOrUnionSpecifier) {
 				brkBits += 8 * sz
 			}
 		}
-		allFields[f.offsetBytes] = append(allFields[f.offsetBytes], f)
+		prev = f
 	}
 
 	type bitFieldGroup struct {
@@ -2660,7 +2683,7 @@ func (n *StructDeclarationList) check(c *ctx, s *StructOrUnionSpecifier) {
 	}
 
 	var groups []bitFieldGroup
-	for k, v := range allFields {
+	for k, v := range bitFields {
 		ab := int64(-1)
 		for _, f := range v {
 			ab = mathutil.MaxInt64(ab, f.AccessBytes())
@@ -2678,24 +2701,12 @@ func (n *StructDeclarationList) check(c *ctx, s *StructOrUnionSpecifier) {
 			continue
 		}
 
-		for _, f := range allFields[v.off] {
+		for _, f := range bitFields[v.off] {
 			f.inOverlapGroup = true
 			f.outerGroupOffsetBytes = g.off
-			if !v.overlaps {
-				f.outerGroupOffsetBytes = groups[i-1].off
-			}
 			groups[i].overlaps = true
 		}
 	}
-
-	// trc("====")
-	// for _, f := range fields {
-	// 	trc("%q@%p: .accessBytes %d, .offsetBytes %d, .inOverlapGroup %v .outerGroupOffsetBytes %v", f.Name(), f, f.accessBytes, f.offsetBytes, f.inOverlapGroup, f.outerGroupOffsetBytes)
-	// }
-	// for _, g := range groups {
-	// 	trc("%#v", g)
-	// }
-	// trc("----")
 
 	brk0 := brkBits
 	if l := len(fields); l != 0 {
@@ -2723,6 +2734,17 @@ func (n *StructDeclarationList) check(c *ctx, s *StructOrUnionSpecifier) {
 		t.padding = int(brkBits-brk0) >> 3
 		t.size = brkBits >> 3
 	}
+	// trc("==== %v", s.Type())
+	// for _, f := range fields {
+	// 	trc(
+	// 		"%q@%p: IsBitfield %v, IsPseudoBitfield %v, Offset %v, OffsetBits %v, OuterGroupOffset %v, InOverlapGroup %v), Mask %#0x, ValueBits %v",
+	// 		f.Name(), f, f.IsBitfield(), f.IsPseudoBitfield(), f.Offset(), f.OffsetBits(), f.OuterGroupOffset(), f.InOverlapGroup(), f.Mask(), f.ValueBits(),
+	// 	)
+	// }
+	// for _, g := range groups {
+	// 	trc("%#v", g)
+	// }
+	// trc("----")
 }
 
 func (n *StructDeclaration) check(c *ctx) (r []*Field) {
@@ -3830,7 +3852,6 @@ out:
 				break
 			}
 
-			n.typ = f.Type()
 			n.field = f
 		case Union:
 			st := t.(*UnionType)
@@ -3840,11 +3861,13 @@ out:
 				break
 			}
 
-			n.typ = f.Type()
 			n.field = f
 		default:
 			c.errors.add(errorf("%v: expected a struct or union: %s", n.Token.Position(), t))
+			break out
 		}
+
+		n.normalizeFieldType()
 	case PostfixExpressionPSelect: // PostfixExpression "->" IDENTIFIER
 		nm := n.Token2.SrcStr()
 		switch t := n.PostfixExpression.check(c, mode.add(decay)); t.Kind() {
@@ -3858,7 +3881,6 @@ out:
 					break
 				}
 
-				n.typ = f.Type()
 				n.field = f
 			case Union:
 				st := et.(*UnionType)
@@ -3868,14 +3890,17 @@ out:
 					break
 				}
 
-				n.typ = f.Type()
 				n.field = f
 			default:
 				c.errors.add(errorf("%v: expected a pointer to struct or union: %s", n.Token.Position(), t))
+				break out
 			}
 		default:
 			c.errors.add(errorf("%v: expected a pointer: %s", n.Token.Position(), t))
+			break out
 		}
+
+		n.normalizeFieldType()
 	case
 		PostfixExpressionInc, // PostfixExpression "++"
 		PostfixExpressionDec: // PostfixExpression "--"
@@ -3909,6 +3934,21 @@ out:
 		c.errors.add(errorf("internal error: %v", n.Case))
 	}
 	return n.Type()
+}
+
+func (n *PostfixExpression) normalizeFieldType() {
+	f := n.field
+	if f == nil {
+		return
+	}
+
+	n.typ = f.Type()
+	switch {
+	case f.IsBitfield() && !f.IsPseudoBitfield():
+		//TODO
+	default:
+		//TODO
+	}
 }
 
 func isName(n Node) string {

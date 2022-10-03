@@ -524,6 +524,25 @@ type Config struct {
 	SysIncludePaths     []string
 	keywords            map[string]rune
 
+	// ccgo support. When EmbeddedFieldsAreBitFields is true a struct type, as for
+	// example in
+	//
+	//	struct {
+	//		int a: 20;
+	//		char c;
+	//	}
+	//
+	// will be interpreted as
+	//
+	//	struct {
+	//		int a: 20;
+	//		char c: 8;
+	//	}
+	//
+	// without otherwise changing the struct layout. Applies only to struct types,
+	// not to union types.
+	EmbeddedFieldsAreBitFields bool
+
 	doNotInjectFunc        bool // testing
 	fakeIncludes           bool // testing
 	noPredefinedDeclarator bool // testing
@@ -642,7 +661,7 @@ func Translate(cfg *Config, sources []Source) (*AST, error) {
 		return nil, err
 	}
 
-	if err := ast.check(); err != nil {
+	if err := ast.check(cfg); err != nil {
 		return nil, err
 	}
 

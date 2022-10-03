@@ -318,8 +318,9 @@ func (n *InvalidType) Size() int64 { return -1 }
 
 type PredefinedType struct {
 	attributer
-	c    *ctx
-	kind Kind
+	c     *ctx
+	field *Field
+	kind  Kind
 	namer
 	ptr    Type
 	vector *ArrayType
@@ -390,6 +391,10 @@ func (n *PredefinedType) Align() int {
 		return 1
 	}
 
+	if n.field != nil {
+		return n.field.Type().Align()
+	}
+
 	if n.attributer.p != nil {
 		if v := n.attributer.p.Aligned(); v > 0 {
 			return int(v)
@@ -413,6 +418,10 @@ func (n *PredefinedType) Undecay() Type { return n }
 func (n *PredefinedType) FieldAlign() int {
 	if n == nil {
 		return 1
+	}
+
+	if n.field != nil {
+		return n.field.Type().Align()
 	}
 
 	if x, ok := n.c.ast.ABI.Types[n.kind]; ok {
@@ -451,6 +460,10 @@ func (n *PredefinedType) Kind() Kind { return n.kind }
 func (n *PredefinedType) Size() int64 {
 	if n == nil {
 		return -1
+	}
+
+	if n.field != nil {
+		return n.field.Type().Size()
 	}
 
 	if IsIntegerType(n) || IsFloatingPointType(n) {
@@ -859,6 +872,7 @@ type Field struct {
 
 	inOverlapGroup        bool
 	isBitField            bool
+	isPseudoBitField      bool
 	isFlexibleArrayMember bool
 }
 
@@ -876,8 +890,12 @@ func (n *Field) IsFlexibleArrayMember() bool { return n.isFlexibleArrayMember }
 // IsBitfield reports whether n is a bit field.
 func (n *Field) IsBitfield() bool { return n.isBitField }
 
-// InOverlapGroup reports whether n is emdedded in a preceding larger bit field
-// group.
+// IsPseudoBitfield reports whether n is a pseudo bit field due to setting
+// Config.EmbeddedFieldsAreBitFields.
+func (n *Field) IsPseudoBitfield() bool { return n.isPseudoBitField }
+
+// InOverlapGroup reports whether n, a bit field, is emdedded in a preceding
+// larger bit field group.
 //
 // A bitfield group is the set of bit fields that share the same .Offset().
 // Consider:
@@ -893,7 +911,7 @@ func (n *Field) IsBitfield() bool { return n.isBitField }
 //
 // Because field b has offset 0 and access bytes 2, group 0 overlaps with group
 // 1. Field c will report InOverlapGroup() == true.
-func (n *Field) InOverlapGroup() bool { return n.inOverlapGroup }
+func (n *Field) InOverlapGroup() bool { return n.IsBitfield() && n.inOverlapGroup }
 
 // GroupSize is the maximum .AccessByte() of a group.
 //
