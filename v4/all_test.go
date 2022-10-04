@@ -1332,6 +1332,8 @@ func TestTranslate(t *testing.T) {
 	blacklistGCC := map[string]struct{}{
 		// Assertions are deprecated, not supported.
 		"950919-1.c": {},
+		// Type size too big
+		"991014-1.c": {},
 	}
 	switch fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH) {
 	case "linux/s390x":

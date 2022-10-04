@@ -208,6 +208,9 @@ type Type interface {
 
 	Attributes() *Attributes
 
+	// Bitfield backlink to the bit fields a type comes from, if any.
+	BitField() *Field
+
 	// Decay returns a pointer to array element for array types, a pointer to a
 	// function for function types and itself for all other type kinds.
 	Decay() Type
@@ -256,6 +259,11 @@ type Type interface {
 	str(b *strings.Builder, useTag bool) *strings.Builder
 }
 
+type noBitField struct{}
+
+// BitField implements Type.
+func (noBitField) BitField() *Field { return nil }
+
 type namer struct{ d *Declarator }
 
 // Typedef implements Type
@@ -266,6 +274,9 @@ type InvalidType struct{}
 func (n *InvalidType) clone() Type {
 	return n
 }
+
+// BitField implements Type.
+func (n *InvalidType) BitField() *Field { return nil }
 
 // Pointer implements Type.
 func (n *InvalidType) Pointer() Type { return Invalid }
@@ -318,9 +329,9 @@ func (n *InvalidType) Size() int64 { return -1 }
 
 type PredefinedType struct {
 	attributer
-	c     *ctx
-	field *Field
-	kind  Kind
+	bitField *Field
+	c        *ctx
+	kind     Kind
 	namer
 	ptr    Type
 	vector *ArrayType
@@ -331,8 +342,15 @@ func (c *ctx) newPredefinedType(kind Kind) *PredefinedType {
 }
 
 func (n *PredefinedType) clone() Type {
-	return n //TODO clone
+	r := *n
+	r.namer.d = nil
+	r.bitField = nil
+	r.ptr = nil
+	return &r
 }
+
+// BitField implements Type.
+func (n *PredefinedType) BitField() *Field { return n.bitField }
 
 // Pointer implements Type.
 func (n *PredefinedType) Pointer() Type {
@@ -391,10 +409,6 @@ func (n *PredefinedType) Align() int {
 		return 1
 	}
 
-	if n.field != nil {
-		return n.field.Type().Align()
-	}
-
 	if n.attributer.p != nil {
 		if v := n.attributer.p.Aligned(); v > 0 {
 			return int(v)
@@ -418,10 +432,6 @@ func (n *PredefinedType) Undecay() Type { return n }
 func (n *PredefinedType) FieldAlign() int {
 	if n == nil {
 		return 1
-	}
-
-	if n.field != nil {
-		return n.field.Type().Align()
 	}
 
 	if x, ok := n.c.ast.ABI.Types[n.kind]; ok {
@@ -460,10 +470,6 @@ func (n *PredefinedType) Kind() Kind { return n.kind }
 func (n *PredefinedType) Size() int64 {
 	if n == nil {
 		return -1
-	}
-
-	if n.field != nil {
-		return n.field.Type().Size()
 	}
 
 	if IsIntegerType(n) || IsFloatingPointType(n) {
@@ -517,6 +523,7 @@ type FunctionType struct {
 	c  *ctx
 	fp []*Parameter
 	namer
+	noBitField
 	ptr    Type
 	result typer
 	vectorSizer
@@ -717,6 +724,7 @@ type PointerType struct {
 	c    *ctx
 	elem typer
 	namer
+	noBitField
 	ptr     Type
 	undecay Type
 	vectorSizer
@@ -1144,6 +1152,7 @@ type StructType struct {
 	c       *ctx
 	forward *StructOrUnionSpecifier
 	namer
+	noBitField
 	ptr Type
 	structType
 	vectorSizer
@@ -1433,6 +1442,7 @@ type UnionType struct {
 	c       *ctx
 	forward *StructOrUnionSpecifier
 	namer
+	noBitField
 	ptr Type
 	structType
 	vectorSizer
@@ -1697,6 +1707,7 @@ type ArrayType struct {
 	elems int64
 	expr  ExpressionNode
 	namer
+	noBitField
 	ptr Type
 	vectorSizer
 }
@@ -1848,6 +1859,7 @@ type EnumType struct {
 	enums   []*Enumerator
 	forward *EnumSpecifier
 	namer
+	noBitField
 	ptr   Type
 	scope *Scope
 	tag   Token
