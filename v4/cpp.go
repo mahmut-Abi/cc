@@ -165,16 +165,24 @@ func (p *cppParser) groupPart(inIfSection bool) groupPart {
 			return p.ifSection()
 		case "include", "include_next", "define", "undef", "line", "error", "pragma", "\n":
 			gp := p.shift()
+		out:
 			switch {
 			case verb == "line":
 				// eg. ["#" "line" "1" "\"20010206-1.c\"" "\n"].5
-				if len(gp) < 3 {
+				// or. ["#" "line" "2" "\n"].4
+				if len(gp) < 4 {
 					break
 				}
 
-				ln, err := strconv.ParseUint(gp[2].SrcStr(), 10, 31)
-				if err != nil {
-					break
+				var ln uint64
+				switch s := gp[2].SrcStr(); {
+				case s == "__LINE__":
+					ln = uint64(gp[2].Position().Line)
+				default:
+					var err error
+					if ln, err = strconv.ParseUint(gp[2].SrcStr(), 10, 31); err != nil {
+						break out
+					}
 				}
 
 				fn := gp[0].Position().Filename
