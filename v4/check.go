@@ -4060,8 +4060,7 @@ out:
 			}
 			break out
 		default:
-			d = n.LexicalScope().builtin(n.Token)
-			if d == nil {
+			if d = n.LexicalScope().builtin(n.Token); d == nil {
 				d = c.predefinedDeclarator(n.Token, n.LexicalScope())
 				d.isExtern = true
 				d.isParam = false
