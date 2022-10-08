@@ -644,6 +644,12 @@ func Translate(cfg *Config, sources []Source) (*AST, error) {
 	return ast, nil
 }
 
+// NodeTokens returns the source tokens n consists of.
+func NodeTokens(n Node) (r []Token) {
+	nodeSource(n, &r)
+	return r
+}
+
 // NodeSource returns the source form of s. Non-empty separators between tokens
 // are replaced by a single ' '.
 func NodeSource(s ...Node) string {
