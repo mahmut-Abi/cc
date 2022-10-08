@@ -1008,6 +1008,9 @@ func (n *Declarator) Position() (r token.Position) {
 // after Translate.
 func (n *Declarator) AddressTaken() bool { return n.addrTaken }
 
+// HasInitializer reports whether n has an initializer.
+func (n *Declarator) HasInitializer() bool { return n.hasInitializer }
+
 // ReadCount reports the number of times n is read. The result is valid after
 // Translate.
 func (n *Declarator) ReadCount() int { return n.read }
@@ -1064,6 +1067,7 @@ const (
 	None
 )
 
+// Linkage reports n's linkage.
 func (n *Declarator) Linkage() Linkage {
 	if n.IsTypename() || n.IsParam() {
 		return None
