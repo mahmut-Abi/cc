@@ -986,7 +986,7 @@ func (n *InitDeclarator) check(c *ctx, t Type, isExtern, isStatic, isAtomic, isT
 
 	if n.Initializer != nil {
 		u := t.clone()
-		n.Initializer.check(c, nil, u, 0, nil)
+		n.Initializer.check(c, nil, u, 0, nil, nil)
 		if t.Kind() == Array && t.IsIncomplete() {
 			n.Declarator.typ = u
 		}
@@ -997,12 +997,13 @@ func (n *InitDeclarator) check(c *ctx, t Type, isExtern, isStatic, isAtomic, isT
 //  Initializer:
 //          AssignmentExpression         // Case InitializerExpr
 //  |       '{' InitializerList ',' '}'  // Case InitializerInitList
-func (n *Initializer) check(c *ctx, currObj, t Type, off int64, l *InitializerList) (r *InitializerList) {
+func (n *Initializer) check(c *ctx, currObj, t Type, off int64, l *InitializerList, f *Field) (r *InitializerList) {
 	if n == nil || t == nil {
 		c.errors.add(errorf("internal error %T(%v) %T(%v)", n, n == nil, t, t == nil))
 		return nil
 	}
 
+	n.field = f
 	if l != nil {
 		r = l.InitializerList
 	}
@@ -1182,7 +1183,7 @@ func (n *Initializer) checkStruct(c *ctx, currObj Type, t *StructType, exprT Typ
 			return nil
 		}
 
-		n.check(c, currObj, f.Type(), off, nil)
+		n.check(c, currObj, f.Type(), off, nil, f)
 		return nil
 	}
 
@@ -1209,7 +1210,7 @@ func (n *Initializer) checkUnion(c *ctx, currObj Type, t *UnionType, exprT Type,
 			return nil
 		}
 
-		n.check(c, currObj, f.Type(), off, nil)
+		n.check(c, currObj, f.Type(), off, nil, f)
 		return nil
 	}
 
@@ -1257,7 +1258,7 @@ func (n *InitializerList) checkEnum(c *ctx, currObj Type, t *EnumType, off int64
 	}
 
 	if IsScalarType(t) {
-		n.Initializer.check(c, currObj, t, off, nil)
+		n.Initializer.check(c, currObj, t, off, nil, nil)
 		return n.InitializerList
 	}
 
@@ -1272,7 +1273,7 @@ func (n *InitializerList) checkPointer(c *ctx, currObj Type, t *PointerType, off
 	}
 
 	if IsScalarType(t) {
-		n.Initializer.check(c, currObj, t, off, nil)
+		n.Initializer.check(c, currObj, t, off, nil, nil)
 		return n.InitializerList
 	}
 
@@ -1287,7 +1288,7 @@ func (n *InitializerList) checkPredefined(c *ctx, currObj Type, t *PredefinedTyp
 	}
 
 	if IsScalarType(t) {
-		n.Initializer.check(c, currObj, t, off, nil)
+		n.Initializer.check(c, currObj, t, off, nil, nil)
 		return n.InitializerList
 	}
 
@@ -1304,7 +1305,7 @@ func (n *InitializerList) checkArray(c *ctx, currObj Type, t *ArrayType, off int
 	case t.IsIncomplete():
 		for n != nil {
 			if n.Designation == nil {
-				n = n.Initializer.check(c, currObj, elemT, off+lo*elemT.Size(), n)
+				n = n.Initializer.check(c, currObj, elemT, off+lo*elemT.Size(), n, nil)
 				lo++
 				t.elems = mathutil.MaxInt64(t.elems, lo)
 				continue
@@ -1339,7 +1340,7 @@ func (n *InitializerList) checkArray(c *ctx, currObj Type, t *ArrayType, off int
 					return n
 				}
 
-				n = n.Initializer.check(c, currObj, elemT, off+lo*elemT.Size(), n)
+				n = n.Initializer.check(c, currObj, elemT, off+lo*elemT.Size(), n, nil)
 				lo++
 				continue
 			}
@@ -1407,7 +1408,7 @@ func (n *InitializerList) checkStruct(c *ctx, currObj Type, t *StructType, off i
 				return n
 			}
 
-			n = n.Initializer.check(c, currObj, f.Type(), off+f.Offset(), n)
+			n = n.Initializer.check(c, currObj, f.Type(), off+f.Offset(), n, f)
 			f = t.FieldByIndex(f.index + 1)
 			continue
 		}
@@ -1431,7 +1432,7 @@ func (n *InitializerList) checkStruct(c *ctx, currObj Type, t *StructType, off i
 		}
 
 		if len(dl.Designators) == 1 {
-			n = n.Initializer.check(c, currObj, f.Type(), off+f.Offset(), n)
+			n = n.Initializer.check(c, currObj, f.Type(), off+f.Offset(), n, f)
 			f = t.FieldByIndex(f.index + 1)
 			continue
 		}
@@ -1451,7 +1452,7 @@ func (n *InitializerList) checkUnion(c *ctx, currObj Type, t *UnionType, off int
 			return n
 		}
 
-		return n.Initializer.check(c, currObj, f.Type(), off+f.Offset(), n)
+		return n.Initializer.check(c, currObj, f.Type(), off+f.Offset(), n, f)
 	}
 
 	if currObj != t {
@@ -1477,7 +1478,7 @@ func (n *InitializerList) checkUnion(c *ctx, currObj Type, t *UnionType, off int
 	}
 
 	if len(dl.Designators) == 1 {
-		return n.Initializer.check(c, f.Type(), f.Type(), off+f.Offset(), n)
+		return n.Initializer.check(c, f.Type(), f.Type(), off+f.Offset(), n, f)
 	}
 
 	return n.checkDesignatorList(dl.Designators[1:], c, f.Type(), off+f.Offset(), false)
@@ -1568,7 +1569,9 @@ func int64Value(c *ctx, n Expression) (int64, bool) {
 
 func (n *InitializerList) checkDesignatorList(list []*Designator, c *ctx, currObj Type, off int64, ranged bool) *InitializerList {
 	t := currObj
+	var fld *Field
 	for _, dl := range list {
+		fld = nil
 		switch x := t.(type) {
 		case *StructType:
 			nm := dl.name(c)
@@ -1584,6 +1587,7 @@ func (n *InitializerList) checkDesignatorList(list []*Designator, c *ctx, currOb
 
 			t = f.Type()
 			off += f.Offset()
+			fld = f
 		case *UnionType:
 			nm := dl.name(c)
 			if nm == "" {
@@ -1598,6 +1602,7 @@ func (n *InitializerList) checkDesignatorList(list []*Designator, c *ctx, currOb
 
 			t = f.Type()
 			off += f.Offset()
+			fld = f
 		case *ArrayType:
 			lo, hi := dl.index(c)
 			if lo < 0 {
@@ -1642,7 +1647,7 @@ func (n *InitializerList) checkDesignatorList(list []*Designator, c *ctx, currOb
 			return nil
 		}
 	}
-	return n.Initializer.check(c, currObj, t, off, n)
+	return n.Initializer.check(c, currObj, t, off, n, fld)
 }
 
 //  Declarator:

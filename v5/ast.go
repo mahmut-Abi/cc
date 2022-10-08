@@ -2272,6 +2272,7 @@ func (n InitializerCase) String() string {
 //	        AssignmentExpression         // Case InitializerExpr
 //	|       '{' InitializerList ',' '}'  // Case InitializerInitList
 type Initializer struct {
+	field  *Field
 	nelems int64
 	off    int64
 	parent *Initializer
@@ -2322,6 +2323,9 @@ func (n *Initializer) Offset() int64 { return n.off }
 // Len returns the number of array elements initialized. It's normally one, but
 // can be more using the [lo ... hi] designator.
 func (n *Initializer) Len() int64 { return n.nelems }
+
+// Field returns the field associated with n, if any.
+func (n *Initializer) Field() *Field { return n.field }
 
 // InitializerList represents data reduced by productions:
 //
