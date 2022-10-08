@@ -110,6 +110,7 @@ type parser struct {
 	cpp        *cpp
 	fnScope    *Scope
 	funcTokens []Token
+	gotos      []*JumpStatement
 	keywords   map[string]rune
 	prevNL     Token
 	scope      *Scope
@@ -479,6 +480,8 @@ func (p *parser) compoundStatement(isFnScope bool, d *Declarator) (r *CompoundSt
 
 	if isFnScope {
 		p.fnScope = p.scope
+		gotos := p.gotos
+		p.gotos = nil
 		if d != nil {
 			for dd := d.DirectDeclarator; dd != nil; {
 				if s := dd.params; s != nil {
@@ -498,6 +501,32 @@ func (p *parser) compoundStatement(isFnScope bool, d *Declarator) (r *CompoundSt
 				}
 			}
 		}
+		defer func() {
+			r.gotos = p.gotos
+		next:
+			for _, s := range r.Gotos() {
+				switch s.Case {
+				case JumpStatementGoto:
+					nm := s.Token2.SrcStr()
+					for sc := s.LexicalScope(); sc != nil && sc.Parent != nil; sc = sc.Parent {
+						for _, n := range sc.Nodes[nm] {
+							switch x := n.(type) {
+							case *LabeledStatement:
+								if nm == x.Token.SrcStr() {
+									s.label = x
+									continue next
+								}
+							case *LabelDeclaration:
+								s.label = x
+								continue next
+							}
+						}
+					}
+					p.cpp.eh("%v: label undefined: %s", s.Token2.Position(), nm)
+				}
+			}
+			p.gotos = gotos
+		}()
 	}
 	lbrace := p.must('{')
 	if isFnScope && d != nil && !p.cpp.cfg.doNotInjectFunc {
@@ -720,7 +749,7 @@ func (p *parser) selectionStatement() (r *SelectionStatement) {
 		p.cpp.eh("%v: unexpected EOF", p.toks[0].Position())
 		return nil
 	case rune(IF):
-		r = &SelectionStatement{Case: SelectionStatementIf, Token: p.shift(false), Token2: p.must('('), ExpressionList: p.expression(false), Token3: p.must(')'), Statement: p.statement(true)}
+		r = &SelectionStatement{Case: SelectionStatementIf, Token: p.shift(false), Token2: p.must('('), ExpressionList: p.expression(false), Token3: p.must(')'), Statement: p.statement(true), lexicalScope: (*lexicalScope)(p.scope)}
 		switch p.rune(false) {
 		case rune(ELSE):
 			r.Case = SelectionStatementIfElse
@@ -731,7 +760,7 @@ func (p *parser) selectionStatement() (r *SelectionStatement) {
 			return r
 		}
 	case rune(SWITCH):
-		return &SelectionStatement{Case: SelectionStatementSwitch, Token: p.shift(false), Token2: p.must('('), ExpressionList: p.expression(false), Token3: p.must(')'), Statement: p.statement(true)}
+		return &SelectionStatement{Case: SelectionStatementSwitch, Token: p.shift(false), Token2: p.must('('), ExpressionList: p.expression(false), Token3: p.must(')'), Statement: p.statement(true), lexicalScope: (*lexicalScope)(p.scope)}
 	default:
 		t := p.shift(false)
 		p.cpp.eh("%v: unexpected %v, expected selection statement", t.Position(), runeName(t.Ch))
@@ -747,7 +776,7 @@ func (p *parser) selectionStatement() (r *SelectionStatement) {
 // 	continue ;
 // 	break ;
 // 	return expression_opt ;
-func (p *parser) jumpStatement() *JumpStatement {
+func (p *parser) jumpStatement() (r *JumpStatement) {
 	switch p.rune(false) {
 	case eof:
 		p.cpp.eh("%v: unexpected EOF", p.toks[0].Position())
@@ -759,10 +788,12 @@ func (p *parser) jumpStatement() *JumpStatement {
 	case rune(GOTO):
 		switch p.peek(1, false).Ch {
 		case '*':
-			return &JumpStatement{Case: JumpStatementGotoExpr, Token: p.shift(false), Token2: p.shift(false), ExpressionList: p.expression(false), Token3: p.must(';'), lexicalScope: (*lexicalScope)(p.scope)}
+			r = &JumpStatement{Case: JumpStatementGotoExpr, Token: p.shift(false), Token2: p.shift(false), ExpressionList: p.expression(false), Token3: p.must(';'), lexicalScope: (*lexicalScope)(p.scope)}
 		default:
-			return &JumpStatement{Case: JumpStatementGoto, Token: p.shift(false), Token2: p.must(rune(IDENTIFIER)), Token3: p.must(';'), lexicalScope: (*lexicalScope)(p.scope)}
+			r = &JumpStatement{Case: JumpStatementGoto, Token: p.shift(false), Token2: p.must(rune(IDENTIFIER)), Token3: p.must(';'), lexicalScope: (*lexicalScope)(p.scope)}
 		}
+		p.gotos = append(p.gotos, r)
+		return r
 	case rune(RETURN):
 		return &JumpStatement{Case: JumpStatementReturn, Token: p.shift(false), ExpressionList: p.expression(true), Token2: p.must(';'), lexicalScope: (*lexicalScope)(p.scope)}
 	default:
@@ -833,16 +864,16 @@ func (p *parser) iterationStatement() (r *IterationStatement) {
 
 	switch p.rune(false) {
 	case rune(WHILE):
-		return &IterationStatement{Case: IterationStatementWhile, Token: p.shift(false), Token2: p.must('('), ExpressionList: p.expression(false), Token3: p.must(')'), Statement: p.statement(true)}
+		return &IterationStatement{Case: IterationStatementWhile, Token: p.shift(false), Token2: p.must('('), ExpressionList: p.expression(false), Token3: p.must(')'), Statement: p.statement(true), lexicalScope: (*lexicalScope)(p.scope)}
 	case rune(DO):
-		return &IterationStatement{Case: IterationStatementDo, Token: p.shift(false), Statement: p.statement(true), Token2: p.must(rune(WHILE)), Token3: p.must('('), ExpressionList: p.expression(false), Token4: p.must(')'), Token5: p.must(';')}
+		return &IterationStatement{Case: IterationStatementDo, Token: p.shift(false), Statement: p.statement(true), Token2: p.must(rune(WHILE)), Token3: p.must('('), ExpressionList: p.expression(false), Token4: p.must(')'), Token5: p.must(';'), lexicalScope: (*lexicalScope)(p.scope)}
 	case rune(FOR):
 		switch ch := p.peek(2, true).Ch; {
 		case p.isDeclarationSpecifier(ch, true):
-			return &IterationStatement{Case: IterationStatementForDecl, Token: p.shift(false), Token2: p.must('('), Declaration: p.declaration(nil, nil, true), ExpressionList: p.expression(true), Token3: p.must(';'), ExpressionList2: p.expression(true), Token4: p.must(')'), Statement: p.statement(true)}
+			return &IterationStatement{Case: IterationStatementForDecl, Token: p.shift(false), Token2: p.must('('), Declaration: p.declaration(nil, nil, true), ExpressionList: p.expression(true), Token3: p.must(';'), ExpressionList2: p.expression(true), Token4: p.must(')'), Statement: p.statement(true), lexicalScope: (*lexicalScope)(p.scope)}
 		}
 
-		return &IterationStatement{Case: IterationStatementFor, Token: p.shift(false), Token2: p.must('('), ExpressionList: p.expression(true), Token3: p.must(';'), ExpressionList2: p.expression(true), Token4: p.must(';'), ExpressionList3: p.expression(true), Token5: p.must(')'), Statement: p.statement(true)}
+		return &IterationStatement{Case: IterationStatementFor, Token: p.shift(false), Token2: p.must('('), ExpressionList: p.expression(true), Token3: p.must(';'), ExpressionList2: p.expression(true), Token4: p.must(';'), ExpressionList3: p.expression(true), Token5: p.must(')'), Statement: p.statement(true), lexicalScope: (*lexicalScope)(p.scope)}
 	default:
 		t := p.shift(false)
 		p.cpp.eh("%v: unexpected %v, expected iteration statement", t.Position(), runeName(t.Ch))
