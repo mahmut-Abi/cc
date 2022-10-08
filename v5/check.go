@@ -2536,7 +2536,7 @@ func (n *StructDeclarationList) check(c *ctx, s *StructOrUnionSpecifier) {
 		t.align = maxAlignBytes
 		t.fields = fields
 		t.padding = int(brk-brk0) >> 3
-		t.size = unionBits >> 3
+		t.size = roundup(unionBits>>3, int64(maxAlignBytes))
 	default:
 		t := s.typ.(*StructType)
 		t.align = maxAlignBytes
@@ -2872,6 +2872,9 @@ func (n *ConditionalExpression) check(c *ctx, mode flags) (r Type) {
 	case
 		// both operands are pointers to qualified or unqualified versions of compatible types;
 		isPointerType(t2) && isPointerType(t3):
+		if t2.Undecay().Kind() == Array {
+			t2 = t2.(*PointerType).Elem().Pointer()
+		}
 		n.typ = t2
 	case
 		// one operand is a pointer and the other is a null pointer constant; or
