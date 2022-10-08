@@ -2678,6 +2678,7 @@ func (n LabeledStatementCase) String() string {
 type LabeledStatement struct {
 	caseOrdinal int
 	*lexicalScope
+	switchCtx   *SelectionStatement
 	Case        LabeledStatementCase `PrettyPrint:"stringer,zero"`
 	Expression  Expression
 	Expression2 Expression
@@ -2752,6 +2753,10 @@ func (n *LabeledStatement) Position() (r token.Position) {
 // within a switch statement.  Valid only for Case LabeledStatementCaseLabel
 // and LabeledStatementDefault.
 func (n *LabeledStatement) CaseOrdinal() int { return n.caseOrdinal }
+
+// Switch returns the switch associated with n, case LabeledStatementCaseLabel,
+// LabeledStatementDefault, LabeledStatementRange.
+func (n *LabeledStatement) Switch() *SelectionStatement { return n.switchCtx }
 
 // ParameterDeclarationCase represents case numbers of production ParameterDeclaration
 type ParameterDeclarationCase int
