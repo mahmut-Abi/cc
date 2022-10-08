@@ -2538,6 +2538,7 @@ func (n JumpStatementCase) String() string {
 //	|       "break" ';'                    // Case JumpStatementBreak
 //	|       "return" ExpressionList ';'    // Case JumpStatementReturn
 type JumpStatement struct {
+	*lexicalScope
 	Case           JumpStatementCase `PrettyPrint:"stringer,zero"`
 	ExpressionList Expression
 	Token          Token
@@ -2666,6 +2667,7 @@ func (n LabeledStatementCase) String() string {
 //	|       "default" ':' Statement                                           // Case LabeledStatementDefault
 type LabeledStatement struct {
 	caseOrdinal int
+	*lexicalScope
 	Case        LabeledStatementCase `PrettyPrint:"stringer,zero"`
 	Expression  Expression
 	Expression2 Expression
