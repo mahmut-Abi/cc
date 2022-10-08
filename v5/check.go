@@ -171,11 +171,15 @@ func (c *ctx) indentDec() string     { c.indentN--; return c.indent() }
 func (c *ctx) indentInc() (r string) { r = c.indent(); c.indentN++; return r }
 
 // return a synthesized declarator representing "int nm".
-func (c *ctx) predefinedDeclarator(nm Token) *Declarator {
+func (c *ctx) predefinedDeclarator(nm Token, s *Scope) *Declarator {
 	r := *c.ast.predefinedDeclarator0
 	dd := *r.DirectDeclarator
 	dd.Token = nm
 	r.DirectDeclarator = &dd
+	r.isSynthetic = true
+	if s != nil {
+		s.declare(nil, nm.SrcStr(), &r)
+	}
 	return &r
 }
 
@@ -466,6 +470,36 @@ func (c *ctx) sizeT(n Node) Type {
 	return c.sizeT0
 }
 
+func (c *ctx) fixSyntheticDeclarators(s *Scope) {
+	for _, v := range s.Children {
+		c.fixSyntheticDeclarators(v)
+	}
+
+	p := s.Parent
+	if p == nil {
+		return
+	}
+
+	for _, vs := range s.Nodes {
+		for _, v := range vs {
+			switch x := v.(type) {
+			case *Declarator:
+				if !x.IsSynthetic() {
+					break
+				}
+
+				t := x.NameTok()
+				t.seq = math.MaxInt32
+				if d := p.ident(t); d != nil {
+					if y, ok := d.(*Declarator); ok && !y.IsSynthetic() {
+						*x = *y
+					}
+				}
+			}
+		}
+	}
+}
+
 type resolver struct{ resolved *Scope }
 
 // ResolvedIn returns the scope an identifier was resolved in, if any.
@@ -516,6 +550,7 @@ func (n *AST) check() error {
 	for _, d := range n.Declarations {
 		d.check(c)
 	}
+	c.fixSyntheticDeclarators(n.Scope)
 	c.checkScope(n.Scope)
 	n.SizeT = c.sizeT(n.EOF)
 	return c.errors.err()
@@ -628,7 +663,7 @@ func (c *ctx) checkFunctionDefinition(sc *Scope, ds DeclarationSpecifiers, d *De
 		for _, param := range d.DirectDeclarator.IdentifierList.parameters {
 			switch d := m[param.name.SrcStr()]; {
 			case d == nil:
-				d := c.predefinedDeclarator(param.name)
+				d := c.predefinedDeclarator(param.name, nil)
 				d.isExtern = false
 				d.isParam = true
 				d.lexicalScope = (*lexicalScope)(d.DirectDeclarator.params)
@@ -3566,7 +3601,7 @@ out:
 		default:
 			d = n.LexicalScope().builtin(n.Token)
 			if d == nil {
-				d = c.predefinedDeclarator(n.Token)
+				d = c.predefinedDeclarator(n.Token, n.LexicalScope())
 				d.isExtern = true
 				d.isParam = false
 				d.lexicalScope = (*lexicalScope)(n.LexicalScope())

@@ -985,6 +985,7 @@ type Declarator struct {
 	isRegister       bool
 	isRestrict       bool
 	isStatic         bool
+	isSynthetic      bool
 	isThreadLocal    bool
 	isTypename       bool
 	isVolatile       bool
@@ -1053,12 +1054,30 @@ func (n *Declarator) NameTok() (r Token) {
 	return r
 }
 
+// IsFuncDef reports whether n declares the name of a function definition.
+func (n *Declarator) IsFuncDef() bool {
+	if n == nil {
+		return false
+	}
+
+	return n.isFuncDef
+}
+
 func (n *Declarator) isFn() bool {
 	if n == nil {
 		return false
 	}
 
 	return n.DirectDeclarator.isFn()
+}
+
+// IsSynthetic reports whether n is synthesized.
+func (n *Declarator) IsSynthetic() bool {
+	if n == nil {
+		return false
+	}
+
+	return n.isSynthetic
 }
 
 // Linkage describes linkage of identifiers ([0]6.2.2).
