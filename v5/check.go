@@ -243,8 +243,17 @@ func (c *ctx) checkScope(s *Scope) {
 
 				switch {
 				case t.Kind() == Function:
+					if a.isFuncDef {
+						break
+					}
+
 					f := t.(*FunctionType)
 					for _, b := range ds[1:] {
+						if b.isFuncDef {
+							t = b.Type()
+							break
+						}
+
 						if g := b.Type().(*FunctionType); lessFunctionType(f, g) {
 							t = g
 							f = g

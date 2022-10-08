@@ -3530,7 +3530,7 @@ func newScope(parent *Scope) (r *Scope) {
 }
 
 func (s *Scope) declare(eh interface{}, nm string, n Node) {
-	// trc("%v: %q %T, visible %v (scope %p) '%s' (%v: %v: %v:)", n.Position(), nm, n, n.(interface{ Visible() int }).Visible(), s, NodeSource(n), origin(4), origin(3), origin(2))
+	// trc("%v: %q@%p %T, visible %v (scope %p) '%s' (%v: %v: %v:)", n.Position(), nm, n, n, n.(interface{ Visible() int }).Visible(), s, NodeSource(n), origin(4), origin(3), origin(2))
 	if s.Nodes != nil {
 		s.Nodes[nm] = append(s.Nodes[nm], n)
 		return
@@ -3539,7 +3539,7 @@ func (s *Scope) declare(eh interface{}, nm string, n Node) {
 	s.Nodes = map[string][]Node{nm: {n}}
 }
 
-func (s *Scope) ident(t Token) Node {
+func (s *Scope) ident(t Token) (r Node) {
 	a := s.idents(t)
 	switch len(a) {
 	case 1:
@@ -3558,11 +3558,17 @@ func (s *Scope) ident(t Token) Node {
 	}
 
 	if d.Type().Kind() == Function {
+		// trc("%v: %q@%p %s %v %v", d.Position(), d.Name(), d, d.Type(), d.isFuncDef, len(a))
 		f := d.Type().(*FunctionType)
 		for _, v := range a {
 			x, ok := v.(*Declarator)
 			if !ok {
 				continue
+			}
+
+			// trc("%v: %q@%p %s %v", d.Position(), d.Name(), d, d.Type(), d.isFuncDef)
+			if d.isFuncDef {
+				return d
 			}
 
 			g, ok := x.Type().(*FunctionType)
