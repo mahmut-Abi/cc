@@ -114,6 +114,7 @@ type parser struct {
 	keywords   map[string]rune
 	prevNL     Token
 	scope      *Scope
+	switchCtx  *SelectionStatement
 	toks       []Token
 
 	seq int32
@@ -352,6 +353,9 @@ func (p *parser) parse() (ast *AST, err error) {
 	p.cpp.rune()
 	tu := p.translationUnit()
 	p.cpp.mmap = nil
+	if p.scope == nil && p.scope.Parent != nil {
+		p.cpp.eh("internal error (%v:)", origin(1))
+	}
 	switch p.rune(false) {
 	case eof:
 		var pd *Declarator
@@ -453,7 +457,7 @@ func (p *parser) functionDefinition(ds DeclarationSpecifiers, d *Declarator) (r 
 		p.fnScope = nil
 	}()
 	d.isFuncDef = true
-	return &FunctionDefinition{Specifiers: ds, Declarator: d, Declarations: p.declarationListOpt(), Body: p.compoundStatement(true, d)}
+	return &FunctionDefinition{Specifiers: ds, Declarator: d, Declarations: p.declarationListOpt(), Body: p.compoundStatement(false, true, d)}
 }
 
 //  declaration-list:
@@ -473,10 +477,12 @@ func (p *parser) declarationListOpt() (r []Declaration) {
 //
 //  compound-statement:
 // 	{ label-declaration_opt block-item-list_opt }
-func (p *parser) compoundStatement(isFnScope bool, d *Declarator) (r *CompoundStatement) {
-	p.newScope()
+func (p *parser) compoundStatement(inFreshNewScope, isFnScope bool, d *Declarator) (r *CompoundStatement) {
+	if !inFreshNewScope {
+		p.newScope()
 
-	defer p.closeScope()
+		defer p.closeScope()
+	}
 
 	if isFnScope {
 		p.fnScope = p.scope
@@ -610,7 +616,7 @@ again:
 		}
 		switch p.rune(false) {
 		case '{':
-			fd := &FunctionDefinition{Specifiers: ds, Declarator: d, Body: p.compoundStatement(true, d)}
+			fd := &FunctionDefinition{Specifiers: ds, Declarator: d, Body: p.compoundStatement(false, true, d)}
 			fd.scope = fd.Body.LexicalScope()
 			return fd
 		default:
@@ -670,7 +676,7 @@ func (p *parser) statement(newBlock bool) Statement {
 		p.cpp.eh("%v: unexpected EOF", p.toks[0].Position())
 		return nil
 	case '{':
-		return p.compoundStatement(false, nil)
+		return p.compoundStatement(newBlock, false, nil)
 	case rune(ASM):
 		return p.asmStatement()
 	case
@@ -740,6 +746,11 @@ func (p *parser) isStatement(ch rune) bool {
 //  	if ( expression ) statement else statement
 //  	switch ( expression ) statement
 func (p *parser) selectionStatement() (r *SelectionStatement) {
+	// [0]6.8.4/3
+	//
+	// A selection statement is a block whose scope is a strict subset of the scope
+	// of its enclosing block. Each associated substatement is also a block whose
+	// scope is a strict subset of the scope of the selection statement.
 	p.newScope()
 
 	defer p.closeScope()
@@ -760,7 +771,13 @@ func (p *parser) selectionStatement() (r *SelectionStatement) {
 			return r
 		}
 	case rune(SWITCH):
-		return &SelectionStatement{Case: SelectionStatementSwitch, Token: p.shift(false), Token2: p.must('('), ExpressionList: p.expression(false), Token3: p.must(')'), Statement: p.statement(true), lexicalScope: (*lexicalScope)(p.scope)}
+		r = &SelectionStatement{Case: SelectionStatementSwitch, Token: p.shift(false), Token2: p.must('('), ExpressionList: p.expression(false), Token3: p.must(')'), lexicalScope: (*lexicalScope)(p.scope)}
+		ctx := p.switchCtx
+
+		defer func() { p.switchCtx = ctx }()
+
+		r.Statement = p.statement(true)
+		return r
 	default:
 		t := p.shift(false)
 		p.cpp.eh("%v: unexpected %v, expected selection statement", t.Position(), runeName(t.Ch))
@@ -817,6 +834,9 @@ func (p *parser) labeledStatement() (r *LabeledStatement) {
 		return nil
 	case rune(CASE):
 		r = &LabeledStatement{Token: p.shift(false), Expression: p.constantExpression(), lexicalScope: (*lexicalScope)(p.scope)}
+		if ctx := p.switchCtx; ctx != nil {
+			ctx.cases = append(ctx.cases, r)
+		}
 		switch p.rune(false) {
 		case rune(DDD):
 			r.Case = LabeledStatementRange
@@ -832,7 +852,11 @@ func (p *parser) labeledStatement() (r *LabeledStatement) {
 			return r
 		}
 	case rune(DEFAULT):
-		return &LabeledStatement{Case: LabeledStatementDefault, Token: p.shift(false), Token2: p.must(':'), Statement: p.statement(false), lexicalScope: (*lexicalScope)(p.scope)}
+		r = &LabeledStatement{Case: LabeledStatementDefault, Token: p.shift(false), Token2: p.must(':'), Statement: p.statement(false), lexicalScope: (*lexicalScope)(p.scope)}
+		if ctx := p.switchCtx; ctx != nil {
+			ctx.cases = append(ctx.cases, r)
+		}
+		return r
 	case rune(IDENTIFIER):
 		r = &LabeledStatement{Case: LabeledStatementLabel, Token: p.shift(false), Token2: p.must(':'), Statement: p.statement(false), lexicalScope: (*lexicalScope)(p.scope)}
 		switch {
@@ -858,6 +882,11 @@ func (p *parser) labeledStatement() (r *LabeledStatement) {
 // 	for ( expression_opt ; expression_opt ; expression_opt ) statement
 // 	for ( declaration expression_opt ; expression_opt ) statement
 func (p *parser) iterationStatement() (r *IterationStatement) {
+	// [0]6.8.5/5
+	//
+	// An iteration statement is a block whose scope is a strict subset of the
+	// scope of its enclosing block. The loop body is also a block whose scope is a
+	// strict subset of the scope of the iteration statement.
 	p.newScope()
 
 	defer p.closeScope()
@@ -2292,7 +2321,7 @@ func (p *parser) primaryExpression(checkTypeName bool) (r *PrimaryExpression) {
 	case '(':
 		switch p.peek(1, false).Ch {
 		case '{':
-			return &PrimaryExpression{Case: PrimaryExpressionStmt, Token: p.shift(false), CompoundStatement: p.compoundStatement(false, nil), Token2: p.must(')')}
+			return &PrimaryExpression{Case: PrimaryExpressionStmt, Token: p.shift(false), CompoundStatement: p.compoundStatement(false, false, nil), Token2: p.must(')')}
 		default:
 			return &PrimaryExpression{Case: PrimaryExpressionExpr, Token: p.shift(false), ExpressionList: p.expression(false), Token2: p.must(')')}
 		}

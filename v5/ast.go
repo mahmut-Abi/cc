@@ -3288,6 +3288,7 @@ func (n SelectionStatementCase) String() string {
 type SelectionStatement struct {
 	switchCases int
 	*lexicalScope
+	cases          []*LabeledStatement
 	Case           SelectionStatementCase `PrettyPrint:"stringer,zero"`
 	ExpressionList Expression
 	Statement      Statement
@@ -3360,6 +3361,10 @@ func (n *SelectionStatement) Position() (r token.Position) {
 // Cases returns the combined number of "case" and "default" labels in a switch
 // statement. Valid for Case == SelectionStatementSwitch.
 func (n *SelectionStatement) Cases() int { return n.switchCases }
+
+// SwitchCases return the case/default labeled statements associated with n,
+// case SelectionStatementSwitch.
+func (n *SelectionStatement) SwitchCases() []*LabeledStatement { return n.cases }
 
 // SpecifierQualifierListCase represents case numbers of production SpecifierQualifierList
 type SpecifierQualifierListCase int
