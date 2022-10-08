@@ -2607,7 +2607,8 @@ func (n *JumpStatement) Position() (r token.Position) {
 	}
 }
 
-// Label returns the labeled statement or a label declaration n goto refers to.
+// Label returns the labeled statement or a label declaration n, case
+// JumpStatementGoto, refers to.
 func (n *JumpStatement) Label() Node { return n.label }
 
 // LabelDeclaration represents data reduced by production:
@@ -2748,7 +2749,7 @@ func (n *LabeledStatement) Position() (r token.Position) {
 }
 
 // CaseOrdinal returns the zero based ordinal number of a labeled statement
-// withing a switch statement.  Valid only for Case LabeledStatementCaseLabel
+// within a switch statement.  Valid only for Case LabeledStatementCaseLabel
 // and LabeledStatementDefault.
 func (n *LabeledStatement) CaseOrdinal() int { return n.caseOrdinal }
 
@@ -3288,7 +3289,7 @@ func (n SelectionStatementCase) String() string {
 type SelectionStatement struct {
 	switchCases int
 	*lexicalScope
-	cases          []*LabeledStatement
+	labeled        []*LabeledStatement
 	Case           SelectionStatementCase `PrettyPrint:"stringer,zero"`
 	ExpressionList Expression
 	Statement      Statement
@@ -3362,9 +3363,9 @@ func (n *SelectionStatement) Position() (r token.Position) {
 // statement. Valid for Case == SelectionStatementSwitch.
 func (n *SelectionStatement) Cases() int { return n.switchCases }
 
-// SwitchCases return the case/default labeled statements associated with n,
-// case SelectionStatementSwitch.
-func (n *SelectionStatement) SwitchCases() []*LabeledStatement { return n.cases }
+// LabeledStatements returns labeled statements appearing within n, case
+// SelectionStatementSwitch.
+func (n *SelectionStatement) LabeledStatements() []*LabeledStatement { return n.labeled }
 
 // SpecifierQualifierListCase represents case numbers of production SpecifierQualifierList
 type SpecifierQualifierListCase int
