@@ -960,14 +960,16 @@ func (list DeclarationSpecifiers) IsTypedef() bool {
 //	Declarator:
 //	        Pointer DirectDeclarator
 type Declarator struct {
-	alignas int
-	read    int
-	sizeof  int
-	write   int
 	*lexicalScope
 	typer
 	visible
 	resolver
+	alignas          int
+	read             int
+	sizeof           int
+	write            int
+	addrTaken        bool
+	hasInitializer   bool
 	isAtomic         bool
 	isAuto           bool
 	isConst          bool
@@ -982,7 +984,6 @@ type Declarator struct {
 	isThreadLocal    bool
 	isTypename       bool
 	isVolatile       bool
-	addrTaken        bool
 	DirectDeclarator *DirectDeclarator
 	Pointer          *Pointer
 }
