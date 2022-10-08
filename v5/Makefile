@@ -2,7 +2,7 @@
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
-.PHONY:	build_all_targets clean cpu edit editor mem win64 win32 tmp
+.PHONY:	build_all_targets clean cpu edit editor mem win64 win32 tmp test
 
 build_all_targets:
 	GOOS=darwin GOARCH=amd64 go build -v ./...
@@ -64,3 +64,7 @@ tmp:
 	go test -v -run Translate 2>&1 | tee log
 	grep -a '^ \+TODO' log | sort | uniq -c | sort -n
 	grep -a 'TOTAL\|PASS' log || true
+
+test:
+	go test -v -short -failfast 2>&1 | tee log
+
