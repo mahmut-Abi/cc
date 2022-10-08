@@ -3231,7 +3231,7 @@ func (n *UnaryExpression) check(c *ctx, mode flags) (r Type) {
 		defer func() { c.checkingSizeof = sv }()
 		c.checkingSizeof = true
 		n.typ = c.sizeT(n)
-		t := n.Expression3.check(c, mode.del(decay))
+		t := n.Expression3.check(c, mode).Undecay()
 		if t.Kind() == Function {
 			t = c.newPointerType(t)
 		}
@@ -3906,7 +3906,7 @@ func (n *PrimaryExpression) intConst2(c *ctx, s string, val uint64, list ...Kind
 		if abi.isSignedInteger(k) {
 			sign = 1
 		}
-		if int(abi.types[k].size)*8 >= b+sign {
+		if int(abi.Types[k].Size)*8 >= b+sign {
 			switch {
 			case sign == 0:
 				return UInt64Value(val), c.ast.kinds[k]

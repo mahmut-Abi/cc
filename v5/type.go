@@ -400,8 +400,8 @@ func (n *PredefinedType) Align() int {
 		}
 	}
 
-	if x, ok := n.c.ast.ABI.types[n.kind]; ok {
-		return x.align
+	if x, ok := n.c.ast.ABI.Types[n.kind]; ok {
+		return x.Align
 	}
 
 	return 1
@@ -419,8 +419,8 @@ func (n *PredefinedType) FieldAlign() int {
 		return 1
 	}
 
-	if x, ok := n.c.ast.ABI.types[n.kind]; ok {
-		return x.fieldAlign
+	if x, ok := n.c.ast.ABI.Types[n.kind]; ok {
+		return x.FieldAlign
 	}
 
 	return 1
@@ -463,8 +463,8 @@ func (n *PredefinedType) Size() int64 {
 		}
 	}
 
-	if x, ok := n.c.ast.ABI.types[n.kind]; ok {
-		return x.size
+	if x, ok := n.c.ast.ABI.Types[n.kind]; ok {
+		return x.Size
 	}
 
 	return -1
@@ -784,8 +784,8 @@ func (n *PointerType) Align() int {
 		}
 	}
 
-	if x, ok := n.c.ast.ABI.types[Ptr]; ok {
-		return x.align
+	if x, ok := n.c.ast.ABI.Types[Ptr]; ok {
+		return x.Align
 	}
 
 	return 1
@@ -803,8 +803,8 @@ func (n *PointerType) FieldAlign() int {
 		return 1
 	}
 
-	if x, ok := n.c.ast.ABI.types[Ptr]; ok {
-		return x.fieldAlign
+	if x, ok := n.c.ast.ABI.Types[Ptr]; ok {
+		return x.FieldAlign
 	}
 
 	return 1
@@ -822,8 +822,8 @@ func (n *PointerType) Size() int64 {
 		return -1
 	}
 
-	if x, ok := n.c.ast.ABI.types[Ptr]; ok {
-		return x.size
+	if x, ok := n.c.ast.ABI.Types[Ptr]; ok {
+		return x.Size
 	}
 
 	return -1
