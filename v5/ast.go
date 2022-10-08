@@ -962,6 +962,7 @@ func (list DeclarationSpecifiers) IsTypedef() bool {
 type Declarator struct {
 	alignas int
 	read    int
+	sizeof  int
 	write   int
 	*lexicalScope
 	typer
@@ -1009,6 +1010,10 @@ func (n *Declarator) AddressTaken() bool { return n.addrTaken }
 // ReadCount reports the number of times n is read. The result is valid after
 // Translate.
 func (n *Declarator) ReadCount() int { return n.read }
+
+// SizeofCount reports the number of times n appears in sizeof(expr). The
+// result is valid after Translate.
+func (n *Declarator) SizeofCount() int { return n.sizeof }
 
 // WriteCount reports the number of times n is written. The result is valid
 // after Translate.
