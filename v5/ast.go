@@ -1232,6 +1232,7 @@ func (n DesignatorCase) String() string {
 //	|       '.' IDENTIFIER                                       // Case DesignatorField
 //	|       IDENTIFIER ':'                                       // Case DesignatorField2
 type Designator struct {
+	typer
 	Case                DesignatorCase `PrettyPrint:"stringer,zero"`
 	ConstantExpression  Expression
 	ConstantExpression2 Expression
