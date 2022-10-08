@@ -1354,11 +1354,13 @@ func (n *InitializerList) checkStruct(c *ctx, currObj Type, t *StructType, off i
 	// trc("%sSTRUCT %v: curr %s, t %s", c.indentInc(), n.Position(), currObj, t)
 	// defer func() { trc("%sEXIT STRUCT", c.indentDec()) }()
 	if t.HasFlexibleArrayMember() {
-		fam := t.flexibleArrayMember().Type()
-		if fam.IsIncomplete() {
+		if fam := t.FlexibleArrayMember().Type(); fam.IsIncomplete() {
 			defer func() {
 				if !fam.IsIncomplete() {
-					t.size += fam.Size()
+					size1 := t.size + fam.Size()
+					size2 := roundup(size1, int64(t.Align()))
+					t.padding = int(size2 - size1)
+					t.size = size2
 				}
 			}()
 		}
@@ -2528,7 +2530,7 @@ func (n *StructDeclarationList) check(c *ctx, s *StructOrUnionSpecifier) {
 			bitFields[f.offsetBytes] = append(bitFields[f.offsetBytes], f)
 		default:
 			sz := f.Type().Size()
-			if f.Type().IsIncomplete() && f.Type().Kind() == Array && i == len(fields)-1 { // https://en.wikipedia.org/wiki/Flexible_array_member
+			if (f.Type().IsIncomplete() || f.Type().Size() == 0) && f.Type().Kind() == Array && i == len(fields)-1 { // https://en.wikipedia.org/wiki/Flexible_array_member
 				f.isFlexibleArrayMember = true
 				sz = 0
 			}
