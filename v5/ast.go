@@ -2310,6 +2310,7 @@ func (n *Initializer) Len() int64 { return n.nelems }
 //	        Designation Initializer
 //	|       InitializerList ',' Designation Initializer
 type InitializerList struct {
+	typer
 	Designation     *Designation
 	Initializer     *Initializer
 	InitializerList *InitializerList

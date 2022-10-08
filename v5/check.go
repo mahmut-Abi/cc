@@ -950,7 +950,11 @@ func (n *InitDeclarator) check(c *ctx, t Type, isExtern, isStatic, isAtomic, isT
 	}
 
 	if n.Initializer != nil {
-		n.Initializer.check(c, nil, t, 0, nil)
+		u := t.clone()
+		n.Initializer.check(c, nil, u, 0, nil)
+		if t.Kind() == Array && t.IsIncomplete() {
+			n.Declarator.typ = u
+		}
 		n.Declarator.write++
 	}
 }
@@ -1178,10 +1182,13 @@ func (n *Initializer) checkUnion(c *ctx, currObj Type, t *UnionType, exprT Type,
 }
 
 func (n *InitializerList) check(c *ctx, currObj, t Type, off int64) *InitializerList {
-	if n == nil || currObj == nil {
+	if n == nil || currObj == nil || t == nil {
 		c.errors.add(errorf("internal error: %T %T", n, currObj))
 		return nil
 	}
+
+	n.typ = t
+	t = n.Type()
 
 	// trc("%sLIST %v: curr %s, t %s, designation %p (%v:)", c.indentInc(), n.Position(), currObj, t, n.Designation, origin(2))
 	// defer func() { trc("%sEXIT LIST", c.indentDec()) }()
@@ -1346,6 +1353,16 @@ func (n *InitializerList) checkArray(c *ctx, currObj Type, t *ArrayType, off int
 func (n *InitializerList) checkStruct(c *ctx, currObj Type, t *StructType, off int64) *InitializerList {
 	// trc("%sSTRUCT %v: curr %s, t %s", c.indentInc(), n.Position(), currObj, t)
 	// defer func() { trc("%sEXIT STRUCT", c.indentDec()) }()
+	if t.HasFlexibleArrayMember() {
+		fam := t.flexibleArrayMember().Type()
+		if fam.IsIncomplete() {
+			defer func() {
+				if !fam.IsIncomplete() {
+					t.size += fam.Size()
+				}
+			}()
+		}
+	}
 	f := t.FieldByIndex(0)
 	for n != nil {
 		if n.Designation == nil {
@@ -2511,7 +2528,8 @@ func (n *StructDeclarationList) check(c *ctx, s *StructOrUnionSpecifier) {
 			bitFields[f.offsetBytes] = append(bitFields[f.offsetBytes], f)
 		default:
 			sz := f.Type().Size()
-			if f.Type().IsIncomplete() && f.Type().Kind() == Array { // Flexible array member
+			if f.Type().IsIncomplete() && f.Type().Kind() == Array && i == len(fields)-1 { // https://en.wikipedia.org/wiki/Flexible_array_member
+				f.isFlexibleArrayMember = true
 				sz = 0
 			}
 			if !isUnion {

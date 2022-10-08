@@ -254,6 +254,7 @@ type Type interface {
 	// > 0.
 	VectorSize() int64
 
+	clone() Type
 	setAttr(*Attributes) Type
 	setName(d *Declarator) Type
 	str(b *strings.Builder, useTag bool) *strings.Builder
@@ -266,14 +267,18 @@ func (n namer) Typedef() *Declarator { return n.d }
 
 type InvalidType struct{}
 
+func (n *InvalidType) clone() Type {
+	return n
+}
+
 // Pointer implements Type.
-func (n InvalidType) Pointer() Type { return Invalid }
+func (n *InvalidType) Pointer() Type { return Invalid }
 
 // setAttr implements Type.
-func (n InvalidType) setAttr(*Attributes) Type { return Invalid }
+func (n *InvalidType) setAttr(*Attributes) Type { return Invalid }
 
 // VectorSize implements Type.
-func (n InvalidType) VectorSize() int64 { return -1 }
+func (n *InvalidType) VectorSize() int64 { return -1 }
 
 // Attributes implements Type.
 func (n *InvalidType) Attributes() *Attributes { return nil }
@@ -326,6 +331,10 @@ type PredefinedType struct {
 
 func (c *ctx) newPredefinedType(kind Kind) *PredefinedType {
 	return &PredefinedType{c: c, kind: kind}
+}
+
+func (n *PredefinedType) clone() Type {
+	return n //TODO clone
 }
 
 // Pointer implements Type.
@@ -540,20 +549,24 @@ func (c *ctx) newFunctionType(result Type, fp []*ParameterDeclaration, isVariadi
 	return r
 }
 
-// Pointer implements Type.
-func (n *FunctionType) Pointer() Type {
-	if n.ptr == nil {
-		n.ptr = n.c.newPointerType(n)
-	}
-	return n.ptr
-}
-
 func (c *ctx) newFunctionType2(result Type, fp []*Parameter) (r *FunctionType) {
 	r = &FunctionType{c: c, result: newTyper(result), fp: fp, minArgs: len(fp), maxArgs: len(fp)}
 	if len(fp) == 0 {
 		r.maxArgs = -1
 	}
 	return r
+}
+
+func (n *FunctionType) clone() Type {
+	return n //TODO clone
+}
+
+// Pointer implements Type.
+func (n *FunctionType) Pointer() Type {
+	if n.ptr == nil {
+		n.ptr = n.c.newPointerType(n)
+	}
+	return n.ptr
 }
 
 // IsVariadic reports whether n is variadic.
@@ -705,6 +718,10 @@ func NewPointerType(elem Type) (r *PointerType) {
 	panic(todo(""))
 }
 
+func (n *PointerType) clone() Type {
+	return n //TODO clone
+}
+
 // Pointer implements Type.
 func (n *PointerType) Pointer() Type {
 	if n.ptr == nil {
@@ -843,9 +860,21 @@ type Field struct {
 	offsetBits int
 	index      int // index into .fields in structType
 
-	inOverlapGroup bool
-	isBitField     bool
+	inOverlapGroup        bool
+	isBitField            bool
+	isFlexibleArrayMember bool
 }
+
+func (n *Field) clone() *Field {
+	r := *n
+	r.typ.typ = n.typ.typ.clone()
+	return &r
+}
+
+// IsFlexibleArrayMember reports whether n is a flexible array member.
+//
+//	https://en.wikipedia.org/wiki/Flexible_array_member
+func (n *Field) IsFlexibleArrayMember() bool { return n.isFlexibleArrayMember }
 
 // IsBitfield reports whether n is a bit field.
 func (n *Field) IsBitfield() bool { return n.isBitField }
@@ -957,18 +986,27 @@ type structType struct {
 	isUnion       bool
 }
 
+func (n *structType) clone() *structType {
+	r := *n
+	r.fields = append([]*Field(nil), n.fields...)
+	for i, f := range r.fields {
+		r.fields[i] = f.clone()
+	}
+	return &r
+}
+
 func (n *structType) isIncomplete() bool {
 	if n.isIncomplete0 {
 		return true
 	}
 
-	for i, v := range n.fields {
-		if v.Type().IsIncomplete() {
-			if x, ok := v.Type().(*ArrayType); ok && x.IsVLA() {
-				continue
-			}
+	for _, f := range n.fields {
+		if f.IsFlexibleArrayMember() {
+			return false
+		}
 
-			if i == len(n.fields)-1 && v.Type().Kind() == Array { // Flexible array member.
+		if f.Type().IsIncomplete() {
+			if x, ok := f.Type().(*ArrayType); ok && x.IsVLA() {
 				continue
 			}
 
@@ -1091,6 +1129,37 @@ func (c *ctx) newStructType(scope *Scope, tag Token, fields []*Field, size int64
 	}
 
 	return r
+}
+
+func (n *StructType) clone() Type {
+	if n.forward != nil {
+		return n.forward.Type().clone()
+	}
+
+	r := *n
+	r.namer.d = nil
+	r.structType = *r.structType.clone()
+	return &r //TODO clone
+}
+
+// HasFlexibleArrayMember reports whether n has a flexible array member:
+//
+//	https://en.wikipedia.org/wiki/Flexible_array_member
+func (n *StructType) HasFlexibleArrayMember() bool {
+	if n.forward != nil {
+		return n.forward.Type().(*StructType).HasFlexibleArrayMember()
+	}
+
+	l := len(n.structType.fields)
+	return l != 0 && n.structType.fields[l-1].IsFlexibleArrayMember()
+}
+
+func (n *StructType) flexibleArrayMember() *Field {
+	if n.forward != nil {
+		return n.forward.Type().(*StructType).flexibleArrayMember()
+	}
+
+	return n.structType.fields[len(n.structType.fields)-1]
 }
 
 // Pointer implements Type.
@@ -1344,6 +1413,10 @@ func (c *ctx) newUnionType(scope *Scope, tag Token, fields []*Field, size int64,
 	}
 
 	return r
+}
+
+func (n *UnionType) clone() Type {
+	return n //TODO clone
 }
 
 // Pointer implements Type.
@@ -1601,6 +1674,11 @@ func (c *ctx) newArrayType(elem Type, elems int64, expr Expression) (r *ArrayTyp
 	return r
 }
 
+func (n *ArrayType) clone() Type {
+	r := *n
+	return &r //TODO clone
+}
+
 // Pointer implements Type.
 func (n *ArrayType) Pointer() Type {
 	if n.ptr == nil {
@@ -1749,6 +1827,10 @@ type EnumType struct {
 
 func (c *ctx) newEnumType(scope *Scope, tag Token, typ Type, enums []*Enumerator) *EnumType {
 	return &EnumType{c: c, tag: tag, typ: newTyper(typ), enums: enums, scope: scope}
+}
+
+func (n *EnumType) clone() Type {
+	return n //TODO clone
 }
 
 // Pointer implements Type.
