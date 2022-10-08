@@ -149,11 +149,20 @@ func newCtx(ast *AST) *ctx {
 	c.pvoidT = c.newPointerType(c.voidT)
 	c.implicitFunc = c.newPointerType(c.newFunctionType(c.intT, nil, false))
 
+	ast.Char = c.ast.kinds[Char]
 	ast.Double = c.ast.kinds[Double]
 	ast.Float = c.ast.kinds[Float]
+	ast.Int = c.intT
+	ast.Long = c.ast.kinds[Long]
 	ast.LongDouble = c.ast.kinds[LongDouble]
-	ast.Void = c.voidT
+	ast.LongLong = c.ast.kinds[LongLong]
 	ast.PVoid = c.pvoidT
+	ast.SChar = c.ast.kinds[SChar]
+	ast.UChar = c.ast.kinds[UChar]
+	ast.UInt = c.ast.kinds[UInt]
+	ast.ULong = c.ast.kinds[ULong]
+	ast.ULongLong = c.ast.kinds[ULongLong]
+	ast.Void = c.voidT
 	return c
 }
 
@@ -455,16 +464,25 @@ func (n resolver) ResolvedIn() *Scope { return n.resolved }
 
 type AST struct {
 	ABI                   *ABI
+	Char                  Type // Valid only after Translate
 	Double                Type // Valid only after Translate
 	EOF                   Token
 	Float                 Type // Valid only after Translate
+	Int                   Type // Valid only after Translate
+	Long                  Type // Valid only after Translate
 	LongDouble            Type // Valid only after Translate
+	LongLong              Type // Valid only after Translate
 	Macros                map[string]*Macro
+	PVoid                 Type   // Valid only after Translate
+	SChar                 Type   // Valid only after Translate
 	Scope                 *Scope // File scope.
 	SizeT                 Type   // Valid only after Translate
 	Declarations          []ExternalDeclaration
+	UChar                 Type // Valid only after Translate
+	UInt                  Type // Valid only after Translate
+	ULong                 Type // Valid only after Translate
+	ULongLong             Type // Valid only after Translate
 	Void                  Type // Valid only after Translate
-	PVoid                 Type // Valid only after Translate
 	kinds                 map[Kind]Type
 	predefinedDeclarator0 *Declarator // `int __predefined_declarator`
 }
