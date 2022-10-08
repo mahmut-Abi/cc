@@ -2334,12 +2334,16 @@ func (n *Initializer) Field() *Field { return n.field }
 //	        Designation Initializer
 //	|       InitializerList ',' Designation Initializer
 type InitializerList struct {
+	unionField *Field
 	typer
 	Designation     *Designation
 	Initializer     *Initializer
 	InitializerList *InitializerList
 	Token           Token
 }
+
+// UnionField reports the union field initilized by n.
+func (n *InitializerList) UnionField() *Field { return n.unionField }
 
 // String implements fmt.Stringer.
 func (n *InitializerList) String() string { return PrettyString(n) }
