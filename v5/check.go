@@ -2493,7 +2493,7 @@ func (n *StructDeclarationList) check(c *ctx, s *StructOrUnionSpecifier) {
 	// }
 
 	isUnion := s.StructOrUnion.Case == StructOrUnionUnion
-	var brk, unionBits int64
+	var brkBits, unionBits int64
 	maxAlignBytes := 1
 	bitFields := map[int64][]*Field{}
 	for i, f := range fields {
@@ -2512,20 +2512,20 @@ func (n *StructDeclarationList) check(c *ctx, s *StructOrUnionSpecifier) {
 			switch {
 			case isUnion:
 				f.mask = (uint64(1)<<f.valueBits - 1)
-				f.accessBytes = bits2AccessBytes(f.valueBits + brk&7)
+				f.accessBytes = bits2AccessBytes(f.valueBits + brkBits&7)
 				unionBits = mathutil.MaxInt64(unionBits, 8*f.accessBytes)
 			default:
-				brkOffBytes := brk >> 3
-				f.accessBytes = bits2AccessBytes(f.valueBits + brk&7)
-				if mod := brkOffBytes % f.accessBytes; mod != 0 {
-					brkOffBytes += f.accessBytes - mod
-					brk = brkOffBytes << 3
-					f.accessBytes = bits2AccessBytes(f.valueBits + brk&7)
+				brkBytes := brkBits >> 3
+				f.accessBytes = bits2AccessBytes(f.valueBits + brkBits&7)
+				if mod := brkBytes % f.accessBytes; mod != 0 {
+					f.accessBytes = bits2AccessBytes(f.valueBits)
+					brkBytes += f.accessBytes - mod
+					brkBits = brkBytes << 3
 				}
-				f.offsetBytes = brkOffBytes
-				f.offsetBits = int(brk - 8*f.offsetBytes)
+				f.offsetBytes = brkBytes
+				f.offsetBits = int(brkBits - 8*f.offsetBytes)
 				f.mask = (uint64(1)<<f.valueBits - 1) << f.offsetBits
-				brk += f.valueBits
+				brkBits += f.valueBits
 			}
 			bitFields[f.offsetBytes] = append(bitFields[f.offsetBytes], f)
 		default:
@@ -2535,38 +2535,23 @@ func (n *StructDeclarationList) check(c *ctx, s *StructOrUnionSpecifier) {
 				sz = 0
 			}
 			if !isUnion {
-				brk = roundup(brk, 8*int64(al))
+				brkBits = roundup(brkBits, 8*int64(al))
 			}
 			f.accessBytes = sz
-			f.offsetBytes = brk >> 3
+			f.offsetBytes = brkBits >> 3
 			f.valueBits = 8 * sz
 			switch {
 			case isUnion:
 				unionBits = mathutil.MaxInt64(unionBits, 8*sz)
 			default:
-				brk += 8 * sz
+				brkBits += 8 * sz
 			}
 		}
-	}
-	brk0 := roundup(brk, 8)
-	brk = roundup(brk, int64(maxAlignBytes*8))
-	switch {
-	case isUnion:
-		t := s.typ.(*UnionType)
-		t.align = maxAlignBytes
-		t.fields = fields
-		t.padding = int(brk-brk0) >> 3
-		t.size = roundup(unionBits>>3, int64(maxAlignBytes))
-	default:
-		t := s.typ.(*StructType)
-		t.align = maxAlignBytes
-		t.fields = fields
-		t.padding = int(brk-brk0) >> 3
-		t.size = brk >> 3
 	}
 
 	type bitFieldGroup struct {
 		off, size int64
+		overlaps  bool
 	}
 
 	var groups []bitFieldGroup
@@ -2578,11 +2563,11 @@ func (n *StructDeclarationList) check(c *ctx, s *StructOrUnionSpecifier) {
 		for _, f := range v {
 			f.groupSize = int(ab)
 		}
-		groups = append(groups, bitFieldGroup{k, ab})
+		groups = append(groups, bitFieldGroup{k, ab, false})
 	}
 	sort.Slice(groups, func(i, j int) bool { return groups[i].off < groups[j].off })
 	var g bitFieldGroup
-	for _, v := range groups {
+	for i, v := range groups {
 		if g.size == 0 || v.off >= g.off+g.size {
 			g = v
 			continue
@@ -2590,7 +2575,44 @@ func (n *StructDeclarationList) check(c *ctx, s *StructOrUnionSpecifier) {
 
 		for _, f := range bitFields[v.off] {
 			f.inOverlapGroup = true
+			groups[i].overlaps = true
 		}
+	}
+
+	// trc("====")
+	// for _, f := range fields {
+	// 	trc("%q: .accessBytes %d, .offsetBytes %d, .inOverlapGroup %v", f.Name(), f.accessBytes, f.offsetBytes, f.inOverlapGroup)
+	// }
+	// for _, g := range groups {
+	// 	trc("%#v", g)
+	// }
+	// trc("----")
+
+	brk0 := brkBits
+	if l := len(fields); l != 0 {
+		if f := fields[l-1]; f.isBitField {
+			for i := len(groups) - 1; ; i-- {
+				if g := groups[i]; !g.overlaps {
+					brk0 = roundup(brk0, g.size*8)
+					break
+				}
+			}
+		}
+		brkBits = roundup(brkBits, int64(maxAlignBytes*8))
+	}
+	switch {
+	case isUnion:
+		t := s.typ.(*UnionType)
+		t.align = maxAlignBytes
+		t.fields = fields
+		t.padding = int(brkBits-brk0) >> 3
+		t.size = roundup(unionBits>>3, int64(maxAlignBytes))
+	default:
+		t := s.typ.(*StructType)
+		t.align = maxAlignBytes
+		t.fields = fields
+		t.padding = int(brkBits-brk0) >> 3
+		t.size = brkBits >> 3
 	}
 }
 
