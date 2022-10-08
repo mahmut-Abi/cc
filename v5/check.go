@@ -2563,6 +2563,7 @@ func (n *StructDeclarationList) check(c *ctx, s *StructOrUnionSpecifier) {
 					brkBits = brkBytes << 3
 				}
 				f.offsetBytes = brkBytes
+				f.outerGroupOffsetBytes = f.offsetBytes
 				f.offsetBits = int(brkBits - 8*f.offsetBytes)
 				f.mask = (uint64(1)<<f.valueBits - 1) << f.offsetBits
 				brkBits += f.valueBits
@@ -2579,6 +2580,7 @@ func (n *StructDeclarationList) check(c *ctx, s *StructOrUnionSpecifier) {
 			}
 			f.accessBytes = sz
 			f.offsetBytes = brkBits >> 3
+			f.outerGroupOffsetBytes = f.offsetBytes
 			f.valueBits = 8 * sz
 			switch {
 			case isUnion:
@@ -2615,6 +2617,7 @@ func (n *StructDeclarationList) check(c *ctx, s *StructOrUnionSpecifier) {
 
 		for _, f := range bitFields[v.off] {
 			f.inOverlapGroup = true
+			f.outerGroupOffsetBytes = g.off
 			groups[i].overlaps = true
 		}
 	}
