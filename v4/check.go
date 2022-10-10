@@ -1061,6 +1061,10 @@ func (n *Initializer) check(c *ctx, currObj, t Type, off int64, l *InitializerLi
 		return nil
 	}
 
+	// trc("%sINITIALIZER (A) %v: t %s, off %v, l %p, f %p (n %q, l %q)", c.indentInc(), n.Position(), t, off, l, f, NodeSource(n), NodeSource(l))
+	// defer func() {
+	// 	trc("%sEXIT INITIALIZER (Z) %v: t %s, off %v, l %p, f %p (n %q, r -> %q)", c.indentDec(), n.Position(), t, off, l, f, NodeSource(n), NodeSource(r))
+	// }()
 	n.field = f
 	if l != nil {
 		r = l.InitializerList
@@ -1275,7 +1279,7 @@ func (n *Initializer) checkUnion(c *ctx, currObj Type, t *UnionType, exprT Type,
 	return l.check(c, currObj, t, off)
 }
 
-func (n *InitializerList) check(c *ctx, currObj, t Type, off int64) *InitializerList {
+func (n *InitializerList) check(c *ctx, currObj, t Type, off int64) (r *InitializerList) {
 	if n == nil || currObj == nil || t == nil {
 		c.errors.add(errorf("internal error: %T %T", n, currObj))
 		return nil
@@ -1284,8 +1288,10 @@ func (n *InitializerList) check(c *ctx, currObj, t Type, off int64) *Initializer
 	n.typ = t
 	t = n.Type()
 
-	// trc("%sLIST %v: curr %s, t %s, designation %p (%v:)", c.indentInc(), n.Position(), currObj, t, n.Designation, origin(2))
-	// defer func() { trc("%sEXIT LIST", c.indentDec()) }()
+	// trc("%sLIST %v: curr %s, t %s, designation %p (%q)", c.indentInc(), n.Position(), currObj, t, n.Designation, NodeSource(n))
+	// defer func() {
+	// 	trc("%sEXIT LIST %v: curr %s, t %s, designation %p (r -> %q)", c.indentDec(), n.Position(), currObj, t, n.Designation, NodeSource(r))
+	// }()
 	switch x := t.(type) {
 	case *ArrayType:
 		return n.checkArray(c, currObj, x, off)
@@ -1463,7 +1469,7 @@ func (n *InitializerList) checkStruct(c *ctx, currObj Type, t *StructType, off i
 	}
 	f := t.FieldByIndex(0)
 	for n != nil {
-		for f != nil && f.IsBitfield() && f.ValueBits() == 0 {
+		for f != nil && f.IsBitfield() && (f.ValueBits() == 0 || f.Name() == "") {
 			f = t.FieldByIndex(f.index + 1)
 		}
 		if n.Designation == nil {
@@ -1473,6 +1479,8 @@ func (n *InitializerList) checkStruct(c *ctx, currObj Type, t *StructType, off i
 
 			n = n.Initializer.check(c, currObj, f.Type(), off+f.Offset(), n, f)
 			f = t.FieldByIndex(f.index + 1)
+			if f != nil {
+			}
 			continue
 		}
 
@@ -1512,7 +1520,7 @@ func (n *InitializerList) checkUnion(c *ctx, currObj Type, t *UnionType, off int
 	// defer func() { trc("%sEXIT UNION", c.indentDec()) }()
 	f := t.FieldByIndex(0)
 	if n.Designation == nil {
-		for f != nil && f.IsBitfield() && f.ValueBits() == 0 {
+		for f != nil && f.IsBitfield() && (f.ValueBits() == 0 || f.Name() == "") {
 			f = t.FieldByIndex(f.index + 1)
 		}
 		if f == nil {
@@ -2438,10 +2446,11 @@ func (n *EnumSpecifier) check(c *ctx) (r Type) {
 			}
 		}
 		switch {
+		case min >= math.MinInt32 && max <= math.MaxInt32:
+			// [0]6.4.4.3/2: An identifier declared as an enumeration constant has type int.
+			t = c.intT
 		case min >= 0 && max <= math.MaxUint32:
 			t = c.ast.kinds[UInt]
-		case min >= math.MinInt32 && max <= math.MaxInt32:
-			t = c.intT
 		case max < math.MaxInt64:
 			t = c.ast.kinds[Long]
 			if t.Size() < 8 {
@@ -2592,132 +2601,91 @@ func (n *StructDeclarationList) check(c *ctx, s *StructOrUnionSpecifier) {
 		}
 	}()
 
+	// trc("==== (A) %v: %s", n.Position(), NodeSource(n))
+	// defer trc("==== (Z) %v: %s", n.Position(), NodeSource(n))
 	var fields []*Field
 	for l := n; l != nil; l = l.StructDeclarationList {
 		fields = append(fields, l.StructDeclaration.check(c)...)
 	}
-
-	isUnion := s.StructOrUnion.Case == StructOrUnionUnion
-	var brkBits, unionBits int64
-	maxAlignBytes := 1
-	bitFields := map[int64][]*Field{}
-	var prev *Field
-	//trc("==== (A)")
 	for i, f := range fields {
-		if f == nil {
-			c.errors.add(errorf("TODO %T", n))
-			return
-		}
-
-		ft := f.Type()
 		f.index = i
-		al := ft.Align()
-		if al > maxAlignBytes {
-			maxAlignBytes = al
-		}
-	again:
-		//trc("%q brkBits %v (a)", f.Name(), brkBits)
+	}
+	a := &fieldAllocator{align: 1, fields: fields, list: n}
+	switch x := s.typ.(type) {
+	case *StructType:
+		n.checkStruct(c, a, fields)
+		x.align = a.align
+		x.fields = fields
+		x.size = roundup(a.brkBytes, int64(a.align))
+		x.padding = int(x.size - a.brkBytes)
+	case *UnionType:
+		n.checkUnion(c, a, fields)
+		x.align = a.align
+		x.fields = fields
+		x.size = roundup(a.brkBytes, int64(a.align))
+		x.padding = int(x.size - a.brkBytes)
+	default:
+		c.errors.add(errorf("%v: internal error", n.Position()))
+		return
+	}
+
+	// trc("==== %v, align %v, size %v, padding %v", s.Type(), s.Type().Align(), s.Type().Size(), s.Type().(interface{ Padding() int }).Padding())
+	// for _, f := range fields {
+	// 	trc(
+	// 		"%q.%d&%p: IsBitfield %v, Offset %v, AccessBytes %v, OffsetBits %v, OuterGroupOffset %v, InOverlapGroup %v, Mask %#0x, ValueBits %v, GroupSize %v",
+	// 		f.Name(), f.Index(), f, f.IsBitfield(), f.Offset(), f.AccessBytes(), f.OffsetBits(), f.OuterGroupOffset(), f.InOverlapGroup(), f.Mask(), f.ValueBits(), f.GroupSize(),
+	// 	)
+	// }
+	// trc("----")
+}
+
+func (n *StructDeclarationList) checkUnion(c *ctx, a *fieldAllocator, s []*Field) {
+	defer a.close()
+
+	for _, f := range s {
+		t := f.Type()
 		switch {
-		case f.isBitField:
-			switch {
-			case isUnion:
-				f.mask = (uint64(1)<<f.valueBits - 1)
-				f.accessBytes = bits2AccessBytes(f.valueBits)
-				unionBits = mathutil.MaxInt64(unionBits, 8*f.accessBytes)
-			default:
-				brkBytes := brkBits >> 3
-				f.accessBytes = bits2AccessBytes(f.valueBits + brkBits&7)
-				if brkBytes%f.accessBytes != 0 {
-					//trc("brkBytes %v", brkBytes)
-					//trc("accessBytes %v", f.accessBytes)
-					f.accessBytes = bits2AccessBytes(f.valueBits)
-					brkBytes = roundup(brkBytes+1, f.accessBytes)
-					//trc("brkBytes %v", brkBytes)
-					//trc("accessBytes %v", f.accessBytes)
-					brkBits = brkBytes << 3
-					//trc("%q brkBits %v (b)", f.Name(), brkBits)
-				}
-				f.offsetBytes = brkBytes
-				f.outerGroupOffsetBytes = f.offsetBytes
-				f.offsetBits = int(brkBits - 8*f.offsetBytes)
-				f.mask = (uint64(1)<<f.valueBits - 1) << f.offsetBits
-				brkBits += f.valueBits
-				//trc("%q brkBits %v (c)", f.Name(), brkBits)
-			}
-			bitFields[f.offsetBytes] = append(bitFields[f.offsetBytes], f)
-			if int(f.accessBytes) > maxAlignBytes {
-				maxAlignBytes = int(f.accessBytes)
-			}
+		case f.IsBitfield():
+			f.mask = a.mask(int(f.ValueBits()))
+			f.accessBytes = bits2AccessBytes(f.ValueBits())
+			f.groupSize = int(f.accessBytes)
+			a.brkBytes = mathutil.MaxInt64(a.brkBytes, int64(f.groupSize))
 		default:
-			sz := ft.Size()
-			if (ft.IsIncomplete() || ft.Size() == 0) && ft.Kind() == Array && i == len(fields)-1 { // https://en.wikipedia.org/wiki/Flexible_array_member
-				f.isFlexibleArrayMember = true
-				sz = 0
-			}
-			if sz < 0 {
-				sz = 0
-			}
-			if !isUnion {
-				brkBits = roundup(brkBits, 8*int64(al))
-			}
-			f.accessBytes = sz
-			f.offsetBytes = brkBits >> 3
-			// ccgo support
-			if !isUnion && c.cfg.EmbeddedFieldsAreBitFields && prev != nil && prev.IsBitfield() && IsIntegerType(ft) {
-				for i := prev.Index(); i >= 0; i-- {
-					e := fields[i]
-					if !e.IsBitfield() {
-						break
-					}
-
-					et := e.Type()
-					if e.Offset()+et.Size() > f.Offset() {
-						f.isBitField = true
-						f.isPseudoBitField = true
-						f.valueBits = 8 * sz
-						goto again
-					}
-				}
-			}
-			f.outerGroupOffsetBytes = f.offsetBytes
-			switch {
-			case isUnion:
-				unionBits = mathutil.MaxInt64(unionBits, 8*sz)
-			default:
-				x := brkBits
-				brkBits += 8 * sz
-				if brkBits < x {
-					c.errors.add(errorf("%v: type too big: %q", n.Position(), f.Name()))
-					brkBits = x
-				}
-			}
-		}
-		//trc("%q brkBits %v (z)", f.Name(), brkBits)
-		prev = f
-	}
-	//trc("==== (Z)")
-
-	if isTesting {
-		for _, v := range fields {
-			if v.accessBytes < 0 ||
-				v.groupSize < 0 ||
-				v.index < 0 ||
-				v.offsetBits < 0 ||
-				v.offsetBytes < 0 ||
-				v.outerGroupOffsetBytes < 0 ||
-				v.valueBits < 0 {
-				panic(todo("%v: %q %v, internal error: %+v", n.Position(), v.Name(), v.Type(), v))
-			}
+			f.accessBytes = t.Size()
+			f.groupSize = int(t.Size())
+			a.brkBytes = mathutil.MaxInt64(a.brkBytes, t.Size())
 		}
 	}
+}
 
-	type bitFieldGroup struct {
+type fieldAllocator struct {
+	align     int
+	bits      int64
+	brkBits   int64
+	brkBytes  int64
+	fields    []*Field
+	group     []*Field
+	groupSize int64
+	list      *StructDeclarationList
+}
+
+func (a *fieldAllocator) close() {
+	a.closeGroup()
+	if len(a.fields) == 0 {
+		return
+	}
+
+	type group struct {
 		off, size int64
 		overlaps  bool
 	}
 
-	var groups []bitFieldGroup
-	for k, v := range bitFields {
+	fields := map[int64][]*Field{}
+	for _, f := range a.fields {
+		fields[f.offsetBytes] = append(fields[f.offsetBytes], f)
+	}
+	var groups []group
+	for k, v := range fields {
 		ab := int64(-1)
 		for _, f := range v {
 			ab = mathutil.MaxInt64(ab, f.AccessBytes())
@@ -2725,61 +2693,176 @@ func (n *StructDeclarationList) check(c *ctx, s *StructOrUnionSpecifier) {
 		for _, f := range v {
 			f.groupSize = int(ab)
 		}
-		groups = append(groups, bitFieldGroup{k, ab, false})
+		groups = append(groups, group{k, ab, false})
 	}
 	sort.Slice(groups, func(i, j int) bool { return groups[i].off < groups[j].off })
-	var g bitFieldGroup
+	var g group
 	for i, v := range groups {
+		// trc("g %+v, v %+v", g, v)
 		if g.size == 0 || v.off >= g.off+g.size {
 			g = v
+			// trc("cont g <- %+v", v)
 			continue
 		}
 
-		for _, f := range bitFields[v.off] {
-			f.inOverlapGroup = true
-			f.outerGroupOffsetBytes = g.off
+		for _, f := range fields[v.off] {
+			if f.IsBitfield() {
+				f.inOverlapGroup = true
+				f.outerGroupOffsetBytes = g.off
+			}
 			groups[i].overlaps = true
 		}
-	}
-
-	brk0 := brkBits
-	if l := len(fields); l != 0 {
-		if f := fields[l-1]; f.isBitField {
-			for i := len(groups) - 1; ; i-- {
-				if g := groups[i]; !g.overlaps {
-					brk0 = roundup(brk0, g.size*8)
-					break
-				}
-			}
+		gsz := v.off - g.off
+		for _, f := range fields[g.off] {
+			f.groupSize = mathutil.Min(f.groupSize, int(gsz))
 		}
-		brkBits = roundup(brkBits, int64(maxAlignBytes*8))
 	}
-	switch {
-	case isUnion:
-		t := s.typ.(*UnionType)
-		t.align = maxAlignBytes
-		t.fields = fields
-		t.padding = int(brkBits-brk0) >> 3
-		t.size = roundup(unionBits>>3, int64(maxAlignBytes))
-	default:
-		t := s.typ.(*StructType)
-		t.align = maxAlignBytes
-		t.fields = fields
-		t.padding = int(brkBits-brk0) >> 3
-		t.size = brkBits >> 3
+	for _, f := range a.fields {
+		a.align = mathutil.Max(a.align, f.Type().Align())
+	}
+}
+
+func (a *fieldAllocator) closeGroup() {
+	if len(a.group) == 0 {
+		return
 	}
 
-	// trc("==== %v, align %v, size %v", s.Type(), s.Type().Align(), s.Type().Size())
-	// for _, f := range fields {
-	// 	trc(
-	// 		"%q: IsBitfield %v, IsPseudoBitfield %v, Offset %v, AccessBytes %v, OffsetBits %v, OuterGroupOffset %v, InOverlapGroup %v), Mask %#0x, ValueBits %v, GroupSize %v",
-	// 		f.Name(), f.IsBitfield(), f.IsPseudoBitfield(), f.Offset(), f.AccessBytes(), f.OffsetBits(), f.OuterGroupOffset(), f.InOverlapGroup(), f.Mask(), f.ValueBits(), f.GroupSize(),
-	// 	)
-	// }
-	// for _, g := range groups {
-	// 	trc("%#v", g)
-	// }
-	// trc("----")
+	bits := roundup(a.bits, 8)
+	// trc("close group, a.groupSize %v, a.bits %v, bits %v", a.groupSize, a.bits, bits)
+	for a.groupSize*8 > bits {
+		a.groupSize /= 2
+		// trc("close group (C), a.groupSize %v", a.groupSize)
+	}
+	for a.groupSize*8 < bits {
+		if a.groupSize == 0 {
+			a.groupSize = 1
+			continue
+		}
+
+		a.groupSize *= 2
+		// trc("close group (B), a.groupSize %v", a.groupSize)
+	}
+	a.brkBytes = roundup(a.brkBytes, a.groupSize)
+	for _, f := range a.group {
+		f.accessBytes = a.groupSize
+		f.offsetBytes = a.brkBytes
+		f.groupSize = int(a.groupSize)
+		f.outerGroupOffsetBytes = a.brkBytes
+	}
+	a.brkBytes += a.groupSize
+	a.group = a.group[:0]
+	a.groupSize = 0
+	a.bits = 0
+	// trc("group closed, a.brkBytes %v", a.brkBytes)
+}
+
+func (a *fieldAllocator) mask(bits int) (r uint64) {
+	r = ^uint64(0)
+	if bits < 64 {
+		r >>= 64 - bits
+	}
+	return r
+}
+
+func (a *fieldAllocator) bitField(f *Field) {
+	t := f.Type()
+	groupSize := t.Size()
+	valueBits := f.ValueBits()
+	if valueBits == 0 {
+		f.inOverlapGroup = true
+		a.closeGroup()
+		return
+	}
+
+	// trc("---- ADD BITFIELD %q typ %v, a.groupSize %v, groupSize %v, a.bits %v, valueBits %v, a.brkBytes %v", f.Name(), t, a.groupSize, groupSize, a.bits, valueBits, a.brkBytes)
+
+	if len(a.group) != 0 {
+		if a.groupSize < groupSize {
+			if roundup(a.brkBytes, groupSize) != a.brkBytes {
+				// trc("%q: a.groupSize %v, groupSize %v, a.brkBytes %v, roundup %v", f.Name(), a.groupSize, groupSize, a.brkBytes, roundup(a.brkBytes, groupSize))
+				a.newGroup(f)
+				return
+			}
+
+			a.groupSize = groupSize
+		}
+
+		// a.groupSize >= groupSize:
+		// trc("a.groupSize %v, groupSize %v", a.groupSize, groupSize)
+		groupSize = a.groupSize
+		switch sum := a.bits + valueBits; {
+		case sum < 8*groupSize:
+			// trc("sum %v, 8*groupSize %v", sum, 8*groupSize)
+			f.offsetBits = int(a.bits)
+			f.mask = a.mask(int(valueBits)) << a.bits
+			a.bits += valueBits
+			a.group = append(a.group, f)
+			return
+		// case sum < 32:
+		// 	f.offsetBits = int(a.bits)
+		// 	f.mask = a.mask(int(valueBits)) << a.bits
+		// 	a.bits += valueBits
+		// 	a.group = append(a.group, f)
+		// 	return
+		case sum == 8*groupSize:
+			// trc("sum %v, 8*groupSize %v", sum, 8*groupSize)
+			f.mask = a.mask(int(valueBits)) << a.bits
+			f.offsetBits = int(a.bits)
+			a.bits += valueBits
+			a.group = append(a.group, f)
+			a.closeGroup()
+			return
+		default:
+			// trc("sum %v, 8*groupSize %v", sum, 8*groupSize)
+			a.closeGroup()
+		}
+	}
+
+	a.newGroup(f)
+}
+
+func (a *fieldAllocator) newGroup(f *Field) {
+	a.closeGroup()
+	t := f.Type()
+	groupSize := t.Size()
+	valueBits := f.ValueBits()
+	a.brkBytes = roundup(a.brkBytes, t.Size())
+	a.bits = valueBits
+	a.group = append(a.group[:0], f)
+	a.groupSize = groupSize
+	// trc("%q: newGroup a.bits %v, a.groupSize %v, a.brkBytes %v", f.Name(), a.bits, a.groupSize, a.brkBytes)
+	f.mask = a.mask(int(valueBits))
+}
+
+func (a *fieldAllocator) field(f *Field) {
+	a.closeGroup()
+	t := f.Type()
+	sz := t.Size()
+	if f.isFlexibleArrayMember {
+		sz = 0
+	}
+	a.brkBytes = roundup(a.brkBytes, int64(t.Align()))
+	f.accessBytes = sz
+	f.groupSize = int(t.Size())
+	f.offsetBytes = a.brkBytes
+	a.brkBytes += f.accessBytes
+}
+
+func (n *StructDeclarationList) checkStruct(c *ctx, a *fieldAllocator, s []*Field) {
+	defer a.close()
+
+	for i, f := range s {
+		if ft := f.Type(); (ft.IsIncomplete() || ft.Size() == 0) && ft.Kind() == Array && i == len(s)-1 { // https://en.wikipedia.org/wiki/Flexible_array_member
+			f.isFlexibleArrayMember = true
+		}
+
+		switch {
+		case f.IsBitfield():
+			a.bitField(f)
+		default:
+			a.field(f)
+		}
+	}
 }
 
 func (n *StructDeclaration) check(c *ctx) (r []*Field) {

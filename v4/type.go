@@ -880,7 +880,6 @@ type Field struct {
 
 	inOverlapGroup        bool
 	isBitField            bool
-	isPseudoBitField      bool
 	isFlexibleArrayMember bool
 }
 
@@ -897,10 +896,6 @@ func (n *Field) IsFlexibleArrayMember() bool { return n.isFlexibleArrayMember }
 
 // IsBitfield reports whether n is a bit field.
 func (n *Field) IsBitfield() bool { return n.isBitField }
-
-// IsPseudoBitfield reports whether n is a pseudo bit field due to setting
-// Config.EmbeddedFieldsAreBitFields.
-func (n *Field) IsPseudoBitfield() bool { return n.isPseudoBitField }
 
 // InOverlapGroup reports whether n, a bit field, is emdedded in a preceding
 // larger bit field group.
