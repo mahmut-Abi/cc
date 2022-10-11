@@ -352,6 +352,12 @@ func (n *PredefinedType) clone() Type {
 // BitField implements Type.
 func (n *PredefinedType) BitField() *Field { return n.bitField }
 
+func (n *PredefinedType) setBitField(f *Field) (r *PredefinedType) {
+	r = n.clone().(*PredefinedType)
+	r.bitField = f
+	return r
+}
+
 // Pointer implements Type.
 func (n *PredefinedType) Pointer() Type {
 	if n.ptr == nil {
@@ -1849,10 +1855,12 @@ func (n *ArrayType) str(b *strings.Builder, useTag bool) *strings.Builder {
 }
 
 type EnumType struct {
-	c       *ctx
 	attr    attributer
+	c       *ctx
 	enums   []*Enumerator
 	forward *EnumSpecifier
+	max     uint64
+	min     int64
 	namer
 	noBitField
 	ptr   Type
@@ -1870,6 +1878,24 @@ func (c *ctx) newEnumType(scope *Scope, tag Token, typ Type, enums []*Enumerator
 
 func (n *EnumType) clone() Type {
 	return n //TODO clone
+}
+
+// Min returns n's lowest enumeration constant.
+func (n *EnumType) Min() int64 {
+	if n.forward != nil {
+		return n.forward.Type().(*EnumType).Min()
+	}
+
+	return n.min
+}
+
+// Max returns n's highest enumeration constant.
+func (n *EnumType) Max() uint64 {
+	if n.forward != nil {
+		return n.forward.Type().(*EnumType).Max()
+	}
+
+	return n.max
 }
 
 // Pointer implements Type.
@@ -2109,6 +2135,28 @@ func IsSignedInteger(t Type) bool {
 //
 //   [0] 6.3.1.8 Usual arithmetic conversions
 func UsualArithmeticConversions(a, b Type) (r Type) {
+	defer func(a, b Type) {
+		x := a.BitField()
+		y := b.BitField()
+		switch {
+		case x != nil && y != nil:
+			if y.ValueBits() > x.ValueBits() {
+				x = y
+			}
+			if t, ok := r.(*PredefinedType); ok {
+				r = t.setBitField(x)
+			}
+		case x != nil:
+			if t, ok := r.(*PredefinedType); ok {
+				r = t.setBitField(x)
+			}
+		case y != nil:
+			if t, ok := r.(*PredefinedType); ok {
+				r = t.setBitField(y)
+			}
+		}
+	}(a, b)
+
 	if a.Kind() == Enum {
 		a = a.(*EnumType).UnderlyingType()
 	}

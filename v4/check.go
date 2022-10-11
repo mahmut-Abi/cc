@@ -2465,7 +2465,10 @@ func (n *EnumSpecifier) check(c *ctx) (r Type) {
 		for _, v := range list {
 			v.typ = t
 		}
-		n.typ = c.newEnumType(n.LexicalScope(), tag, t, list)
+		et := c.newEnumType(n.LexicalScope(), tag, t, list)
+		et.min = min
+		et.max = max
+		n.typ = et
 	case EnumSpecifierTag: // "enum" IDENTIFIER
 		if x := n.LexicalScope().enum(n.Token2); x != nil {
 			switch {
@@ -2691,6 +2694,10 @@ func (a *fieldAllocator) close() {
 			ab = mathutil.MaxInt64(ab, f.AccessBytes())
 		}
 		for _, f := range v {
+			if f.IsBitfield() && f.ValueBits() == 0 {
+				continue
+			}
+
 			f.groupSize = int(ab)
 		}
 		groups = append(groups, group{k, ab, false})
@@ -2718,6 +2725,10 @@ func (a *fieldAllocator) close() {
 		}
 	}
 	for _, f := range a.fields {
+		if f.IsBitfield() && f.ValueBits() == 0 {
+			continue
+		}
+
 		a.align = mathutil.Max(a.align, f.Type().Align())
 	}
 }
@@ -2733,23 +2744,19 @@ func (a *fieldAllocator) closeGroup() {
 		a.groupSize /= 2
 		// trc("close group (C), a.groupSize %v", a.groupSize)
 	}
-	for a.groupSize*8 < bits {
-		if a.groupSize == 0 {
-			a.groupSize = 1
-			continue
-		}
-
-		a.groupSize *= 2
+	groupSize := int64(1)
+	for groupSize*8 < bits {
+		groupSize *= 2
 		// trc("close group (B), a.groupSize %v", a.groupSize)
 	}
-	a.brkBytes = roundup(a.brkBytes, a.groupSize)
+	a.brkBytes = roundup(a.brkBytes, groupSize)
 	for _, f := range a.group {
-		f.accessBytes = a.groupSize
+		f.accessBytes = groupSize
 		f.offsetBytes = a.brkBytes
-		f.groupSize = int(a.groupSize)
+		f.groupSize = int(groupSize)
 		f.outerGroupOffsetBytes = a.brkBytes
 	}
-	a.brkBytes += a.groupSize
+	a.brkBytes += groupSize
 	a.group = a.group[:0]
 	a.groupSize = 0
 	a.bits = 0
@@ -2771,6 +2778,7 @@ func (a *fieldAllocator) bitField(f *Field) {
 	if valueBits == 0 {
 		f.inOverlapGroup = true
 		a.closeGroup()
+		a.brkBytes = roundup(a.brkBytes, f.Type().Size())
 		return
 	}
 
@@ -2798,12 +2806,6 @@ func (a *fieldAllocator) bitField(f *Field) {
 			a.bits += valueBits
 			a.group = append(a.group, f)
 			return
-		// case sum < 32:
-		// 	f.offsetBits = int(a.bits)
-		// 	f.mask = a.mask(int(valueBits)) << a.bits
-		// 	a.bits += valueBits
-		// 	a.group = append(a.group, f)
-		// 	return
 		case sum == 8*groupSize:
 			// trc("sum %v, 8*groupSize %v", sum, 8*groupSize)
 			f.mask = a.mask(int(valueBits)) << a.bits
@@ -3050,6 +3052,11 @@ func (n *AssignmentExpression) check(c *ctx, mode flags) (r Type) {
 		AssignmentExpressionOr:     // UnaryExpression "|=" AssignmentExpression
 
 		n.typ = n.UnaryExpression.check(c, mode)
+		if b := n.UnaryExpression.Type().BitField(); b != nil {
+			if t, ok := n.typ.(*PredefinedType); ok {
+				t.setBitField(b)
+			}
+		}
 		c.assignTo(n.UnaryExpression, n.Case == AssignmentExpressionAssign)
 		a := n.Type()
 		b := n.AssignmentExpression.check(c, mode)
@@ -3508,6 +3515,11 @@ func (n *ShiftExpression) check(c *ctx, mode flags) (r Type) {
 			c.errors.add(errorf("%v: operands shall be a scalars: %s and %s", n.Token.Position(), a, b))
 		default:
 			n.typ = IntegerPromotion(a)
+			if b := a.BitField(); b != nil {
+				if t, ok := n.typ.(*PredefinedType); ok {
+					n.typ = t.setBitField(b)
+				}
+			}
 		}
 	default:
 		c.errors.add(errorf("internal error: %v", n.Case))
