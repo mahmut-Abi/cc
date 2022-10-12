@@ -2724,8 +2724,8 @@ func (a *fieldAllocator) close() {
 			f.groupSize = mathutil.Min(f.groupSize, int(gsz))
 		}
 	}
-	for _, f := range a.fields {
-		if f.IsBitfield() && f.ValueBits() == 0 {
+	for i, f := range a.fields {
+		if f.IsBitfield() && f.ValueBits() == 0 && i != len(a.fields)-1 {
 			continue
 		}
 
