@@ -1171,7 +1171,7 @@ func (c *cpp) macro(t Token, nm string) *Macro {
 			r.Ch = rune(STRINGLITERAL)
 			r.s = t.s
 			r.off = t.off
-			s := fmt.Sprintf(`"%s"`, t.Position().Filename)
+			s := fmt.Sprintf("%q", t.Position().Filename)
 			r.Set(t.Sep(), []byte(s))
 			m.replacementList[0] = r
 		case "__LINE__":
@@ -1212,7 +1212,7 @@ func (c *cpp) macro(t Token, nm string) *Macro {
 	case "__FILE__":
 		nmt := t
 		t.Ch = rune(STRINGLITERAL)
-		t.Set(t.Sep(), []byte(fmt.Sprintf(`"%s"`, t.Position().Filename)))
+		t.Set(t.Sep(), []byte(fmt.Sprintf("%q", t.Position().Filename)))
 		m, err := newMacro(nmt, nil, []cppToken{{Token: t}}, 0, -1, false)
 		m.IsConst = false
 		m.val = nil
