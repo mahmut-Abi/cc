@@ -29,6 +29,7 @@ var (
 		{"linux", "riscv64"}: false,
 		{"linux", "s390x"}:   false,
 		{"netbsd", "arm"}:    false,
+		{"openbsd", "arm64"}: false,
 
 		{"darwin", "amd64"}:  true,
 		{"darwin", "arm64"}:  true,
@@ -40,7 +41,6 @@ var (
 		{"netbsd", "amd64"}:  true,
 		{"openbsd", "386"}:   true,
 		{"openbsd", "amd64"}: true,
-		{"openbsd", "arm64"}: true,
 		{"windows", "386"}:   true,
 		{"windows", "amd64"}: true,
 		{"windows", "arm64"}: true,
