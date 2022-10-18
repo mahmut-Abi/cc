@@ -65,6 +65,7 @@ type ctx struct {
 	switchCases int
 
 	checkingSizeof bool
+	usesVectors    bool
 }
 
 func newCtx(ast *AST, cfg *Config) *ctx {
@@ -636,10 +637,31 @@ func (n *AsmQualifier) check(c *ctx) {
 //  FunctionDefinition:
 //          DeclarationSpecifiers Declarator DeclarationList CompoundStatement
 func (n *FunctionDefinition) check(c *ctx) {
-	c.checkFunctionDefinition(n.scope, n.DeclarationSpecifiers, n.Declarator, n.DeclarationList, n.CompoundStatement)
+	t := c.checkFunctionDefinition(n.scope, n.DeclarationSpecifiers, n.Declarator, n.DeclarationList, n.CompoundStatement)
+	if ft, ok := t.(*FunctionType); ok {
+		if c.usesVectors {
+			n.usesVectors = true
+			return
+		}
+
+		if isVectorType(ft.Result()) {
+			n.usesVectors = true
+			return
+		}
+
+		for _, v := range ft.Parameters() {
+			if isVectorType(v.Type()) {
+				n.usesVectors = true
+				return
+			}
+		}
+	}
 }
 
-func (c *ctx) checkFunctionDefinition(sc *Scope, ds *DeclarationSpecifiers, d *Declarator, dl *DeclarationList, cs *CompoundStatement) {
+func (c *ctx) checkFunctionDefinition(sc *Scope, ds *DeclarationSpecifiers, d *Declarator, dl *DeclarationList, cs *CompoundStatement) Type {
+	defer func(f bool) { c.usesVectors = f }(c.usesVectors)
+
+	c.usesVectors = false
 	d.check(c, ds.check(c, &d.isExtern, &d.isStatic, &d.isAtomic, &d.isThreadLocal, &d.isConst, &d.isVolatile, &d.isInline, &d.isRegister, &d.isAuto, &d.isNoreturn, &d.isRestrict, &d.alignas))
 	if x, ok := d.Type().(*FunctionType); ok {
 		x.hasImplicitResult = true
@@ -680,6 +702,7 @@ func (c *ctx) checkFunctionDefinition(sc *Scope, ds *DeclarationSpecifiers, d *D
 	sc0, c.fnScope = c.fnScope, sc
 	defer func() { c.fnScope = sc0 }()
 	cs.check(c)
+	return d.Type()
 }
 
 //  DeclarationList:
@@ -2189,6 +2212,7 @@ func (n *AttributeValue) check(c *ctx, attr *Attributes) {
 			}
 
 			attr.setVectorSize(v)
+			c.usesVectors = true
 		}
 	default:
 		c.errors.add(errorf("internal error: %v", n.Case))

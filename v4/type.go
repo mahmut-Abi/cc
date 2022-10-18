@@ -539,6 +539,7 @@ type FunctionType struct {
 
 	hasImplicitResult bool
 	isVariadic        bool
+	usesVectors       bool
 }
 
 func (c *ctx) newFunctionType(result Type, fp []*ParameterDeclaration, isVariadic bool) (r *FunctionType) {
@@ -590,6 +591,9 @@ func (n *FunctionType) Pointer() Type {
 	}
 	return n.ptr
 }
+
+// UsesVectors reports whether n uses any vector tyoe.
+func (n *FunctionType) UsesVectors() bool { return n.usesVectors }
 
 // IsVariadic reports whether n is variadic.
 func (n *FunctionType) IsVariadic() bool { return n.isVariadic }

@@ -958,6 +958,7 @@ package cc // import "modernc.org/cc/v4"
 
 			/* [0], 6.9.1 Function definitions */
 			/*yy:field	scope	*Scope	*/
+			/*yy:field	usesVectors	bool	*/
 			/*yy:example int f() {} */
 			FunctionDefinition:
 				DeclarationSpecifiers Declarator DeclarationList CompoundStatement

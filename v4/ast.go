@@ -2324,6 +2324,7 @@ func (n *ExternalDeclaration) Position() (r token.Position) {
 //	        DeclarationSpecifiers Declarator DeclarationList CompoundStatement
 type FunctionDefinition struct {
 	scope                 *Scope
+	usesVectors           bool
 	CompoundStatement     *CompoundStatement
 	DeclarationList       *DeclarationList
 	DeclarationSpecifiers *DeclarationSpecifiers

@@ -247,3 +247,6 @@ func (n *CompoundStatement) Gotos() []*JumpStatement { return n.gotos }
 // Label returns the labeled statement or a label declaration n, case
 // JumpStatementGoto, refers to.
 func (n *JumpStatement) Label() Node { return n.label }
+
+// UsesVectors reports whether n uses any vector type.
+func (n *FunctionDefinition) UsesVectors() bool { return n.usesVectors }
