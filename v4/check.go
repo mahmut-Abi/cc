@@ -167,7 +167,7 @@ func newCtx(ast *AST, cfg *Config) *ctx {
 	return c
 }
 
-func (c *ctx) indent() string        { return strings.Repeat("\t·", c.indentN+1) }
+func (c *ctx) indent() string        { return strings.Repeat("·   ", c.indentN+1) }
 func (c *ctx) indentDec() string     { c.indentN--; return c.indent() }
 func (c *ctx) indentInc() (r string) { r = c.indent(); c.indentN++; return r }
 
@@ -1084,7 +1084,11 @@ func (n *Initializer) check(c *ctx, currObj, t Type, off int64, l *InitializerLi
 		return nil
 	}
 
-	// trc("%sINITIALIZER (A) %v: t %s, off %v, l %p, f %p (n %q, l %q)", c.indentInc(), n.Position(), t, off, l, f, NodeSource(n), NodeSource(l))
+	// fs := ""
+	// if f != nil {
+	// 	fs = fmt.Sprintf(" (FIELD %q: type %v, off %v '%s')", f.Name(), f.Type(), f.Offset(), NodeSource(n.AssignmentExpression))
+	// }
+	// trc("%sINITIALIZER (A) %v: t %s, off %v, l %p, f %s (n %q, l %q)", c.indentInc(), n.Position(), t, off, l, fs, NodeSource(n), NodeSource(l))
 	// defer func() {
 	// 	trc("%sEXIT INITIALIZER (Z) %v: t %s, off %v, l %p, f %p (n %q, r -> %q)", c.indentDec(), n.Position(), t, off, l, f, NodeSource(n), NodeSource(r))
 	// }()
@@ -1103,8 +1107,8 @@ func (n *Initializer) check(c *ctx, currObj, t Type, off int64, l *InitializerLi
 		return r
 	}
 
-	// trc("%sINIT %v Case %v, nt %s, curr %s, t %s, list %p (%v:)", c.indentInc(), n.Position(), n.Case, n.Type(), currObj, t, l, origin(2))
-	// defer func() { trc("%sEXIT INIT", c.indentDec()) }()
+	// trc("%sINIT (a) %v noff %v, Case %v, nt %s, curr %s, t %s, list %p (%v:)", c.indentInc(), n.Position(), n.Offset(), n.Case, n.Type(), currObj, t, l, origin(2))
+	// defer func() { trc("%sEXIT INIT (z)", c.indentDec()) }()
 	switch n.Case {
 	case InitializerExpr: // AssignmentExpression
 		exprT := n.AssignmentExpression.check(c, decay)
@@ -1311,9 +1315,9 @@ func (n *InitializerList) check(c *ctx, currObj, t Type, off int64) (r *Initiali
 	n.typ = t
 	t = n.Type()
 
-	// trc("%sLIST %v: curr %s, t %s, designation %p (%q)", c.indentInc(), n.Position(), currObj, t, n.Designation, NodeSource(n))
+	// trc("%sLIST (A) %v: curr %s, t %s, designation %p (%q)", c.indentInc(), n.Position(), currObj, t, n.Designation, NodeSource(n))
 	// defer func() {
-	// 	trc("%sEXIT LIST %v: curr %s, t %s, designation %p (r -> %q)", c.indentDec(), n.Position(), currObj, t, n.Designation, NodeSource(r))
+	// 	trc("%sEXIT LIST (Z) %v: curr %s, t %s, designation %p (r -> %q)", c.indentDec(), n.Position(), currObj, t, n.Designation, NodeSource(r))
 	// }()
 	switch x := t.(type) {
 	case *ArrayType:
@@ -1539,8 +1543,8 @@ func (n *InitializerList) checkStruct(c *ctx, currObj Type, t *StructType, off i
 }
 
 func (n *InitializerList) checkUnion(c *ctx, currObj Type, t *UnionType, off int64) *InitializerList {
-	// trc("%sUNION %v: curr %s, t %s", c.indentInc(), n.Position(), currObj, t)
-	// defer func() { trc("%sEXIT UNION", c.indentDec()) }()
+	// trc("%sUNION (A) %v: curr %s, t %s", c.indentInc(), n.Position(), currObj, t)
+	// defer func() { trc("%sEXIT UNION (Z)", c.indentDec()) }()
 	f := t.FieldByIndex(0)
 	if n.Designation == nil {
 		for f != nil && f.IsBitfield() && (f.ValueBits() == 0 || f.Name() == "") {
@@ -1575,6 +1579,7 @@ func (n *InitializerList) checkUnion(c *ctx, currObj Type, t *UnionType, off int
 
 	if p := f.Parent(); p != nil {
 		f = p
+		n = n0
 	}
 
 	n0.unionField = f

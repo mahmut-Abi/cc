@@ -886,6 +886,7 @@ type Field struct {
 	// be zero even for a bit field, for example, the first bit field after a non
 	// bit field will have offsetBits zero.
 	offsetBits int
+	seq        int
 	index      int // index into .fields in structType
 
 	inOverlapGroup        bool
@@ -1097,59 +1098,62 @@ func (n *structType) fieldByIndex(i int) *Field {
 }
 
 func (n *structType) fieldByName(nm string) *Field {
+	var a []string
+	for _, v := range n.fields {
+		a = append(a, fmt.Sprintf("%q: %v", v.Name(), v.Type()))
+	}
 	if f := n.m[nm]; f != nil {
 		return f
 	}
 
 	if n.m == nil {
 		m := map[string][]*Field{}
-		n.collectFields(m, nil, 0, 0)
+		n.collectFields(m, nil, 0, 0, 0)
 		n.m = map[string]*Field{}
 		for k, v := range m {
-			sort.Slice(v, func(i, j int) bool { return v[i].depth < v[j].depth })
-			switch {
-			case len(v) != 1:
-				if v[0].depth < v[1].depth {
-					n.m[k] = v[0]
-					break
+			sort.Slice(v, func(i, j int) bool {
+				if v[i].depth < v[j].depth {
+					return true
 				}
 
-				if n.isUnion && v[0].depth == v[1].depth {
-					p0 := v[0].path()
-					p1 := v[1].path()
-					if p0[0] == 0 && p1[0] != 0 {
-						n.m[k] = v[0]
-					}
+				if v[i].depth > v[j].depth {
+					return false
 				}
-			default:
-				n.m[k] = v[0]
-			}
+
+				return v[i].seq < v[j].seq
+			})
+			n.m[k] = v[0]
 		}
 	}
 	return n.m[nm]
 }
 
-func (n *structType) collectFields(m map[string][]*Field, parent *Field, depth int, off int64) {
+func (n *structType) collectFields(m map[string][]*Field, parent *Field, depth int, off int64, seq int) int {
 	for _, f := range n.fields {
-		if nm := f.Name(); nm != "" {
-			switch {
-			case depth != 0:
-				f2 := *f
-				f2.offsetBytes += off
-				f2.depth = depth
-				f2.parent = parent
-				m[nm] = append(m[nm], &f2)
-			default:
-				m[nm] = append(m[nm], f)
-			}
+		f.seq = seq
+		seq++
+		nm := f.Name()
+		if nm == "" {
+			nm = fmt.Sprintf("%d", f.Index())
+		}
+		switch {
+		case depth != 0:
+			f2 := *f
+			f2.offsetBytes += off
+			f2.depth = depth
+			f2.parent = parent
+			m[nm] = append(m[nm], &f2)
+		default:
+			m[nm] = append(m[nm], f)
 		}
 		switch f.Type().Kind() {
 		case Struct:
-			f.Type().(*StructType).collectFields(m, f, depth+1, f.offsetBytes)
+			seq = f.Type().(*StructType).collectFields(m, f, depth+1, off+f.offsetBytes, seq)
 		case Union:
-			f.Type().(*UnionType).collectFields(m, f, depth+1, f.offsetBytes)
+			seq = f.Type().(*UnionType).collectFields(m, f, depth+1, off+f.offsetBytes, seq)
 		}
 	}
+	return seq
 }
 
 type StructType struct {
