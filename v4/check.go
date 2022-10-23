@@ -2618,10 +2618,6 @@ func (n *StructOrUnionSpecifier) check(c *ctx) (r Type) {
 //          StructDeclaration
 //  |       StructDeclarationList StructDeclaration
 func (n *StructDeclarationList) check(c *ctx, s *StructOrUnionSpecifier) {
-	if n == nil {
-		return
-	}
-
 	defer func() {
 		if s.typ == nil || s.typ == Invalid {
 			c.errors.add(errorf("TODO %T missed/failed type check", n))
@@ -2640,12 +2636,24 @@ func (n *StructDeclarationList) check(c *ctx, s *StructOrUnionSpecifier) {
 	a := &fieldAllocator{align: 1, fields: fields, list: n}
 	switch x := s.typ.(type) {
 	case *StructType:
+		if len(fields) == 0 {
+			x.align = 1
+			x.size = 0
+			break
+		}
+
 		n.checkStruct(c, a, fields)
 		x.align = a.align
 		x.fields = fields
 		x.size = roundup(a.brkBytes, int64(a.align))
 		x.padding = int(x.size - a.brkBytes)
 	case *UnionType:
+		if len(fields) == 0 {
+			x.align = 1
+			x.size = 0
+			break
+		}
+
 		n.checkUnion(c, a, fields)
 		x.align = a.align
 		x.fields = fields
@@ -2671,6 +2679,10 @@ func (n *StructDeclarationList) checkUnion(c *ctx, a *fieldAllocator, s []*Field
 
 	for _, f := range s {
 		t := f.Type()
+		if isEmpty(t) {
+			continue
+		}
+
 		switch {
 		case f.IsBitfield():
 			f.mask = a.mask(int(f.ValueBits()))
@@ -2722,7 +2734,9 @@ func (a *fieldAllocator) close() {
 				continue
 			}
 
-			f.groupSize = int(ab)
+			if !isEmpty(f.Type()) {
+				f.groupSize = int(ab)
+			}
 		}
 		groups = append(groups, group{k, ab, false})
 	}
@@ -2864,12 +2878,12 @@ func (a *fieldAllocator) field(f *Field) {
 	a.closeGroup()
 	t := f.Type()
 	sz := t.Size()
-	if f.isFlexibleArrayMember {
+	if f.isFlexibleArrayMember || isEmpty(t) {
 		sz = 0
 	}
 	a.brkBytes = roundup(a.brkBytes, int64(t.Align()))
 	f.accessBytes = sz
-	f.groupSize = int(t.Size())
+	f.groupSize = int(sz)
 	f.offsetBytes = a.brkBytes
 	a.brkBytes += f.accessBytes
 }
@@ -2878,7 +2892,8 @@ func (n *StructDeclarationList) checkStruct(c *ctx, a *fieldAllocator, s []*Fiel
 	defer a.close()
 
 	for i, f := range s {
-		if ft := f.Type(); (ft.IsIncomplete() || ft.Size() == 0) && ft.Kind() == Array && i == len(s)-1 { // https://en.wikipedia.org/wiki/Flexible_array_member
+		ft := f.Type()
+		if ft = f.Type(); (ft.IsIncomplete() || ft.Size() == 0) && ft.Kind() == Array && i == len(s)-1 { // https://en.wikipedia.org/wiki/Flexible_array_member
 			f.isFlexibleArrayMember = true
 		}
 

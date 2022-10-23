@@ -2493,3 +2493,14 @@ type attributer struct{ p *Attributes }
 
 // Attributes implemets Type.
 func (n attributer) Attributes() *Attributes { return n.p }
+
+func isEmpty(t Type) bool {
+	switch x := t.(type) {
+	case *StructType:
+		return x.NumFields() == 0
+	case *UnionType:
+		return x.NumFields() == 0
+	}
+
+	return false
+}
