@@ -796,6 +796,7 @@ package cc // import "modernc.org/cc/v4"
 			/*yy:field	field	*Field	*/
 			/*yy:field	nelems	int64	*/
 			/*yy:field	off	int64	*/
+			/*yy:field	order	int64	*/
 			/*yy:field	parent	*Initializer	*/
 			/*yy:field	typer	*/
 			/*yy:field	valuer	*/

@@ -212,10 +212,20 @@ func (n *Initializer) Offset() int64 { return n.off }
 
 // Len returns the number of array elements initialized. It's normally one, but
 // can be more using the [lo ... hi] designator.
-func (n *Initializer) Len() int64 { return n.nelems }
+func (n *Initializer) Len() int64 {
+	if n.nelems == 0 {
+		return 1
+	}
+
+	return n.nelems
+}
 
 // Field returns the field associated with n, if any.
 func (n *Initializer) Field() *Field { return n.field }
+
+// Order returns a number that can be used to order initializers in their order
+// of appearance in the preprocessed source.
+func (n *Initializer) Order() int64 { return n.order }
 
 // UnionField reports the union field initilized by n.
 func (n *InitializerList) UnionField() *Field { return n.unionField }

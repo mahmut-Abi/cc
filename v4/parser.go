@@ -112,6 +112,7 @@ type parser struct {
 	funcTokens []Token
 	gotos      []*JumpStatement
 	keywords   map[string]rune
+	orderN     int64
 	prevNL     Token
 	scope      *Scope
 	switchCtx  *SelectionStatement
@@ -148,6 +149,8 @@ func newParser(cfg *Config, fset *fset, sources []Source) (*parser, error) {
 		keywords:   cfg.keywords,
 	}, nil
 }
+
+func (p *parser) order() int64 { p.orderN++; return p.orderN }
 
 func (p *parser) newScope() { p.scope = newScope(p.scope) }
 
@@ -1325,7 +1328,7 @@ func (p *parser) initializer(parent *Initializer) (r *Initializer) {
 		p.cpp.eh("%v: unexpected EOF", p.toks[0].Position())
 		return nil
 	case '{':
-		r = &Initializer{Case: InitializerInitList, Token: p.shift(false), parent: parent}
+		r = &Initializer{Case: InitializerInitList, Token: p.shift(false), parent: parent, order: p.order()}
 		r.InitializerList = p.initializerList(r)
 		if p.rune(false) == ',' {
 			r.Token2 = p.shift(false)
@@ -1334,7 +1337,7 @@ func (p *parser) initializer(parent *Initializer) (r *Initializer) {
 		r.Token3 = p.must('}')
 		return r
 	default:
-		return &Initializer{Case: InitializerExpr, AssignmentExpression: p.assignmentExpression(true), parent: parent}
+		return &Initializer{Case: InitializerExpr, AssignmentExpression: p.assignmentExpression(true), parent: parent, order: p.order()}
 	}
 }
 

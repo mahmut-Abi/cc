@@ -2747,6 +2747,7 @@ type Initializer struct {
 	field  *Field
 	nelems int64
 	off    int64
+	order  int64
 	parent *Initializer
 	typer
 	valuer
