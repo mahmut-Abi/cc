@@ -5473,131 +5473,127 @@ func ExampleTypeSpecName_float64x() {
 	// }
 }
 
-func ExampleUnaryExpression_inc() {
+func ExamplePrefixExpr_inc() {
 	fmt.Println(exampleAST(27, "int i = ++x;"))
 	// Output:
-	// &cc.UnaryExpression{
-	// · Case: UnaryExpressionInc,
+	// &cc.PrefixExpr{
 	// · Token: example.c:1:9: '++' "++",
-	// · Expression3: &cc.PrimaryExpression{
+	// · Expr: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:11: identifier "x",
 	// · },
 	// }
 }
 
-func ExampleUnaryExpression_dec() {
+func ExamplePrefixExpr_dec() {
 	fmt.Println(exampleAST(28, "int i = --x;"))
 	// Output:
-	// &cc.UnaryExpression{
-	// · Case: UnaryExpressionDec,
+	// &cc.PrefixExpr{
 	// · Token: example.c:1:9: '--' "--",
-	// · Expression3: &cc.PrimaryExpression{
+	// · Expr: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:11: identifier "x",
 	// · },
+	// · Dec: true,
 	// }
 }
 
-func ExampleUnaryExpression_addrof() {
+func ExampleUnaryExpr_addrof() {
 	fmt.Println(exampleAST(29, "int *i = &x;"))
 	// Output:
-	// &cc.UnaryExpression{
+	// &cc.UnaryExpr{
 	// · Case: UnaryExpressionAddrof,
-	// · Expression: &cc.PrimaryExpression{
+	// · Token: example.c:1:10: '&' "&",
+	// · Expr: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:11: identifier "x",
 	// · },
-	// · Token: example.c:1:10: '&' "&",
 	// }
 }
 
-func ExampleUnaryExpression_deref() {
+func ExampleUnaryExpr_deref() {
 	fmt.Println(exampleAST(30, "int i = *x;"))
 	// Output:
-	// &cc.UnaryExpression{
+	// &cc.UnaryExpr{
 	// · Case: UnaryExpressionDeref,
-	// · Expression: &cc.PrimaryExpression{
+	// · Token: example.c:1:9: '*' "*",
+	// · Expr: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:10: identifier "x",
 	// · },
-	// · Token: example.c:1:9: '*' "*",
 	// }
 }
 
-func ExampleUnaryExpression_plus() {
+func ExampleUnaryExpr_plus() {
 	fmt.Println(exampleAST(31, "int i = +x;"))
 	// Output:
-	// &cc.UnaryExpression{
+	// &cc.UnaryExpr{
 	// · Case: UnaryExpressionPlus,
-	// · Expression: &cc.PrimaryExpression{
+	// · Token: example.c:1:9: '+' "+",
+	// · Expr: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:10: identifier "x",
 	// · },
-	// · Token: example.c:1:9: '+' "+",
 	// }
 }
 
-func ExampleUnaryExpression_minus() {
+func ExampleUnaryExpr_minus() {
 	fmt.Println(exampleAST(32, "int i = -x;"))
 	// Output:
-	// &cc.UnaryExpression{
+	// &cc.UnaryExpr{
 	// · Case: UnaryExpressionMinus,
-	// · Expression: &cc.PrimaryExpression{
+	// · Token: example.c:1:9: '-' "-",
+	// · Expr: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:10: identifier "x",
 	// · },
-	// · Token: example.c:1:9: '-' "-",
 	// }
 }
 
-func ExampleUnaryExpression_cpl() {
+func ExampleUnaryExpr_cpl() {
 	fmt.Println(exampleAST(33, "int i = ~x;"))
 	// Output:
-	// &cc.UnaryExpression{
+	// &cc.UnaryExpr{
 	// · Case: UnaryExpressionCpl,
-	// · Expression: &cc.PrimaryExpression{
+	// · Token: example.c:1:9: '~' "~",
+	// · Expr: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:10: identifier "x",
 	// · },
-	// · Token: example.c:1:9: '~' "~",
 	// }
 }
 
-func ExampleUnaryExpression_not() {
+func ExampleUnaryExpr_not() {
 	fmt.Println(exampleAST(34, "int i = !x;"))
 	// Output:
-	// &cc.UnaryExpression{
+	// &cc.UnaryExpr{
 	// · Case: UnaryExpressionNot,
-	// · Expression: &cc.PrimaryExpression{
+	// · Token: example.c:1:9: '!' "!",
+	// · Expr: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:10: identifier "x",
 	// · },
-	// · Token: example.c:1:9: '!' "!",
 	// }
 }
 
-func ExampleUnaryExpression_sizeofExpr() {
+func ExampleSizeOfExpr_sizeofExpr() {
 	fmt.Println(exampleAST(35, "int i = sizeof x;"))
 	// Output:
-	// &cc.UnaryExpression{
-	// · Case: UnaryExpressionSizeofExpr,
+	// &cc.SizeOfExpr{
 	// · Token: example.c:1:9: 'sizeof' "sizeof",
-	// · Expression3: &cc.PrimaryExpression{
+	// · Expr: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:16: identifier "x",
 	// · },
 	// }
 }
 
-func ExampleUnaryExpression_sizeofType() {
+func ExampleSizeOfTypeExpr_sizeofType() {
 	fmt.Println(exampleAST(36, "int i = sizeof(int);"))
 	// Output:
-	// &cc.UnaryExpression{
-	// · Case: UnaryExpressionSizeofType,
+	// &cc.SizeOfTypeExpr{
 	// · Token: example.c:1:9: 'sizeof' "sizeof",
-	// · Token2: example.c:1:15: '(' "(",
-	// · Token3: example.c:1:19: ')' ")",
+	// · LeftParen: example.c:1:15: '(' "(",
 	// · TypeName: &cc.TypeName{
 	// · · SpecifierQualifiers: []*cc.TypeSpecName{ // len 1
 	// · · · 0: &cc.TypeSpecName{
@@ -5606,26 +5602,25 @@ func ExampleUnaryExpression_sizeofType() {
 	// · · · },
 	// · · },
 	// · },
+	// · RightParen: example.c:1:19: ')' ")",
 	// }
 }
 
-func ExampleUnaryExpression_labelAddr() {
+func ExampleLabelAddrExpr_labelAddr() {
 	fmt.Println(exampleAST(37, "int f() { L: &&L; }"))
 	// Output:
-	// &cc.UnaryExpression{
-	// · Case: UnaryExpressionLabelAddr,
+	// &cc.LabelAddrExpr{
 	// · Token: example.c:1:14: '&&' "&&",
-	// · Token2: example.c:1:16: identifier "L",
+	// · Label: example.c:1:16: identifier "L",
 	// }
 }
 
-func ExampleUnaryExpression_alignofExpr() {
+func ExampleAlignOfExpr_alignofExpr() {
 	fmt.Println(exampleAST(38, "int i = _Alignof(x);"))
 	// Output:
-	// &cc.UnaryExpression{
-	// · Case: UnaryExpressionAlignofExpr,
+	// &cc.AlignOfExpr{
 	// · Token: example.c:1:9: '_Alignof' "_Alignof",
-	// · Expression3: &cc.PrimaryExpression{
+	// · Expr: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionExpr,
 	// · · ExpressionList: &cc.PrimaryExpression{
 	// · · · Case: PrimaryExpressionIdent,
@@ -5637,14 +5632,12 @@ func ExampleUnaryExpression_alignofExpr() {
 	// }
 }
 
-func ExampleUnaryExpression_alignofType() {
+func ExampleAlignOfTypeExpr_alignofType() {
 	fmt.Println(exampleAST(39, "int i = _Alignof(int);"))
 	// Output:
-	// &cc.UnaryExpression{
-	// · Case: UnaryExpressionAlignofType,
+	// &cc.AlignOfTypeExpr{
 	// · Token: example.c:1:9: '_Alignof' "_Alignof",
-	// · Token2: example.c:1:17: '(' "(",
-	// · Token3: example.c:1:21: ')' ")",
+	// · LeftParen: example.c:1:17: '(' "(",
 	// · TypeName: &cc.TypeName{
 	// · · SpecifierQualifiers: []*cc.TypeSpecName{ // len 1
 	// · · · 0: &cc.TypeSpecName{
@@ -5653,29 +5646,30 @@ func ExampleUnaryExpression_alignofType() {
 	// · · · },
 	// · · },
 	// · },
+	// · RightParen: example.c:1:21: ')' ")",
 	// }
 }
 
-func ExampleUnaryExpression_imag() {
+func ExampleUnaryExpr_imag() {
 	fmt.Println(exampleAST(40, "double i = __imag__ x;"))
 	// Output:
-	// &cc.UnaryExpression{
+	// &cc.UnaryExpr{
 	// · Case: UnaryExpressionImag,
 	// · Token: example.c:1:12: '__imag__' "__imag__",
-	// · Expression3: &cc.PrimaryExpression{
+	// · Expr: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:21: identifier "x",
 	// · },
 	// }
 }
 
-func ExampleUnaryExpression_real() {
+func ExampleUnaryExpr_real() {
 	fmt.Println(exampleAST(41, "double i = __real__ x;"))
 	// Output:
-	// &cc.UnaryExpression{
+	// &cc.UnaryExpr{
 	// · Case: UnaryExpressionReal,
 	// · Token: example.c:1:12: '__real__' "__real__",
-	// · Expression3: &cc.PrimaryExpression{
+	// · Expr: &cc.PrimaryExpression{
 	// · · Case: PrimaryExpressionIdent,
 	// · · Token: example.c:1:21: identifier "x",
 	// · },

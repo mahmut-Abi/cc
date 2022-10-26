@@ -2940,14 +2940,14 @@ func (c *ctx) assignTo(n Node, unread bool) {
 		}
 	case *CompositeLitExpr:
 		//nop
-	case *UnaryExpression:
+	case *UnaryExpr:
 		switch x.Case {
 		case UnaryExpressionDeref: // '*' CastExpression
 			// nop
 		case UnaryExpressionReal: // "__real__" UnaryExpression
-			c.assignTo(x.Expression3, unread)
+			c.assignTo(x.Expr, unread)
 		case UnaryExpressionImag: // "__imag__" UnaryExpression
-			c.assignTo(x.Expression3, unread)
+			c.assignTo(x.Expr, unread)
 		default:
 			c.errors.add(errorf("internal error: %v", x.Case))
 		}
@@ -3184,24 +3184,28 @@ func (n *TypeName) check(c *ctx) (r Type) {
 	return n.Type()
 }
 
-//  UnaryExpression:
-//          PostfixExpression            // Case UnaryExpressionPostfix
-//  |       "++" UnaryExpression         // Case UnaryExpressionInc
-//  |       "--" UnaryExpression         // Case UnaryExpressionDec
-//  |       '&' CastExpression           // Case UnaryExpressionAddrof
-//  |       '*' CastExpression           // Case UnaryExpressionDeref
-//  |       '+' CastExpression           // Case UnaryExpressionPlus
-//  |       '-' CastExpression           // Case UnaryExpressionMinus
-//  |       '~' CastExpression           // Case UnaryExpressionCpl
-//  |       '!' CastExpression           // Case UnaryExpressionNot
-//  |       "sizeof" UnaryExpression     // Case UnaryExpressionSizeofExpr
-//  |       "sizeof" '(' TypeName ')'    // Case UnaryExpressionSizeofType
-//  |       "&&" IDENTIFIER              // Case UnaryExpressionLabelAddr
-//  |       "_Alignof" UnaryExpression   // Case UnaryExpressionAlignofExpr
-//  |       "_Alignof" '(' TypeName ')'  // Case UnaryExpressionAlignofType
-//  |       "__imag__" UnaryExpression   // Case UnaryExpressionImag
-//  |       "__real__" UnaryExpression   // Case UnaryExpressionReal
-func (n *UnaryExpression) check(c *ctx, mode flags) (r Type) {
+func (n *PrefixExpr) check(c *ctx, mode flags) (r Type) {
+	if n == nil {
+		return Invalid
+	}
+
+	defer func() {
+		if r == nil || r == Invalid {
+			c.errors.add(errorf("TODO %T missed/failed type check", n))
+			return
+		}
+	}()
+
+	n.typ = n.Expr.check(c, mode.add(decay))
+	c.assignTo(n.Expr, false)
+	if !IsRealType(n.Type()) && !isPointerType(n.Type()) {
+		c.errors.add(errorf("%v: operand shall have real or pointer type: %s", n.Expr.Position(), n.Type()))
+	}
+
+	return n.Type()
+}
+
+func (n *UnaryExpr) check(c *ctx, mode flags) (r Type) {
 	if n == nil {
 		return Invalid
 	}
@@ -3214,20 +3218,9 @@ func (n *UnaryExpression) check(c *ctx, mode flags) (r Type) {
 	}()
 
 	switch n.Case {
-	case UnaryExpressionPostfix: // PostfixExpression
-		n.typ = n.Expression2.check(c, mode)
-	case
-		UnaryExpressionInc, // "++" UnaryExpression
-		UnaryExpressionDec: // "--" UnaryExpression
-
-		n.typ = n.Expression3.check(c, mode.add(decay))
-		c.assignTo(n.Expression3, false)
-		if !IsRealType(n.Type()) && !isPointerType(n.Type()) {
-			c.errors.add(errorf("%v: operand shall have real or pointer type: %s", n.Expression3.Position(), n.Type()))
-		}
 	case UnaryExpressionAddrof: // '&' CastExpression
-		t := n.Expression.check(c, mode.del(decay))
-		c.takeAddr(n.Expression)
+		t := n.Expr.check(c, mode.del(decay))
+		c.takeAddr(n.Expr)
 		switch {
 		case
 			// The operand of the unary & operator shall be either a function designator,
@@ -3243,80 +3236,44 @@ func (n *UnaryExpression) check(c *ctx, mode flags) (r Type) {
 
 			n.typ = c.newPointerType(t)
 		default:
-			c.errors.add(errorf("%v: invalid operand: %s", n.Expression.Position(), t))
+			c.errors.add(errorf("%v: invalid operand: %s", n.Expr.Position(), t))
 		}
 	case UnaryExpressionDeref: // '*' CastExpression
-		switch t := n.Expression.check(c, mode.add(decay)); t.Kind() {
+		switch t := n.Expr.check(c, mode.add(decay)); t.Kind() {
 		case Ptr:
 			n.typ = c.decay(t.(*PointerType).Elem(), mode)
 		default:
-			c.errors.add(errorf("%v: operand shall be a pointer: %s", n.Expression.Position(), t))
+			c.errors.add(errorf("%v: operand shall be a pointer: %s", n.Expr.Position(), t))
 		}
 	case
 		UnaryExpressionPlus,  // '+' CastExpression
 		UnaryExpressionMinus: // '-' CastExpression
 
-		n.typ = IntegerPromotion(n.Expression.check(c, mode.add(decay)))
+		n.typ = IntegerPromotion(n.Expr.check(c, mode.add(decay)))
 		if !IsArithmeticType(n.Type()) {
-			c.errors.add(errorf("%v: expected arithmetic type: %s", n.Position(), n.Expression.Type()))
+			c.errors.add(errorf("%v: expected arithmetic type: %s", n.Position(), n.Expr.Type()))
 		}
 	case UnaryExpressionCpl: // '~' CastExpression
-		t := n.Expression.check(c, mode.add(decay))
+		t := n.Expr.check(c, mode.add(decay))
 		switch {
 		case IsIntegerType(t):
 			n.typ = IntegerPromotion(t)
 		case IsComplexType(t): // GCC extension, complex conjugate
 			n.typ = t
 		default:
-			c.errors.add(errorf("%v: expected integer type: %s", n.Position(), n.Expression.Type()))
+			c.errors.add(errorf("%v: expected integer type: %s", n.Position(), n.Expr.Type()))
 		}
 	case UnaryExpressionNot: // '!' CastExpression
-		t := n.Expression.check(c, mode.add(decay))
+		t := n.Expr.check(c, mode.add(decay))
 		if !IsScalarType(t) {
-			c.errors.add(errorf("%v: expected scalar type: %s", n.Position(), n.Expression.Type()))
+			c.errors.add(errorf("%v: expected scalar type: %s", n.Position(), n.Expr.Type()))
 		}
 		n.typ = c.intT
-	case UnaryExpressionSizeofExpr: // "sizeof" UnaryExpression
-		sv := c.checkingSizeof
-		defer func() { c.checkingSizeof = sv }()
-		c.checkingSizeof = true
-		n.typ = c.sizeT(n)
-		t := n.Expression3.check(c, mode).Undecay()
-		if t.Kind() == Function {
-			t = c.newPointerType(t)
-		}
-		if t.IsIncomplete() {
-			if x, ok := t.(*ArrayType); ok && x.IsVLA() {
-				break
-			}
-
-			c.errors.add(errorf("%v: sizeof incomplete type: %s", n.Expression3.Position(), t))
-		}
-		n.val = UInt64Value(t.Size())
-	case UnaryExpressionSizeofType: // "sizeof" '(' TypeName ')'
-		n.typ = c.sizeT(n)
-		t := n.TypeName.check(c)
-		if t.IsIncomplete() {
-			if x, ok := t.(*ArrayType); ok && x.IsVLA() {
-				break
-			}
-
-			c.errors.add(errorf("%v: sizeof incomplete type: %s", n.TypeName.Position(), t))
-		}
-		n.val = UInt64Value(t.Size())
-	case UnaryExpressionLabelAddr: // "&&" IDENTIFIER
-		n.typ = c.pvoidT
-	case UnaryExpressionAlignofExpr: // "_Alignof" UnaryExpression
-		t := n.Expression3.check(c, mode.add(decay))
-		n.val, n.typ = UInt64Value(t.Align()), c.sizeT(n)
-	case UnaryExpressionAlignofType: // "_Alignof" '(' TypeName ')'
-		t := n.TypeName.check(c)
-		n.val, n.typ = UInt64Value(t.Align()), c.sizeT(n)
 	case
 		UnaryExpressionImag, // "__imag__" UnaryExpression
 		UnaryExpressionReal: // "__real__" UnaryExpression
 
-		t := n.Expression3.check(c, mode.add(decay))
+		t := n.Expr.check(c, mode.add(decay))
 		if !IsComplexType(t) {
 			c.errors.add(errorf("%v: expected complex type: %s", n.Position(), t))
 			break
@@ -3326,6 +3283,114 @@ func (n *UnaryExpression) check(c *ctx, mode flags) (r Type) {
 	default:
 		c.errors.add(errorf("internal error: %v", n.Case))
 	}
+	return n.Type()
+}
+
+func (n *SizeOfExpr) check(c *ctx, mode flags) (r Type) {
+	if n == nil {
+		return Invalid
+	}
+
+	defer func() {
+		if r == nil || r == Invalid {
+			c.errors.add(errorf("TODO %T missed/failed type check", n))
+			return
+		}
+	}()
+
+	sv := c.checkingSizeof
+	defer func() { c.checkingSizeof = sv }()
+	c.checkingSizeof = true
+	n.typ = c.sizeT(n)
+	t := n.Expr.check(c, mode).Undecay()
+	if t.Kind() == Function {
+		t = c.newPointerType(t)
+	}
+	if t.IsIncomplete() {
+		if x, ok := t.(*ArrayType); ok && x.IsVLA() {
+			return n.Type()
+		}
+
+		c.errors.add(errorf("%v: sizeof incomplete type: %s", n.Expr.Position(), t))
+	}
+	n.val = UInt64Value(t.Size())
+
+	return n.Type()
+}
+
+func (n *SizeOfTypeExpr) check(c *ctx, mode flags) (r Type) {
+	if n == nil {
+		return Invalid
+	}
+
+	defer func() {
+		if r == nil || r == Invalid {
+			c.errors.add(errorf("TODO %T missed/failed type check", n))
+			return
+		}
+	}()
+
+	n.typ = c.sizeT(n)
+	t := n.TypeName.check(c)
+	if t.IsIncomplete() {
+		if x, ok := t.(*ArrayType); ok && x.IsVLA() {
+			return n.Type()
+		}
+
+		c.errors.add(errorf("%v: sizeof incomplete type: %s", n.TypeName.Position(), t))
+	}
+	n.val = UInt64Value(t.Size())
+
+	return n.Type()
+}
+
+func (n *LabelAddrExpr) check(c *ctx, mode flags) (r Type) {
+	if n == nil {
+		return Invalid
+	}
+
+	defer func() {
+		if r == nil || r == Invalid {
+			c.errors.add(errorf("TODO %T missed/failed type check", n))
+			return
+		}
+	}()
+
+	n.typ = c.pvoidT
+	return n.Type()
+}
+
+func (n *AlignOfExpr) check(c *ctx, mode flags) (r Type) {
+	if n == nil {
+		return Invalid
+	}
+
+	defer func() {
+		if r == nil || r == Invalid {
+			c.errors.add(errorf("TODO %T missed/failed type check", n))
+			return
+		}
+	}()
+
+	t := n.Expr.check(c, mode.add(decay))
+	n.val, n.typ = UInt64Value(t.Align()), c.sizeT(n)
+	return n.Type()
+}
+
+func (n *AlignOfTypeExpr) check(c *ctx, mode flags) (r Type) {
+	if n == nil {
+		return Invalid
+	}
+
+	defer func() {
+		if r == nil || r == Invalid {
+			c.errors.add(errorf("TODO %T missed/failed type check", n))
+			return
+		}
+	}()
+
+	t := n.TypeName.check(c)
+	n.val, n.typ = UInt64Value(t.Align()), c.sizeT(n)
 	return n.Type()
 }
 
@@ -3366,16 +3431,16 @@ func (c *ctx) takeAddr(n Node) {
 		// nop
 	case *CastExpr:
 		c.takeAddr(x.Expr)
-	case *UnaryExpression:
+	case *UnaryExpr:
 		switch x.Case {
 		case UnaryExpressionDeref: // '*' CastExpression
 			// nop
 		case UnaryExpressionReal: // "__real__" UnaryExpression
-			c.takeAddr(x.Expression3)
+			c.takeAddr(x.Expr)
 		case UnaryExpressionImag: // "__imag__" UnaryExpression
-			c.takeAddr(x.Expression3)
+			c.takeAddr(x.Expr)
 		case UnaryExpressionAddrof: // '&' CastExpression
-			c.takeAddr(x.Expression)
+			c.takeAddr(x.Expr)
 		default:
 			c.errors.add(errorf("internal error: %v", x.Case))
 		}

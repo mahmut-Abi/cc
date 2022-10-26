@@ -2071,35 +2071,34 @@ func (p *parser) unaryExpression(lp Token, tn *TypeName, rp Token, checkTypeName
 		return p.postfixExpression(lp, tn, rp, checkTypeName)
 	}
 
-	var r *UnaryExpression
 	switch p.rune(false) {
 	case eof:
 		p.cpp.eh("%v: unexpected EOF", p.toks[0].Position())
 		return nil
 	case '&':
-		r = &UnaryExpression{Case: UnaryExpressionAddrof, Token: p.shift(false)}
-		r.Expression, _ = p.castExpression(checkTypeName)
-		return r
+		e := &UnaryExpr{Case: UnaryExpressionAddrof, Token: p.shift(false)}
+		e.Expr, _ = p.castExpression(checkTypeName)
+		return e
 	case '*':
-		r = &UnaryExpression{Case: UnaryExpressionDeref, Token: p.shift(false)}
-		r.Expression, _ = p.castExpression(checkTypeName)
-		return r
+		e := &UnaryExpr{Case: UnaryExpressionDeref, Token: p.shift(false)}
+		e.Expr, _ = p.castExpression(checkTypeName)
+		return e
 	case '+':
-		r = &UnaryExpression{Case: UnaryExpressionPlus, Token: p.shift(false)}
-		r.Expression, _ = p.castExpression(checkTypeName)
-		return r
+		e := &UnaryExpr{Case: UnaryExpressionPlus, Token: p.shift(false)}
+		e.Expr, _ = p.castExpression(checkTypeName)
+		return e
 	case '-':
-		r = &UnaryExpression{Case: UnaryExpressionMinus, Token: p.shift(false)}
-		r.Expression, _ = p.castExpression(checkTypeName)
-		return r
+		e := &UnaryExpr{Case: UnaryExpressionMinus, Token: p.shift(false)}
+		e.Expr, _ = p.castExpression(checkTypeName)
+		return e
 	case '~':
-		r = &UnaryExpression{Case: UnaryExpressionCpl, Token: p.shift(false)}
-		r.Expression, _ = p.castExpression(checkTypeName)
-		return r
+		e := &UnaryExpr{Case: UnaryExpressionCpl, Token: p.shift(false)}
+		e.Expr, _ = p.castExpression(checkTypeName)
+		return e
 	case '!':
-		r = &UnaryExpression{Case: UnaryExpressionNot, Token: p.shift(false)}
-		r.Expression, _ = p.castExpression(checkTypeName)
-		return r
+		e := &UnaryExpr{Case: UnaryExpressionNot, Token: p.shift(false)}
+		e.Expr, _ = p.castExpression(checkTypeName)
+		return e
 	case rune(SIZEOF):
 		switch p.peek(1, false).Ch {
 		case '(':
@@ -2111,15 +2110,15 @@ func (p *parser) unaryExpression(lp Token, tn *TypeName, rp Token, checkTypeName
 				rp := p.must(')')
 				switch p.rune(false) {
 				case '{':
-					return &UnaryExpression{Case: UnaryExpressionSizeofExpr, Token: sz, Expression3: p.unaryExpression(lp, tn, rp, checkTypeName)}
+					return &SizeOfExpr{Token: sz, Expr: p.unaryExpression(lp, tn, rp, checkTypeName)}
 				default:
-					return &UnaryExpression{Case: UnaryExpressionSizeofType, Token: sz, Token2: lp, TypeName: tn, Token3: rp}
+					return &SizeOfTypeExpr{Token: sz, LeftParen: lp, TypeName: tn, RightParen: rp}
 				}
 			default:
-				return &UnaryExpression{Case: UnaryExpressionSizeofExpr, Token: p.shift(false), Expression3: p.unaryExpression(Token{}, nil, Token{}, checkTypeName)}
+				return &SizeOfExpr{Token: p.shift(false), Expr: p.unaryExpression(Token{}, nil, Token{}, checkTypeName)}
 			}
 		default:
-			return &UnaryExpression{Case: UnaryExpressionSizeofExpr, Token: p.shift(false), Expression3: p.unaryExpression(Token{}, nil, Token{}, checkTypeName)}
+			return &SizeOfExpr{Token: p.shift(false), Expr: p.unaryExpression(Token{}, nil, Token{}, checkTypeName)}
 		}
 	case
 		'(',
@@ -2134,17 +2133,17 @@ func (p *parser) unaryExpression(lp Token, tn *TypeName, rp Token, checkTypeName
 
 		return p.postfixExpression(Token{}, nil, Token{}, checkTypeName)
 	case rune(INC):
-		return &UnaryExpression{Case: UnaryExpressionInc, Token: p.shift(false), Expression3: p.unaryExpression(Token{}, nil, Token{}, checkTypeName)}
+		return &PrefixExpr{Token: p.shift(false), Expr: p.unaryExpression(Token{}, nil, Token{}, checkTypeName), Dec: false}
 	case rune(DEC):
-		return &UnaryExpression{Case: UnaryExpressionDec, Token: p.shift(false), Expression3: p.unaryExpression(Token{}, nil, Token{}, checkTypeName)}
+		return &PrefixExpr{Token: p.shift(false), Expr: p.unaryExpression(Token{}, nil, Token{}, checkTypeName), Dec: true}
 	case rune(ALIGNOF):
 		switch p.peek(1, false).Ch {
 		case '(':
 			switch {
 			case p.isSpecifierQualifer(p.peek(2, true).Ch, true):
-				return &UnaryExpression{Case: UnaryExpressionAlignofType, Token: p.shift(false), Token2: p.shift(false), TypeName: p.typeName(), Token3: p.must(')')}
+				return &AlignOfTypeExpr{Token: p.shift(false), LeftParen: p.shift(false), TypeName: p.typeName(), RightParen: p.must(')')}
 			default:
-				return &UnaryExpression{Case: UnaryExpressionAlignofExpr, Token: p.shift(false), Expression3: p.unaryExpression(Token{}, nil, Token{}, checkTypeName)}
+				return &AlignOfExpr{Token: p.shift(false), Expr: p.unaryExpression(Token{}, nil, Token{}, checkTypeName)}
 			}
 		default:
 			t := p.shift(false)
@@ -2152,11 +2151,11 @@ func (p *parser) unaryExpression(lp Token, tn *TypeName, rp Token, checkTypeName
 			return nil
 		}
 	case rune(ANDAND):
-		return &UnaryExpression{Case: UnaryExpressionLabelAddr, Token: p.shift(false), Token2: p.must(rune(IDENTIFIER))}
+		return &LabelAddrExpr{Token: p.shift(false), Label: p.must(rune(IDENTIFIER))}
 	case rune(REAL):
-		return &UnaryExpression{Case: UnaryExpressionReal, Token: p.shift(false), Expression3: p.unaryExpression(Token{}, nil, Token{}, checkTypeName)}
+		return &UnaryExpr{Case: UnaryExpressionReal, Token: p.shift(false), Expr: p.unaryExpression(Token{}, nil, Token{}, checkTypeName)}
 	case rune(IMAG):
-		return &UnaryExpression{Case: UnaryExpressionImag, Token: p.shift(false), Expression3: p.unaryExpression(Token{}, nil, Token{}, checkTypeName)}
+		return &UnaryExpr{Case: UnaryExpressionImag, Token: p.shift(false), Expr: p.unaryExpression(Token{}, nil, Token{}, checkTypeName)}
 	default:
 		t := p.shift(false)
 		p.cpp.eh("%v: unexpected %v, expected unary expression", t.Position(), runeName(t.Ch))

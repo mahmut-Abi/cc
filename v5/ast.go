@@ -4276,20 +4276,12 @@ type UnaryExpressionCase int
 
 // Values of type UnaryExpressionCase
 const (
-	UnaryExpressionPostfix UnaryExpressionCase = iota
-	UnaryExpressionInc
-	UnaryExpressionDec
-	UnaryExpressionAddrof
+	UnaryExpressionAddrof UnaryExpressionCase = iota
 	UnaryExpressionDeref
 	UnaryExpressionPlus
 	UnaryExpressionMinus
 	UnaryExpressionCpl
 	UnaryExpressionNot
-	UnaryExpressionSizeofExpr
-	UnaryExpressionSizeofType
-	UnaryExpressionLabelAddr
-	UnaryExpressionAlignofExpr
-	UnaryExpressionAlignofType
 	UnaryExpressionImag
 	UnaryExpressionReal
 )
@@ -4297,12 +4289,6 @@ const (
 // String implements fmt.Stringer
 func (n UnaryExpressionCase) String() string {
 	switch n {
-	case UnaryExpressionPostfix:
-		return "UnaryExpressionPostfix"
-	case UnaryExpressionInc:
-		return "UnaryExpressionInc"
-	case UnaryExpressionDec:
-		return "UnaryExpressionDec"
 	case UnaryExpressionAddrof:
 		return "UnaryExpressionAddrof"
 	case UnaryExpressionDeref:
@@ -4315,16 +4301,6 @@ func (n UnaryExpressionCase) String() string {
 		return "UnaryExpressionCpl"
 	case UnaryExpressionNot:
 		return "UnaryExpressionNot"
-	case UnaryExpressionSizeofExpr:
-		return "UnaryExpressionSizeofExpr"
-	case UnaryExpressionSizeofType:
-		return "UnaryExpressionSizeofType"
-	case UnaryExpressionLabelAddr:
-		return "UnaryExpressionLabelAddr"
-	case UnaryExpressionAlignofExpr:
-		return "UnaryExpressionAlignofExpr"
-	case UnaryExpressionAlignofType:
-		return "UnaryExpressionAlignofType"
 	case UnaryExpressionImag:
 		return "UnaryExpressionImag"
 	case UnaryExpressionReal:
@@ -4334,83 +4310,179 @@ func (n UnaryExpressionCase) String() string {
 	}
 }
 
-// UnaryExpression represents data reduced by productions:
-//
-//	UnaryExpression:
-//	        PostfixExpression            // Case UnaryExpressionPostfix
-//	|       "++" UnaryExpression         // Case UnaryExpressionInc
-//	|       "--" UnaryExpression         // Case UnaryExpressionDec
-//	|       '&' CastExpression           // Case UnaryExpressionAddrof
-//	|       '*' CastExpression           // Case UnaryExpressionDeref
-//	|       '+' CastExpression           // Case UnaryExpressionPlus
-//	|       '-' CastExpression           // Case UnaryExpressionMinus
-//	|       '~' CastExpression           // Case UnaryExpressionCpl
-//	|       '!' CastExpression           // Case UnaryExpressionNot
-//	|       "sizeof" UnaryExpression     // Case UnaryExpressionSizeofExpr
-//	|       "sizeof" '(' TypeName ')'    // Case UnaryExpressionSizeofType
-//	|       "&&" IDENTIFIER              // Case UnaryExpressionLabelAddr
-//	|       "_Alignof" UnaryExpression   // Case UnaryExpressionAlignofExpr
-//	|       "_Alignof" '(' TypeName ')'  // Case UnaryExpressionAlignofType
-//	|       "__imag__" UnaryExpression   // Case UnaryExpressionImag
-//	|       "__real__" UnaryExpression   // Case UnaryExpressionReal
-type UnaryExpression struct {
+type PrefixExpr struct {
 	typer
 	valuer
-	Case        UnaryExpressionCase `PrettyPrint:"stringer,zero"`
-	Expression  Expression
-	Expression2 Expression
-	Token       Token
-	Token2      Token
-	Token3      Token
-	TypeName    *TypeName
-	Expression3 Expression
+	Token Token
+	Expr  Expression
+	Dec   bool
 }
 
 // String implements fmt.Stringer.
-func (n *UnaryExpression) String() string { return PrettyString(n) }
+func (n *PrefixExpr) String() string { return PrettyString(n) }
 
-// Position reports the position of the first component of n, if available.
-func (n *UnaryExpression) Position() (r token.Position) {
+func (n *PrefixExpr) Position() (r token.Position) {
 	if n == nil {
 		return r
 	}
 
-	switch n.Case {
-	case 0:
-		return n.Expression2.Position()
-	case 3, 4, 5, 6, 7, 8:
-		if p := n.Token.Position(); p.IsValid() {
-			return p
-		}
-
-		return n.Expression.Position()
-	case 11:
-		if p := n.Token.Position(); p.IsValid() {
-			return p
-		}
-
-		return n.Token2.Position()
-	case 10, 13:
-		if p := n.Token.Position(); p.IsValid() {
-			return p
-		}
-
-		if p := n.Token2.Position(); p.IsValid() {
-			return p
-		}
-
-		if p := n.TypeName.Position(); p.IsValid() {
-			return p
-		}
-
-		return n.Token3.Position()
-	case 1, 2, 9, 12, 14, 15:
-		if p := n.Token.Position(); p.IsValid() {
-			return p
-		}
-
-		return n.Expression3.Position()
-	default:
-		panic("internal error")
+	if p := n.Token.Position(); p.IsValid() {
+		return p
 	}
+
+	return n.Expr.Position()
+}
+
+type UnaryExpr struct {
+	typer
+	valuer
+	Case  UnaryExpressionCase `PrettyPrint:"stringer,zero"`
+	Token Token
+	Expr  Expression
+}
+
+// String implements fmt.Stringer.
+func (n *UnaryExpr) String() string { return PrettyString(n) }
+
+func (n *UnaryExpr) Position() (r token.Position) {
+	if n == nil {
+		return r
+	}
+
+	if p := n.Token.Position(); p.IsValid() {
+		return p
+	}
+
+	return n.Expr.Position()
+}
+
+type SizeOfExpr struct {
+	typer
+	valuer
+	Token Token
+	Expr  Expression
+}
+
+// String implements fmt.Stringer.
+func (n *SizeOfExpr) String() string { return PrettyString(n) }
+
+func (n *SizeOfExpr) Position() (r token.Position) {
+	if n == nil {
+		return r
+	}
+
+	if p := n.Token.Position(); p.IsValid() {
+		return p
+	}
+
+	return n.Expr.Position()
+}
+
+type SizeOfTypeExpr struct {
+	typer
+	valuer
+	Token      Token
+	LeftParen  Token
+	TypeName   *TypeName
+	RightParen Token
+}
+
+// String implements fmt.Stringer.
+func (n *SizeOfTypeExpr) String() string { return PrettyString(n) }
+
+func (n *SizeOfTypeExpr) Position() (r token.Position) {
+	if n == nil {
+		return r
+	}
+
+	if p := n.Token.Position(); p.IsValid() {
+		return p
+	}
+
+	if p := n.LeftParen.Position(); p.IsValid() {
+		return p
+	}
+
+	if p := n.TypeName.Position(); p.IsValid() {
+		return p
+	}
+
+	return n.RightParen.Position()
+}
+
+type LabelAddrExpr struct {
+	typer
+	valuer
+	Token Token
+	Label Token
+}
+
+// String implements fmt.Stringer.
+func (n *LabelAddrExpr) String() string { return PrettyString(n) }
+
+func (n *LabelAddrExpr) Position() (r token.Position) {
+	if n == nil {
+		return r
+	}
+
+	if p := n.Token.Position(); p.IsValid() {
+		return p
+	}
+
+	return n.Label.Position()
+}
+
+type AlignOfExpr struct {
+	typer
+	valuer
+	Token Token
+	Expr  Expression
+}
+
+// String implements fmt.Stringer.
+func (n *AlignOfExpr) String() string { return PrettyString(n) }
+
+func (n *AlignOfExpr) Position() (r token.Position) {
+	if n == nil {
+		return r
+	}
+
+	if p := n.Token.Position(); p.IsValid() {
+		return p
+	}
+
+	return n.Expr.Position()
+}
+
+type AlignOfTypeExpr struct {
+	typer
+	valuer
+	Token      Token
+	LeftParen  Token
+	TypeName   *TypeName
+	RightParen Token
+}
+
+// String implements fmt.Stringer.
+func (n *AlignOfTypeExpr) String() string { return PrettyString(n) }
+
+// Position reports the position of the first component of n, if available.
+func (n *AlignOfTypeExpr) Position() (r token.Position) {
+	if n == nil {
+		return r
+	}
+
+	if p := n.Token.Position(); p.IsValid() {
+		return p
+	}
+
+	if p := n.LeftParen.Position(); p.IsValid() {
+		return p
+	}
+
+	if p := n.TypeName.Position(); p.IsValid() {
+		return p
+	}
+
+	return n.RightParen.Position()
 }

@@ -697,24 +697,28 @@ func (n *CastExpr) eval(c *ctx, mode flags) (r Value) {
 	return n.Value()
 }
 
-func (n *UnaryExpression) eval(c *ctx, mode flags) (r Value) {
+func (n *PrefixExpr) eval(c *ctx, mode flags) (r Value) {
+	if mode.has(addrOf) {
+		c.errors.add(errorf("TODO %T", n))
+		return n.Value()
+	}
+
+	// nop
+	return n.Value()
+}
+
+func (n *UnaryExpr) eval(c *ctx, mode flags) (r Value) {
 	if mode.has(addrOf) {
 		switch n.Case {
-		case UnaryExpressionPostfix: // PostfixExpression
-			c.errors.add(errorf("TODO %T %v", n, n.Case))
-		case UnaryExpressionInc: // "++" UnaryExpression
-			c.errors.add(errorf("TODO %T %v", n, n.Case))
-		case UnaryExpressionDec: // "--" UnaryExpression
-			c.errors.add(errorf("TODO %T %v", n, n.Case))
 		case UnaryExpressionAddrof: // '&' CastExpression
 			c.errors.add(errorf("TODO %T %v", n, n.Case))
 		case UnaryExpressionDeref: // '*' CastExpression
-			switch x := n.Expression.eval(c, mode.del(addrOf)).(type) {
+			switch x := n.Expr.eval(c, mode.del(addrOf)).(type) {
 			case *UnknownValue:
 				// ok
 			case UInt64Value:
-				if _, ok := n.Expression.Type().(*PointerType); ok {
-					n.val = convert(x, n.Expression.Type())
+				if _, ok := n.Expr.Type().(*PointerType); ok {
+					n.val = convert(x, n.Expr.Type())
 				}
 			default:
 				c.errors.add(errorf("TODO %v %v %T", n.Case, mode.has(addrOf), x))
@@ -727,20 +731,10 @@ func (n *UnaryExpression) eval(c *ctx, mode flags) (r Value) {
 			c.errors.add(errorf("TODO %T %v", n, n.Case))
 		case UnaryExpressionNot: // '!' CastExpression
 			c.errors.add(errorf("TODO %T %v", n, n.Case))
-		case UnaryExpressionSizeofExpr: // "sizeof" UnaryExpression
-			c.errors.add(errorf("TODO %T %v", n, n.Case))
-		case UnaryExpressionSizeofType: // "sizeof" '(' TypeName ')'
-			c.errors.add(errorf("TODO %T %v", n, n.Case))
-		case UnaryExpressionLabelAddr: // "&&" IDENTIFIER
-			c.errors.add(errorf("TODO %T %v", n, n.Case))
-		case UnaryExpressionAlignofExpr: // "_Alignof" UnaryExpression
-			c.errors.add(errorf("TODO %T %v", n, n.Case))
-		case UnaryExpressionAlignofType: // "_Alignof" '(' TypeName ')'
-			c.errors.add(errorf("TODO %T %v", n, n.Case))
 		case UnaryExpressionImag: // "__imag__" UnaryExpression
 			c.errors.add(errorf("TODO %T %v", n, n.Case))
 		case UnaryExpressionReal: // "__real__" UnaryExpression
-			switch x := n.Expression3.eval(c, mode.del(addrOf)).(type) {
+			switch x := n.Expr.eval(c, mode.del(addrOf)).(type) {
 			case *UnknownValue:
 				// ok
 			default:
@@ -753,18 +747,12 @@ func (n *UnaryExpression) eval(c *ctx, mode flags) (r Value) {
 	}
 
 	switch n.Case {
-	case UnaryExpressionPostfix: // PostfixExpression
-		n.val = n.Expression2.eval(c, mode)
-	case UnaryExpressionInc: // "++" UnaryExpression
-		// nop
-	case UnaryExpressionDec: // "--" UnaryExpression
-		// nop
 	case UnaryExpressionAddrof: // '&' CastExpression
-		n.val = convert(n.Expression.eval(c, mode.add(addrOf)), n.Type())
+		n.val = convert(n.Expr.eval(c, mode.add(addrOf)), n.Type())
 	case UnaryExpressionDeref: // '*' CastExpression
 		// nop
 	case UnaryExpressionPlus: // '+' CastExpression
-		switch x := convert(n.Expression.eval(c, mode), n.Type()).(type) {
+		switch x := convert(n.Expr.eval(c, mode), n.Type()).(type) {
 		case *UnknownValue:
 			// nop
 		case Int64Value:
@@ -775,7 +763,7 @@ func (n *UnaryExpression) eval(c *ctx, mode flags) (r Value) {
 			c.errors.add(errorf("TODO %v TYPE %T", n.Case, x))
 		}
 	case UnaryExpressionMinus: // '-' CastExpression
-		switch x := convert(n.Expression.eval(c, mode), n.Type()).(type) {
+		switch x := convert(n.Expr.eval(c, mode), n.Type()).(type) {
 		case *UnknownValue:
 			// nop
 		case Int64Value:
@@ -788,7 +776,7 @@ func (n *UnaryExpression) eval(c *ctx, mode flags) (r Value) {
 			c.errors.add(errorf("TODO %v TYPE %T", n.Case, x))
 		}
 	case UnaryExpressionCpl: // '~' CastExpression
-		switch x := n.Expression.eval(c, mode).(type) {
+		switch x := n.Expr.eval(c, mode).(type) {
 		case *UnknownValue:
 			// nop
 		case Int64Value:
@@ -799,7 +787,7 @@ func (n *UnaryExpression) eval(c *ctx, mode flags) (r Value) {
 			c.errors.add(errorf("TODO %v TYPE %T", n.Case, x))
 		}
 	case UnaryExpressionNot: // '!' CastExpression
-		switch x := n.Expression.eval(c, mode).(type) {
+		switch x := n.Expr.eval(c, mode).(type) {
 		case *UnknownValue:
 			// nop
 		case Int64Value:
@@ -811,16 +799,6 @@ func (n *UnaryExpression) eval(c *ctx, mode flags) (r Value) {
 		default:
 			c.errors.add(errorf("TODO %v TYPE %T", n.Case, x))
 		}
-	case UnaryExpressionSizeofExpr: // "sizeof" UnaryExpression
-		// nop
-	case UnaryExpressionSizeofType: // "sizeof" '(' TypeName ')'
-		// nop
-	case UnaryExpressionLabelAddr: // "&&" IDENTIFIER
-		// nop
-	case UnaryExpressionAlignofExpr: // "_Alignof" UnaryExpression
-		// nop
-	case UnaryExpressionAlignofType: // "_Alignof" '(' TypeName ')'
-		// nop
 	case UnaryExpressionImag: // "__imag__" UnaryExpression
 		// nop
 	case UnaryExpressionReal: // "__real__" UnaryExpression
@@ -828,6 +806,56 @@ func (n *UnaryExpression) eval(c *ctx, mode flags) (r Value) {
 	default:
 		c.errors.add(errorf("internal error: %v", n.Case))
 	}
+	return n.Value()
+}
+
+func (n *SizeOfExpr) eval(c *ctx, mode flags) (r Value) {
+	if mode.has(addrOf) {
+		c.errors.add(errorf("TODO %T", n))
+		return n.Value()
+	}
+
+	// nop
+	return n.Value()
+}
+
+func (n *SizeOfTypeExpr) eval(c *ctx, mode flags) (r Value) {
+	if mode.has(addrOf) {
+		c.errors.add(errorf("TODO %T", n))
+		return n.Value()
+	}
+
+	// nop
+	return n.Value()
+}
+
+func (n *LabelAddrExpr) eval(c *ctx, mode flags) (r Value) {
+	if mode.has(addrOf) {
+		c.errors.add(errorf("TODO %T", n))
+		return n.Value()
+	}
+
+	// nop
+	return n.Value()
+}
+
+func (n *AlignOfExpr) eval(c *ctx, mode flags) (r Value) {
+	if mode.has(addrOf) {
+		c.errors.add(errorf("TODO %T", n))
+		return n.Value()
+	}
+
+	// nop
+	return n.Value()
+}
+
+func (n *AlignOfTypeExpr) eval(c *ctx, mode flags) (r Value) {
+	if mode.has(addrOf) {
+		c.errors.add(errorf("TODO %T", n))
+		return n.Value()
+	}
+
+	// nop
 	return n.Value()
 }
 
