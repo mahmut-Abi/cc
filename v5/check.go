@@ -2711,7 +2711,7 @@ func (n *StructDeclaration) check(c *ctx) (r []*Field) {
 	case StructDeclarationDecl: // DeclarationSpecifiers InitDeclaratorList AttributeSpecifierList ';'
 		var isAtomic, isConst, isVolatile, isRestrict bool
 		var alignas int
-		t := n.SpecifierQualifierList.check(c, &isAtomic, &isConst, &isVolatile, &isRestrict, &alignas)
+		t := checkSpecifierQualifiers(c, n.SpecifierQualifiers, &isAtomic, &isConst, &isVolatile, &isRestrict, &alignas)
 		switch {
 		case n.StructDeclaratorList == nil:
 			return []*Field{{typ: newTyper(t)}}
@@ -2726,18 +2726,18 @@ func (n *StructDeclaration) check(c *ctx) (r []*Field) {
 	return nil
 }
 
-func (n *SpecifierQualifierList) check(c *ctx, isAtomic, isConst, isVolatile, isRestrict *bool, alignas *int) (r Type) {
-	if n == nil {
+func checkSpecifierQualifiers(c *ctx, list []SpecifierQualifier, isAtomic, isConst, isVolatile, isRestrict *bool, alignas *int) (r Type) {
+	if len(list) == 0 {
 		return c.intT
 	}
 
 	var ts []TypeSpecifierCase
 
 	var attr *Attributes
-	n0 := n
+	n0 := list[0]
 	defer func() {
 		if r == nil || r == Invalid {
-			c.errors.add(errorf("TODO missed/failed type check %v: %v %T", n.Position(), ts, n))
+			c.errors.add(errorf("TODO missed/failed type check %v: %v %T", n0.Position(), ts, n0))
 		}
 
 		if attr != nil {
@@ -2746,21 +2746,21 @@ func (n *SpecifierQualifierList) check(c *ctx, isAtomic, isConst, isVolatile, is
 	}()
 
 	var attrs []*Attributes
-	for ; n != nil; n = n.SpecifierQualifierList {
-		switch n.Case {
-		case SpecifierQualifierListTypeSpec: // TypeSpecifier SpecifierQualifierList
-			ts = append(ts, n.TypeSpecifier.TypeSpecifierCase())
-			r = n.TypeSpecifier.check(c, isAtomic)
-		case SpecifierQualifierListTypeQual: // TypeQualifier SpecifierQualifierList
-			if attr := n.TypeQualifier.check(c, isConst, isVolatile, isAtomic, isRestrict); attr != nil {
+	for _, n := range list {
+		switch n := n.(type) {
+		case TypeSpecifier: // TypeSpecifier SpecifierQualifierList
+			ts = append(ts, n.TypeSpecifierCase())
+			r = n.check(c, isAtomic)
+		case *TypeQualifier: // TypeQualifier SpecifierQualifierList
+			if attr := n.check(c, isConst, isVolatile, isAtomic, isRestrict); attr != nil {
 				attrs = append(attrs, attr)
 			}
-		case SpecifierQualifierListAlignSpec: // AlignmentSpecifier SpecifierQualifierList
-			if v := n.AlignmentSpecifier.check(c).Align(); v > 0 {
+		case *AlignmentSpecifier: // AlignmentSpecifier SpecifierQualifierList
+			if v := n.check(c).Align(); v > 0 {
 				*alignas = v
 			}
 		default:
-			c.errors.add(errorf("internal error: %v", n.Case))
+			c.errors.add(errorf("internal error: %T", n))
 		}
 	}
 	switch len(attrs) {
@@ -3185,7 +3185,7 @@ func (n *CastExpression) check(c *ctx, mode flags) (r Type) {
 func (n *TypeName) check(c *ctx) (r Type) {
 	var dummy bool
 	var dummyInt int
-	n.typ = n.AbstractDeclarator.check(c, n.SpecifierQualifierList.check(c, &dummy, &dummy, &dummy, &dummy, &dummyInt))
+	n.typ = n.AbstractDeclarator.check(c, checkSpecifierQualifiers(c, n.SpecifierQualifiers, &dummy, &dummy, &dummy, &dummy, &dummyInt))
 	return n.Type()
 }
 

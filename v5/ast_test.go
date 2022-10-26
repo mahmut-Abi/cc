@@ -76,9 +76,8 @@ func ExampleAlignmentSpecifier_type() {
 	// · Token2: example.c:1:9: '(' "(",
 	// · Token3: example.c:1:16: ')' ")",
 	// · TypeName: &cc.TypeName{
-	// · · SpecifierQualifierList: &cc.SpecifierQualifierList{
-	// · · · Case: SpecifierQualifierListTypeSpec,
-	// · · · TypeSpecifier: &cc.TypeSpecName{
+	// · · SpecifierQualifiers: []*cc.TypeSpecName{ // len 1
+	// · · · 0: &cc.TypeSpecName{
 	// · · · · Case: TypeSpecifierDouble,
 	// · · · · Name: example.c:1:10: 'double' "double",
 	// · · · },
@@ -504,9 +503,8 @@ func ExampleAtomicTypeSpecifier_case0() {
 	// · Token2: example.c:1:8: '(' "(",
 	// · Token3: example.c:1:12: ')' ")",
 	// · TypeName: &cc.TypeName{
-	// · · SpecifierQualifierList: &cc.SpecifierQualifierList{
-	// · · · Case: SpecifierQualifierListTypeSpec,
-	// · · · TypeSpecifier: &cc.TypeSpecName{
+	// · · SpecifierQualifiers: []*cc.TypeSpecName{ // len 1
+	// · · · 0: &cc.TypeSpecName{
 	// · · · · Case: TypeSpecifierInt,
 	// · · · · Name: example.c:1:9: 'int' "int",
 	// · · · },
@@ -1242,16 +1240,8 @@ func ExampleCastExpression_cast() {
 	// &cc.CastExpression{
 	// · Lparen: example.c:1:9: '(' "(",
 	// · TypeName: &cc.TypeName{
-	// · · SpecifierQualifierList: &cc.SpecifierQualifierList{
-	// · · · Case: SpecifierQualifierListTypeQual,
-	// · · · SpecifierQualifierList: &cc.SpecifierQualifierList{
-	// · · · · Case: SpecifierQualifierListTypeSpec,
-	// · · · · TypeSpecifier: &cc.TypeSpecName{
-	// · · · · · Case: TypeSpecifierInt,
-	// · · · · · Name: example.c:1:29: 'int' "int",
-	// · · · · },
-	// · · · },
-	// · · · TypeQualifier: &cc.TypeQualifier{
+	// · · SpecifierQualifiers: []*cc.TypeQualifier{ // len 2
+	// · · · 0: &cc.TypeQualifier{
 	// · · · · AttributeSpecifiers: []*cc.AttributeSpecifier{ // len 1
 	// · · · · · 0: &cc.AttributeSpecifier{
 	// · · · · · · AttributeValueList: &cc.AttributeValueList{
@@ -1268,6 +1258,10 @@ func ExampleCastExpression_cast() {
 	// · · · · · },
 	// · · · · },
 	// · · · · Case: TypeQualifierAttr,
+	// · · · },
+	// · · · 1: &cc.TypeSpecName{
+	// · · · · Case: TypeSpecifierInt,
+	// · · · · Name: example.c:1:29: 'int' "int",
 	// · · · },
 	// · · },
 	// · },
@@ -1699,9 +1693,8 @@ func ExampleDeclarationSpecifier_alignSpec() {
 	// · Token2: example.c:1:9: '(' "(",
 	// · Token3: example.c:1:16: ')' ")",
 	// · TypeName: &cc.TypeName{
-	// · · SpecifierQualifierList: &cc.SpecifierQualifierList{
-	// · · · Case: SpecifierQualifierListTypeSpec,
-	// · · · TypeSpecifier: &cc.TypeSpecName{
+	// · · SpecifierQualifiers: []*cc.TypeSpecName{ // len 1
+	// · · · 0: &cc.TypeSpecName{
 	// · · · · Case: TypeSpecifierDouble,
 	// · · · · Name: example.c:1:10: 'double' "double",
 	// · · · },
@@ -2560,9 +2553,8 @@ func ExampleGenericAssociation_type() {
 	// · Case: GenericAssociationType,
 	// · Token: example.c:1:24: ':' ":",
 	// · TypeName: &cc.TypeName{
-	// · · SpecifierQualifierList: &cc.SpecifierQualifierList{
-	// · · · Case: SpecifierQualifierListTypeSpec,
-	// · · · TypeSpecifier: &cc.TypeSpecName{
+	// · · SpecifierQualifiers: []*cc.TypeSpecName{ // len 1
+	// · · · 0: &cc.TypeSpecName{
 	// · · · · Case: TypeSpecifierInt,
 	// · · · · Name: example.c:1:21: 'int' "int",
 	// · · · },
@@ -2597,9 +2589,8 @@ func ExampleGenericAssociationList_case0() {
 	// · · Case: GenericAssociationType,
 	// · · Token: example.c:1:24: ':' ":",
 	// · · TypeName: &cc.TypeName{
-	// · · · SpecifierQualifierList: &cc.SpecifierQualifierList{
-	// · · · · Case: SpecifierQualifierListTypeSpec,
-	// · · · · TypeSpecifier: &cc.TypeSpecName{
+	// · · · SpecifierQualifiers: []*cc.TypeSpecName{ // len 1
+	// · · · · 0: &cc.TypeSpecName{
 	// · · · · · Case: TypeSpecifierInt,
 	// · · · · · Name: example.c:1:21: 'int' "int",
 	// · · · · },
@@ -2621,9 +2612,8 @@ func ExampleGenericAssociationList_case1() {
 	// · · Case: GenericAssociationType,
 	// · · Token: example.c:1:24: ':' ":",
 	// · · TypeName: &cc.TypeName{
-	// · · · SpecifierQualifierList: &cc.SpecifierQualifierList{
-	// · · · · Case: SpecifierQualifierListTypeSpec,
-	// · · · · TypeSpecifier: &cc.TypeSpecName{
+	// · · · SpecifierQualifiers: []*cc.TypeSpecName{ // len 1
+	// · · · · 0: &cc.TypeSpecName{
 	// · · · · · Case: TypeSpecifierInt,
 	// · · · · · Name: example.c:1:21: 'int' "int",
 	// · · · · },
@@ -2639,9 +2629,8 @@ func ExampleGenericAssociationList_case1() {
 	// · · · Case: GenericAssociationType,
 	// · · · Token: example.c:1:34: ':' ":",
 	// · · · TypeName: &cc.TypeName{
-	// · · · · SpecifierQualifierList: &cc.SpecifierQualifierList{
-	// · · · · · Case: SpecifierQualifierListTypeSpec,
-	// · · · · · TypeSpecifier: &cc.TypeSpecName{
+	// · · · · SpecifierQualifiers: []*cc.TypeSpecName{ // len 1
+	// · · · · · 0: &cc.TypeSpecName{
 	// · · · · · · Case: TypeSpecifierFloat,
 	// · · · · · · Name: example.c:1:29: 'float' "float",
 	// · · · · · },
@@ -2670,9 +2659,8 @@ func ExampleGenericSelection_case0() {
 	// · · · Case: GenericAssociationType,
 	// · · · Token: example.c:1:24: ':' ":",
 	// · · · TypeName: &cc.TypeName{
-	// · · · · SpecifierQualifierList: &cc.SpecifierQualifierList{
-	// · · · · · Case: SpecifierQualifierListTypeSpec,
-	// · · · · · TypeSpecifier: &cc.TypeSpecName{
+	// · · · · SpecifierQualifiers: []*cc.TypeSpecName{ // len 1
+	// · · · · · 0: &cc.TypeSpecName{
 	// · · · · · · Case: TypeSpecifierInt,
 	// · · · · · · Name: example.c:1:21: 'int' "int",
 	// · · · · · },
@@ -3709,9 +3697,8 @@ func ExamplePostfixExpression_complit() {
 	// · · · · Token2: example.c:1:14: ']' "]",
 	// · · · },
 	// · · },
-	// · · SpecifierQualifierList: &cc.SpecifierQualifierList{
-	// · · · Case: SpecifierQualifierListTypeSpec,
-	// · · · TypeSpecifier: &cc.TypeSpecName{
+	// · · SpecifierQualifiers: []*cc.TypeSpecName{ // len 1
+	// · · · 0: &cc.TypeSpecName{
 	// · · · · Case: TypeSpecifierInt,
 	// · · · · Name: example.c:1:10: 'int' "int",
 	// · · · },
@@ -3856,9 +3843,8 @@ func ExamplePrimaryExpression_generic() {
 	// · · · · Case: GenericAssociationType,
 	// · · · · Token: example.c:1:24: ':' ":",
 	// · · · · TypeName: &cc.TypeName{
-	// · · · · · SpecifierQualifierList: &cc.SpecifierQualifierList{
-	// · · · · · · Case: SpecifierQualifierListTypeSpec,
-	// · · · · · · TypeSpecifier: &cc.TypeSpecName{
+	// · · · · · SpecifierQualifiers: []*cc.TypeSpecName{ // len 1
+	// · · · · · · 0: &cc.TypeSpecName{
 	// · · · · · · · Case: TypeSpecifierInt,
 	// · · · · · · · Name: example.c:1:21: 'int' "int",
 	// · · · · · · },
@@ -4081,62 +4067,38 @@ func ExampleBinaryExpression_rsh() {
 	// }
 }
 
-func ExampleSpecifierQualifierList_typeSpec() {
+func ExampleTypeSpecName_sqTypeSpec() {
 	fmt.Println(exampleAST(148, "struct {int i;};"))
 	// Output:
-	// &cc.SpecifierQualifierList{
-	// · Case: SpecifierQualifierListTypeSpec,
-	// · TypeSpecifier: &cc.TypeSpecName{
-	// · · Case: TypeSpecifierInt,
-	// · · Name: example.c:1:9: 'int' "int",
-	// · },
+	// &cc.TypeSpecName{
+	// · Case: TypeSpecifierInt,
+	// · Name: example.c:1:9: 'int' "int",
 	// }
 }
 
-func ExampleSpecifierQualifierList_typeQual() {
+func ExampleTypeQualifier_sqTypeQual() {
 	fmt.Println(exampleAST(149, "struct {const int i;};"))
 	// Output:
-	// &cc.SpecifierQualifierList{
-	// · Case: SpecifierQualifierListTypeQual,
-	// · SpecifierQualifierList: &cc.SpecifierQualifierList{
-	// · · Case: SpecifierQualifierListTypeSpec,
-	// · · TypeSpecifier: &cc.TypeSpecName{
-	// · · · Case: TypeSpecifierInt,
-	// · · · Name: example.c:1:15: 'int' "int",
-	// · · },
-	// · },
-	// · TypeQualifier: &cc.TypeQualifier{
-	// · · Case: TypeQualifierConst,
-	// · · Token: example.c:1:9: 'const' "const",
-	// · },
+	// &cc.TypeQualifier{
+	// · Case: TypeQualifierConst,
+	// · Token: example.c:1:9: 'const' "const",
 	// }
 }
 
-func ExampleSpecifierQualifierList_alignSpec() {
+func ExampleAlignmentSpecifier_alignSpec() {
 	fmt.Println(exampleAST(150, "struct {_Alignas(double) int i;};"))
 	// Output:
-	// &cc.SpecifierQualifierList{
-	// · AlignmentSpecifier: &cc.AlignmentSpecifier{
-	// · · Case: AlignmentSpecifierType,
-	// · · Token: example.c:1:9: '_Alignas' "_Alignas",
-	// · · Token2: example.c:1:17: '(' "(",
-	// · · Token3: example.c:1:24: ')' ")",
-	// · · TypeName: &cc.TypeName{
-	// · · · SpecifierQualifierList: &cc.SpecifierQualifierList{
-	// · · · · Case: SpecifierQualifierListTypeSpec,
-	// · · · · TypeSpecifier: &cc.TypeSpecName{
-	// · · · · · Case: TypeSpecifierDouble,
-	// · · · · · Name: example.c:1:18: 'double' "double",
-	// · · · · },
+	// &cc.AlignmentSpecifier{
+	// · Case: AlignmentSpecifierType,
+	// · Token: example.c:1:9: '_Alignas' "_Alignas",
+	// · Token2: example.c:1:17: '(' "(",
+	// · Token3: example.c:1:24: ')' ")",
+	// · TypeName: &cc.TypeName{
+	// · · SpecifierQualifiers: []*cc.TypeSpecName{ // len 1
+	// · · · 0: &cc.TypeSpecName{
+	// · · · · Case: TypeSpecifierDouble,
+	// · · · · Name: example.c:1:18: 'double' "double",
 	// · · · },
-	// · · },
-	// · },
-	// · Case: SpecifierQualifierListAlignSpec,
-	// · SpecifierQualifierList: &cc.SpecifierQualifierList{
-	// · · Case: SpecifierQualifierListTypeSpec,
-	// · · TypeSpecifier: &cc.TypeSpecName{
-	// · · · Case: TypeSpecifierInt,
-	// · · · Name: example.c:1:26: 'int' "int",
 	// · · },
 	// · },
 	// }
@@ -4711,9 +4673,8 @@ func ExampleStructDeclaration_decl() {
 	// · · },
 	// · },
 	// · Case: StructDeclarationDecl,
-	// · SpecifierQualifierList: &cc.SpecifierQualifierList{
-	// · · Case: SpecifierQualifierListTypeSpec,
-	// · · TypeSpecifier: &cc.TypeSpecName{
+	// · SpecifierQualifiers: []*cc.TypeSpecName{ // len 1
+	// · · 0: &cc.TypeSpecName{
 	// · · · Case: TypeSpecifierInt,
 	// · · · Name: example.c:1:9: 'int' "int",
 	// · · },
@@ -4769,16 +4730,8 @@ func ExampleStructDeclarationList_case0() {
 	// &cc.StructDeclarationList{
 	// · StructDeclaration: &cc.StructDeclaration{
 	// · · Case: StructDeclarationDecl,
-	// · · SpecifierQualifierList: &cc.SpecifierQualifierList{
-	// · · · Case: SpecifierQualifierListTypeQual,
-	// · · · SpecifierQualifierList: &cc.SpecifierQualifierList{
-	// · · · · Case: SpecifierQualifierListTypeSpec,
-	// · · · · TypeSpecifier: &cc.TypeSpecName{
-	// · · · · · Case: TypeSpecifierInt,
-	// · · · · · Name: example.c:1:28: 'int' "int",
-	// · · · · },
-	// · · · },
-	// · · · TypeQualifier: &cc.TypeQualifier{
+	// · · SpecifierQualifiers: []*cc.TypeQualifier{ // len 2
+	// · · · 0: &cc.TypeQualifier{
 	// · · · · AttributeSpecifiers: []*cc.AttributeSpecifier{ // len 1
 	// · · · · · 0: &cc.AttributeSpecifier{
 	// · · · · · · AttributeValueList: &cc.AttributeValueList{
@@ -4795,6 +4748,10 @@ func ExampleStructDeclarationList_case0() {
 	// · · · · · },
 	// · · · · },
 	// · · · · Case: TypeQualifierAttr,
+	// · · · },
+	// · · · 1: &cc.TypeSpecName{
+	// · · · · Case: TypeSpecifierInt,
+	// · · · · Name: example.c:1:28: 'int' "int",
 	// · · · },
 	// · · },
 	// · · StructDeclaratorList: &cc.StructDeclaratorList{
@@ -4819,9 +4776,8 @@ func ExampleStructDeclarationList_case1() {
 	// &cc.StructDeclarationList{
 	// · StructDeclaration: &cc.StructDeclaration{
 	// · · Case: StructDeclarationDecl,
-	// · · SpecifierQualifierList: &cc.SpecifierQualifierList{
-	// · · · Case: SpecifierQualifierListTypeSpec,
-	// · · · TypeSpecifier: &cc.TypeSpecName{
+	// · · SpecifierQualifiers: []*cc.TypeSpecName{ // len 1
+	// · · · 0: &cc.TypeSpecName{
 	// · · · · Case: TypeSpecifierInt,
 	// · · · · Name: example.c:1:9: 'int' "int",
 	// · · · },
@@ -4842,9 +4798,8 @@ func ExampleStructDeclarationList_case1() {
 	// · StructDeclarationList: &cc.StructDeclarationList{
 	// · · StructDeclaration: &cc.StructDeclaration{
 	// · · · Case: StructDeclarationDecl,
-	// · · · SpecifierQualifierList: &cc.SpecifierQualifierList{
-	// · · · · Case: SpecifierQualifierListTypeSpec,
-	// · · · · TypeSpecifier: &cc.TypeSpecName{
+	// · · · SpecifierQualifiers: []*cc.TypeSpecName{ // len 1
+	// · · · · 0: &cc.TypeSpecName{
 	// · · · · · Case: TypeSpecifierDouble,
 	// · · · · · Name: example.c:1:16: 'double' "double",
 	// · · · · },
@@ -4986,9 +4941,8 @@ func ExampleStructOrUnionSpecifier_def() {
 	// · StructDeclarationList: &cc.StructDeclarationList{
 	// · · StructDeclaration: &cc.StructDeclaration{
 	// · · · Case: StructDeclarationDecl,
-	// · · · SpecifierQualifierList: &cc.SpecifierQualifierList{
-	// · · · · Case: SpecifierQualifierListTypeSpec,
-	// · · · · TypeSpecifier: &cc.TypeSpecName{
+	// · · · SpecifierQualifiers: []*cc.TypeSpecName{ // len 1
+	// · · · · 0: &cc.TypeSpecName{
 	// · · · · · Case: TypeSpecifierInt,
 	// · · · · · Name: example.c:1:12: 'int' "int",
 	// · · · · },
@@ -5119,9 +5073,8 @@ func ExampleTypeName_case0() {
 	fmt.Println(exampleAST(194, "int i = (int)x;"))
 	// Output:
 	// &cc.TypeName{
-	// · SpecifierQualifierList: &cc.SpecifierQualifierList{
-	// · · Case: SpecifierQualifierListTypeSpec,
-	// · · TypeSpecifier: &cc.TypeSpecName{
+	// · SpecifierQualifiers: []*cc.TypeSpecName{ // len 1
+	// · · 0: &cc.TypeSpecName{
 	// · · · Case: TypeSpecifierInt,
 	// · · · Name: example.c:1:10: 'int' "int",
 	// · · },
@@ -5478,9 +5431,8 @@ func ExampleTypeSpecTypeOfType_typeofType() {
 	// · TypeOf: example.c:1:16: 'typeof' "typeof",
 	// · LeftParen: example.c:1:22: '(' "(",
 	// · Name: &cc.TypeName{
-	// · · SpecifierQualifierList: &cc.SpecifierQualifierList{
-	// · · · Case: SpecifierQualifierListTypeSpec,
-	// · · · TypeSpecifier: &cc.TypeSpecName{
+	// · · SpecifierQualifiers: []*cc.TypeSpecName{ // len 1
+	// · · · 0: &cc.TypeSpecName{
 	// · · · · Case: TypeSpecifierTypeName,
 	// · · · · Name: example.c:1:23: type name "T",
 	// · · · },
@@ -5499,9 +5451,8 @@ func ExampleTypeSpecAtomic_atomic() {
 	// · · Token2: example.c:1:8: '(' "(",
 	// · · Token3: example.c:1:12: ')' ")",
 	// · · TypeName: &cc.TypeName{
-	// · · · SpecifierQualifierList: &cc.SpecifierQualifierList{
-	// · · · · Case: SpecifierQualifierListTypeSpec,
-	// · · · · TypeSpecifier: &cc.TypeSpecName{
+	// · · · SpecifierQualifiers: []*cc.TypeSpecName{ // len 1
+	// · · · · 0: &cc.TypeSpecName{
 	// · · · · · Case: TypeSpecifierInt,
 	// · · · · · Name: example.c:1:9: 'int' "int",
 	// · · · · },
@@ -5673,9 +5624,8 @@ func ExampleUnaryExpression_sizeofType() {
 	// · Token2: example.c:1:15: '(' "(",
 	// · Token3: example.c:1:19: ')' ")",
 	// · TypeName: &cc.TypeName{
-	// · · SpecifierQualifierList: &cc.SpecifierQualifierList{
-	// · · · Case: SpecifierQualifierListTypeSpec,
-	// · · · TypeSpecifier: &cc.TypeSpecName{
+	// · · SpecifierQualifiers: []*cc.TypeSpecName{ // len 1
+	// · · · 0: &cc.TypeSpecName{
 	// · · · · Case: TypeSpecifierInt,
 	// · · · · Name: example.c:1:16: 'int' "int",
 	// · · · },
@@ -5721,9 +5671,8 @@ func ExampleUnaryExpression_alignofType() {
 	// · Token2: example.c:1:17: '(' "(",
 	// · Token3: example.c:1:21: ')' ")",
 	// · TypeName: &cc.TypeName{
-	// · · SpecifierQualifierList: &cc.SpecifierQualifierList{
-	// · · · Case: SpecifierQualifierListTypeSpec,
-	// · · · TypeSpecifier: &cc.TypeSpecName{
+	// · · SpecifierQualifiers: []*cc.TypeSpecName{ // len 1
+	// · · · 0: &cc.TypeSpecName{
 	// · · · · Case: TypeSpecifierInt,
 	// · · · · Name: example.c:1:18: 'int' "int",
 	// · · · },

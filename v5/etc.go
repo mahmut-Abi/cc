@@ -453,6 +453,8 @@ var (
 	reflDeclaration          = reflect.TypeOf((*Declaration)(nil)).Elem()
 	reflStatement            = reflect.TypeOf((*Statement)(nil)).Elem()
 	reflExpression           = reflect.TypeOf((*Expression)(nil)).Elem()
+	reflTypeSpecifier        = reflect.TypeOf((*TypeSpecifier)(nil)).Elem()
+	reflSpecifierQualifier   = reflect.TypeOf((*SpecifierQualifier)(nil)).Elem()
 )
 
 func typeNameEqual(t reflect.Type, typ string) bool {
@@ -472,6 +474,10 @@ func typeNameEqual(t reflect.Type, typ string) bool {
 		return t.Implements(reflStatement) || reflect.PointerTo(t).Implements(reflStatement)
 	case "Expression":
 		return t.Implements(reflExpression) || reflect.PointerTo(t).Implements(reflExpression)
+	case "TypeSpecifier":
+		return t.Implements(reflTypeSpecifier) || reflect.PointerTo(t).Implements(reflTypeSpecifier)
+	case "SpecifierQualifier":
+		return t.Implements(reflSpecifierQualifier) || reflect.PointerTo(t).Implements(reflSpecifierQualifier)
 	}
 	return false
 }

@@ -1822,7 +1822,7 @@ func (p *parser) castExpression(checkTypeName bool) (r, u Expression) {
 //  type-name:
 // 	specifier-qualifier-list abstract-declarator_opt
 func (p *parser) typeName() *TypeName {
-	return &TypeName{SpecifierQualifierList: p.specifierQualifierList(), AbstractDeclarator: p.abstractDeclarator(nil, true)}
+	return &TypeName{SpecifierQualifiers: p.specifierQualifierList(), AbstractDeclarator: p.abstractDeclarator(nil, true)}
 }
 
 //  abstract-declarator:
@@ -2016,40 +2016,32 @@ func (p *parser) directAbstractDeclarator2(dad *DirectAbstractDeclarator) (r *Di
 // 	type-specifier specifier-qualifier-list_opt
 // 	type-qualifier specifier-qualifier-list_opt
 // 	alignment-specifier specifier-qualifier-list_opt
-func (p *parser) specifierQualifierList() (r *SpecifierQualifierList) {
-	var prev *SpecifierQualifierList
+func (p *parser) specifierQualifierList() (r []SpecifierQualifier) {
 	acceptTypeName := true
 	for {
-		var sql *SpecifierQualifierList
+		var sql SpecifierQualifier
 		switch ch := p.rune(false); {
 		case ch == rune(IDENTIFIER):
 			if !acceptTypeName || !p.checkTypeName(&p.toks[0]) {
 				return r
 			}
 
-			sql = &SpecifierQualifierList{Case: SpecifierQualifierListTypeSpec, TypeSpecifier: p.typeSpecifier()}
+			sql = p.typeSpecifier()
 			acceptTypeName = false
 		case ch == rune(ATOMIC) && p.peek(1, false).Ch == '(':
-			sql = &SpecifierQualifierList{Case: SpecifierQualifierListTypeSpec, TypeSpecifier: p.typeSpecifier()}
+			sql = p.typeSpecifier()
 			acceptTypeName = false
 		case p.isTypeSpecifier(ch, false):
-			sql = &SpecifierQualifierList{Case: SpecifierQualifierListTypeSpec, TypeSpecifier: p.typeSpecifier()}
+			sql = p.typeSpecifier()
 			acceptTypeName = false
 		case p.isTypeQualifier(ch) || ch == rune(ATTRIBUTE):
-			sql = &SpecifierQualifierList{Case: SpecifierQualifierListTypeQual, TypeQualifier: p.typeQualifier(true)}
+			sql = p.typeQualifier(true)
 		case ch == rune(ALIGNAS):
-			sql = &SpecifierQualifierList{Case: SpecifierQualifierListAlignSpec, AlignmentSpecifier: p.alignmentSpecifier()}
+			sql = p.alignmentSpecifier()
 		default:
 			return r
 		}
-
-		switch {
-		case r == nil:
-			r = sql
-		default:
-			prev.SpecifierQualifierList = sql
-		}
-		prev = sql
+		r = append(r, sql)
 	}
 }
 
@@ -3408,7 +3400,7 @@ func (p *parser) structDeclaration() (r *StructDeclaration) {
 		return r
 	}
 
-	r = &StructDeclaration{Case: StructDeclarationDecl, SpecifierQualifierList: p.specifierQualifierList(), StructDeclaratorList: p.structDeclaratorListOpt(), AttributeSpecifiers: p.attributeSpecifierListOpt()}
+	r = &StructDeclaration{Case: StructDeclarationDecl, SpecifierQualifiers: p.specifierQualifierList(), StructDeclaratorList: p.structDeclaratorListOpt(), AttributeSpecifiers: p.attributeSpecifierListOpt()}
 	switch p.rune(false) {
 	case ';':
 		r.Token = p.shift(false)

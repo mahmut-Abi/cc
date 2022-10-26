@@ -3400,77 +3400,26 @@ func (n *SelectionStatement) Cases() int { return n.switchCases }
 // SelectionStatementSwitch.
 func (n *SelectionStatement) LabeledStatements() []*LabeledStatement { return n.labeled }
 
-// SpecifierQualifierListCase represents case numbers of production SpecifierQualifierList
-type SpecifierQualifierListCase int
-
-// Values of type SpecifierQualifierListCase
-const (
-	SpecifierQualifierListTypeSpec SpecifierQualifierListCase = iota
-	SpecifierQualifierListTypeQual
-	SpecifierQualifierListAlignSpec
-)
-
-// String implements fmt.Stringer
-func (n SpecifierQualifierListCase) String() string {
-	switch n {
-	case SpecifierQualifierListTypeSpec:
-		return "SpecifierQualifierListTypeSpec"
-	case SpecifierQualifierListTypeQual:
-		return "SpecifierQualifierListTypeQual"
-	case SpecifierQualifierListAlignSpec:
-		return "SpecifierQualifierListAlignSpec"
-	default:
-		return fmt.Sprintf("SpecifierQualifierListCase(%v)", int(n))
-	}
-}
-
-// SpecifierQualifierList represents data reduced by productions:
+// SpecifierQualifier represents data reduced by productions:
 //
 //	SpecifierQualifierList:
 //	        TypeSpecifier SpecifierQualifierList       // Case SpecifierQualifierListTypeSpec
 //	|       TypeQualifier SpecifierQualifierList       // Case SpecifierQualifierListTypeQual
 //	|       AlignmentSpecifier SpecifierQualifierList  // Case SpecifierQualifierListAlignSpec
-type SpecifierQualifierList struct {
-	AttributeSpecifiers    []*AttributeSpecifier
-	AlignmentSpecifier     *AlignmentSpecifier
-	Case                   SpecifierQualifierListCase `PrettyPrint:"stringer,zero"`
-	SpecifierQualifierList *SpecifierQualifierList
-	TypeQualifier          *TypeQualifier
-	TypeSpecifier          TypeSpecifier
+type SpecifierQualifier interface {
+	Node
+	fmt.Stringer
+	isSpecifierQualifier()
 }
 
-// String implements fmt.Stringer.
-func (n *SpecifierQualifierList) String() string { return PrettyString(n) }
-
-// Position reports the position of the first component of n, if available.
-func (n *SpecifierQualifierList) Position() (r token.Position) {
-	if n == nil {
-		return r
-	}
-
-	switch n.Case {
-	case 2:
-		if p := n.AlignmentSpecifier.Position(); p.IsValid() {
-			return p
-		}
-
-		return n.SpecifierQualifierList.Position()
-	case 1:
-		if p := n.TypeQualifier.Position(); p.IsValid() {
-			return p
-		}
-
-		return n.SpecifierQualifierList.Position()
-	case 0:
-		if p := n.TypeSpecifier.Position(); p.IsValid() {
-			return p
-		}
-
-		return n.SpecifierQualifierList.Position()
-	default:
-		panic("internal error")
-	}
-}
+func (*AlignmentSpecifier) isSpecifierQualifier()    {}
+func (*TypeQualifier) isSpecifierQualifier()         {}
+func (*TypeSpecName) isSpecifierQualifier()          {}
+func (*TypeSpecEnum) isSpecifierQualifier()          {}
+func (*TypeSpecStructOrUnion) isSpecifierQualifier() {}
+func (*TypeSpecAtomic) isSpecifierQualifier()        {}
+func (*TypeSpecTypeOfType) isSpecifierQualifier()    {}
+func (*TypeSpecTypeOfExpr) isSpecifierQualifier()    {}
 
 // Statement represents data reduced by productions:
 //
@@ -3652,7 +3601,7 @@ func (n StructDeclarationCase) String() string {
 type StructDeclaration struct {
 	AttributeSpecifiers     []*AttributeSpecifier
 	Case                    StructDeclarationCase `PrettyPrint:"stringer,zero"`
-	SpecifierQualifierList  *SpecifierQualifierList
+	SpecifierQualifiers     []SpecifierQualifier
 	StaticAssertDeclaration *StaticAssertDeclaration
 	StructDeclaratorList    *StructDeclaratorList
 	Token                   Token
@@ -3669,8 +3618,10 @@ func (n *StructDeclaration) Position() (r token.Position) {
 
 	switch n.Case {
 	case 0:
-		if p := n.SpecifierQualifierList.Position(); p.IsValid() {
-			return p
+		for _, q := range n.SpecifierQualifiers {
+			if p := q.Position(); p.IsValid() {
+				return p
+			}
 		}
 
 		if p := n.StructDeclaratorList.Position(); p.IsValid() {
@@ -3918,8 +3869,8 @@ func (n *StructOrUnionSpecifier) Position() (r token.Position) {
 //	        SpecifierQualifierList AbstractDeclarator
 type TypeName struct {
 	typer
-	AbstractDeclarator     *AbstractDeclarator
-	SpecifierQualifierList *SpecifierQualifierList
+	AbstractDeclarator  *AbstractDeclarator
+	SpecifierQualifiers []SpecifierQualifier
 }
 
 // String implements fmt.Stringer.
@@ -3931,8 +3882,10 @@ func (n *TypeName) Position() (r token.Position) {
 		return r
 	}
 
-	if p := n.SpecifierQualifierList.Position(); p.IsValid() {
-		return p
+	for _, q := range n.SpecifierQualifiers {
+		if p := q.Position(); p.IsValid() {
+			return p
+		}
 	}
 
 	return n.AbstractDeclarator.Position()
@@ -4138,6 +4091,7 @@ func (n TypeSpecifierCase) String() string {
 //	|       "_Float64x"                      // Case TypeSpecifierFloat64x
 type TypeSpecifier interface {
 	DeclarationSpecifier
+	SpecifierQualifier
 	LexicalScope() *Scope
 	TypeSpecifierCase() TypeSpecifierCase
 	check(c *ctx, isAtomic *bool) (r Type)
