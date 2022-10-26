@@ -87,7 +87,15 @@ var defaultKeywords = map[string]rune{
 	"__imag__":      rune(IMAG),
 	"__inline":      rune(INLINE),
 	"__inline__":    rune(INLINE),
+	"__int8":        rune(INT8),
+	"__int16":       rune(INT16),
+	"__int32":       rune(INT32),
+	"__int64":       rune(INT64),
 	"__int128":      rune(INT128),
+	"__int8_t":      rune(INT8),
+	"__int16_t":     rune(INT16),
+	"__int32_t":     rune(INT32),
+	"__int64_t":     rune(INT64),
 	"__int128_t":    rune(INT128),
 	"__label__":     rune(LABEL),
 	"__real":        rune(REAL),
@@ -99,6 +107,10 @@ var defaultKeywords = map[string]rune{
 	"__thread":      rune(THREADLOCAL),
 	"__typeof":      rune(TYPEOF),
 	"__typeof__":    rune(TYPEOF),
+	"__uint8_t":     rune(UINT8),
+	"__uint16_t":    rune(UINT16),
+	"__uint32_t":    rune(UINT32),
+	"__uint64_t":    rune(UINT64),
 	"__uint128_t":   rune(UINT128),
 	"__volatile":    rune(VOLATILE),
 	"__volatile__":  rune(VOLATILE),
@@ -3149,8 +3161,24 @@ func (p *parser) typeSpecifier() TypeSpecifier {
 		return &TypeSpecName{Case: TypeSpecifierFloat128x, Name: p.shift(false)}
 	case rune(ATOMIC):
 		return &TypeSpecAtomic{Atomic: p.atomicTypeSpecifier()}
+	case rune(UINT8):
+		return &TypeSpecName{Case: TypeSpecifierUint8, Name: p.shift(false)}
+	case rune(UINT16):
+		return &TypeSpecName{Case: TypeSpecifierUint16, Name: p.shift(false)}
+	case rune(UINT32):
+		return &TypeSpecName{Case: TypeSpecifierUint32, Name: p.shift(false)}
+	case rune(UINT64):
+		return &TypeSpecName{Case: TypeSpecifierUint64, Name: p.shift(false)}
 	case rune(UINT128):
 		return &TypeSpecName{Case: TypeSpecifierUint128, Name: p.shift(false)}
+	case rune(INT8):
+		return &TypeSpecName{Case: TypeSpecifierInt8, Name: p.shift(false)}
+	case rune(INT16):
+		return &TypeSpecName{Case: TypeSpecifierInt16, Name: p.shift(false)}
+	case rune(INT32):
+		return &TypeSpecName{Case: TypeSpecifierInt32, Name: p.shift(false)}
+	case rune(INT64):
+		return &TypeSpecName{Case: TypeSpecifierInt64, Name: p.shift(false)}
 	case rune(INT128):
 		return &TypeSpecName{Case: TypeSpecifierInt128, Name: p.shift(false)}
 	case rune(DECIMAL32):
@@ -3198,12 +3226,20 @@ func (p *parser) isTypeSpecifier(ch rune, typenameOk bool) bool {
 		rune(FLOAT64X),
 		rune(IMAGINARY),
 		rune(INT),
+		rune(INT8),
+		rune(INT16),
+		rune(INT32),
+		rune(INT64),
 		rune(INT128),
 		rune(LONG),
 		rune(SHORT),
 		rune(SIGNED),
 		rune(STRUCT),
 		rune(TYPEOF),
+		rune(UINT8),
+		rune(UINT16),
+		rune(UINT32),
+		rune(UINT64),
 		rune(UINT128),
 		rune(UNION),
 		rune(UNSIGNED),

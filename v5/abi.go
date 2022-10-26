@@ -62,6 +62,10 @@ var (
 			Float64:    {8, 8, 8},
 			Float64x:   {16, 16, 16},
 			Float:      {4, 4, 4},
+			Int8:       {1, 1, 1},
+			Int16:      {2, 2, 2},
+			Int32:      {4, 4, 4},
+			Int64:      {8, 8, 8},
 			Int128:     {16, 16, 16},
 			Int:        {4, 4, 4},
 			Long:       {8, 8, 8},
@@ -71,6 +75,10 @@ var (
 			SChar:      {1, 1, 1},
 			Short:      {2, 2, 2},
 			UChar:      {1, 1, 1},
+			UInt8:      {1, 1, 1},
+			UInt16:     {2, 2, 2},
+			UInt32:     {4, 4, 4},
+			UInt64:     {8, 8, 8},
 			UInt128:    {16, 16, 16},
 			UInt:       {4, 4, 4},
 			ULong:      {8, 8, 8},
@@ -93,6 +101,10 @@ var (
 			Float64x:   {12, 4, 4},
 			Float:      {4, 4, 4},
 			Int:        {4, 4, 4},
+			Int8:       {1, 1, 1},
+			Int16:      {2, 2, 2},
+			Int32:      {4, 4, 4},
+			Int64:      {8, 8, 8},
 			Long:       {4, 4, 4},
 			LongDouble: {12, 4, 4},
 			LongLong:   {8, 4, 4},
@@ -101,6 +113,10 @@ var (
 			Short:      {2, 2, 2},
 			UChar:      {1, 1, 1},
 			UInt:       {4, 4, 4},
+			UInt8:      {1, 1, 1},
+			UInt16:     {2, 2, 2},
+			UInt32:     {4, 4, 4},
+			UInt64:     {8, 8, 8},
 			ULong:      {4, 4, 4},
 			ULongLong:  {8, 4, 4},
 			UShort:     {2, 2, 2},
@@ -681,9 +697,9 @@ func NewABI(os, arch string) (*ABI, error) {
 
 func (a *ABI) isSignedInteger(k Kind) bool {
 	switch k {
-	case Bool, UChar, UInt, ULong, ULongLong, UShort, UInt128:
+	case Bool, UChar, UInt, ULong, ULongLong, UShort, UInt8, UInt16, UInt32, UInt64, UInt128:
 		return false
-	case SChar, Int, Long, LongLong, Short, Int128:
+	case SChar, Int, Long, LongLong, Short, Int8, Int16, Int32, Int64, Int128:
 		return true
 	case Char:
 		return a.SignedChar

@@ -76,7 +76,16 @@ func newCtx(ast *AST) *ctx {
 	longlong := c.newPredefinedType(LongLong)
 	short := c.newPredefinedType(Short)
 	uint := c.newPredefinedType(UInt)
+	uint8 := c.newPredefinedType(UInt8)
+	uint16 := c.newPredefinedType(UInt16)
+	uint32 := c.newPredefinedType(UInt32)
+	uint64 := c.newPredefinedType(UInt64)
 	uint128 := c.newPredefinedType(UInt128)
+	int8 := c.newPredefinedType(Int8)
+	int16 := c.newPredefinedType(Int16)
+	int32 := c.newPredefinedType(Int32)
+	int64 := c.newPredefinedType(Int64)
+	int128 := c.newPredefinedType(Int128)
 	ulong := c.newPredefinedType(ULong)
 	ulonglog := c.newPredefinedType(ULongLong)
 	ushort := c.newPredefinedType(UShort)
@@ -121,8 +130,21 @@ func newCtx(ast *AST) *ctx {
 		ts2String([]TypeSpecifierCase{TypeSpecifierInt, TypeSpecifierShort}):                                          short,
 		ts2String([]TypeSpecifierCase{TypeSpecifierInt, TypeSpecifierSigned}):                                         int,
 		ts2String([]TypeSpecifierCase{TypeSpecifierInt, TypeSpecifierUnsigned}):                                       uint,
+		ts2String([]TypeSpecifierCase{TypeSpecifierInt8, TypeSpecifierSigned}):                                        int8,
+		ts2String([]TypeSpecifierCase{TypeSpecifierInt16, TypeSpecifierSigned}):                                       int16,
+		ts2String([]TypeSpecifierCase{TypeSpecifierInt32, TypeSpecifierSigned}):                                       int32,
+		ts2String([]TypeSpecifierCase{TypeSpecifierInt64, TypeSpecifierSigned}):                                       int64,
+		ts2String([]TypeSpecifierCase{TypeSpecifierInt128, TypeSpecifierSigned}):                                      int128,
+		ts2String([]TypeSpecifierCase{TypeSpecifierInt8, TypeSpecifierUnsigned}):                                      uint8,
+		ts2String([]TypeSpecifierCase{TypeSpecifierInt16, TypeSpecifierUnsigned}):                                     uint16,
+		ts2String([]TypeSpecifierCase{TypeSpecifierInt32, TypeSpecifierUnsigned}):                                     uint32,
+		ts2String([]TypeSpecifierCase{TypeSpecifierInt64, TypeSpecifierUnsigned}):                                     uint64,
 		ts2String([]TypeSpecifierCase{TypeSpecifierInt128, TypeSpecifierUnsigned}):                                    uint128,
-		ts2String([]TypeSpecifierCase{TypeSpecifierInt128}):                                                           c.newPredefinedType(Int128),
+		ts2String([]TypeSpecifierCase{TypeSpecifierInt8}):                                                             int8,
+		ts2String([]TypeSpecifierCase{TypeSpecifierInt16}):                                                            int16,
+		ts2String([]TypeSpecifierCase{TypeSpecifierInt32}):                                                            int32,
+		ts2String([]TypeSpecifierCase{TypeSpecifierInt64}):                                                            int64,
+		ts2String([]TypeSpecifierCase{TypeSpecifierInt128}):                                                           int128,
 		ts2String([]TypeSpecifierCase{TypeSpecifierInt}):                                                              int,
 		ts2String([]TypeSpecifierCase{TypeSpecifierLong, TypeSpecifierLong, TypeSpecifierSigned}):                     longlong,
 		ts2String([]TypeSpecifierCase{TypeSpecifierLong, TypeSpecifierLong, TypeSpecifierUnsigned}):                   ulonglog,
@@ -2272,7 +2294,23 @@ func (n *TypeSpecName) check(c *ctx, isAtomic *bool) (r Type) {
 		// ok
 	case TypeSpecifierInt: // "int"
 		// ok
+	case TypeSpecifierInt8: // "__int8"
+		// ok
+	case TypeSpecifierInt16: // "__int16"
+		// ok
+	case TypeSpecifierInt32: // "__int32"
+		// ok
+	case TypeSpecifierInt64: // "__int64"
+		// ok
 	case TypeSpecifierInt128: // "__int128"
+		// ok
+	case TypeSpecifierUint8: // "__uint8_t"
+		// ok
+	case TypeSpecifierUint16: // "__uint16_t"
+		// ok
+	case TypeSpecifierUint32: // "__uint32_t"
+		// ok
+	case TypeSpecifierUint64: // "__uint64_t"
 		// ok
 	case TypeSpecifierUint128: // "__uint128_t"
 		// ok

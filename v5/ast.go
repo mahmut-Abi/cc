@@ -3971,7 +3971,15 @@ const (
 	TypeSpecifierChar
 	TypeSpecifierShort
 	TypeSpecifierInt
+	TypeSpecifierInt8
+	TypeSpecifierInt16
+	TypeSpecifierInt32
+	TypeSpecifierInt64
 	TypeSpecifierInt128
+	TypeSpecifierUint8
+	TypeSpecifierUint16
+	TypeSpecifierUint32
+	TypeSpecifierUint64
 	TypeSpecifierUint128
 	TypeSpecifierLong
 	TypeSpecifierFloat
@@ -4010,8 +4018,24 @@ func (n TypeSpecifierCase) String() string {
 		return "TypeSpecifierShort"
 	case TypeSpecifierInt:
 		return "TypeSpecifierInt"
+	case TypeSpecifierInt8:
+		return "TypeSpecifierInt8"
+	case TypeSpecifierInt16:
+		return "TypeSpecifierInt16"
+	case TypeSpecifierInt32:
+		return "TypeSpecifierInt32"
+	case TypeSpecifierInt64:
+		return "TypeSpecifierInt64"
 	case TypeSpecifierInt128:
 		return "TypeSpecifierInt128"
+	case TypeSpecifierUint8:
+		return "TypeSpecifierUint8"
+	case TypeSpecifierUint16:
+		return "TypeSpecifierUint16"
+	case TypeSpecifierUint32:
+		return "TypeSpecifierUint32"
+	case TypeSpecifierUint64:
+		return "TypeSpecifierUint64"
 	case TypeSpecifierUint128:
 		return "TypeSpecifierUint128"
 	case TypeSpecifierLong:

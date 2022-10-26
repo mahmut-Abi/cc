@@ -32,6 +32,10 @@ var (
 		Bool:      true,
 		Char:      true,
 		Enum:      true,
+		Int8:      true,
+		Int16:     true,
+		Int32:     true,
+		Int64:     true,
 		Int128:    true,
 		Int:       true,
 		Long:      true,
@@ -39,6 +43,10 @@ var (
 		SChar:     true,
 		Short:     true,
 		UChar:     true,
+		UInt8:     true,
+		UInt16:    true,
+		UInt32:    true,
+		UInt64:    true,
 		UInt128:   true,
 		UInt:      true,
 		ULong:     true,
@@ -94,14 +102,22 @@ var (
 		Char:      2,
 		SChar:     2,
 		UChar:     2,
+		Int8:      2,
+		UInt8:     2,
 		Short:     3,
 		UShort:    3,
+		Int16:     3,
+		UInt16:    3,
 		Int:       4,
 		UInt:      4,
+		Int32:     4,
+		UInt32:    4,
 		Long:      5,
 		ULong:     5,
 		LongLong:  6,
 		ULongLong: 6,
+		Int64:     6,
+		UInt64:    6,
 		Int128:    7,
 		UInt128:   7,
 	}
@@ -156,6 +172,10 @@ const (
 	Float64x          // _Float64x
 	Function          // function
 	Int               // int
+	Int8              // __int8
+	Int16             // __int16
+	Int32             // __int32
+	Int64             // __int64
 	Int128            // __int128
 	Long              // long
 	LongDouble        // long double
@@ -166,6 +186,10 @@ const (
 	Struct            // struct
 	UChar             // unsigned char
 	UInt              // unsigned
+	UInt8             // unsigned __int8
+	UInt16            // unsigned __int16
+	UInt32            // unsigned __int32
+	UInt64            // unsigned __int64
 	UInt128           // unsigned __int128
 	ULong             // unsigned long
 	ULongLong         // unsigned long long
@@ -2282,6 +2306,14 @@ func UsualArithmeticConversions(a, b Type) (r Type) {
 		return ast.kinds[ULong]
 	case LongLong:
 		return ast.kinds[ULongLong]
+	case Int8:
+		return ast.kinds[UInt8]
+	case Int16:
+		return ast.kinds[UInt16]
+	case Int32:
+		return ast.kinds[UInt32]
+	case Int64:
+		return ast.kinds[UInt64]
 	case Int128:
 		return ast.kinds[UInt128]
 	}

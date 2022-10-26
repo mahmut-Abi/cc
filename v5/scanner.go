@@ -93,6 +93,10 @@ const (
 	INC               // '++'
 	INLINE            // 'inline'
 	INT               // 'int'
+	INT8              // '__int8'
+	INT16             // '__int16'
+	INT32             // '__int32'
+	INT64             // '__int64'
 	INT128            // '__int128'
 	INTCONST          // integer constant
 	LABEL             // '__label__'
@@ -130,6 +134,10 @@ const (
 	TYPEDEF           // 'typedef'
 	TYPENAME          // type name
 	TYPEOF            // 'typeof'
+	UINT8             // '__uint8_t'
+	UINT16            // '__uint16_t'
+	UINT32            // '__uint32_t'
+	UINT64            // '__uint64_t'
 	UINT128           // '__uint128_t'
 	UNION             // 'union'
 	UNSIGNED          // 'unsigned'
