@@ -3105,76 +3105,76 @@ func (p *parser) isStorageClassSpecifier(ch rune) bool {
 // 	typeof ( type-name )
 // 	unsigned
 // 	void
-func (p *parser) typeSpecifier() *TypeSpecifier {
+func (p *parser) typeSpecifier() TypeSpecifier {
 	switch p.rune(true) {
 	case eof:
 		p.cpp.eh("%v: unexpected EOF", p.toks[0].Position())
 		return nil
 	case rune(CHAR):
-		return &TypeSpecifier{Case: TypeSpecifierChar, Token: p.shift(false)}
+		return &TypeSpecName{Case: TypeSpecifierChar, Name: p.shift(false)}
 	case rune(DOUBLE):
-		return &TypeSpecifier{Case: TypeSpecifierDouble, Token: p.shift(false)}
+		return &TypeSpecName{Case: TypeSpecifierDouble, Name: p.shift(false)}
 	case rune(ENUM):
-		return &TypeSpecifier{Case: TypeSpecifierEnum, EnumSpecifier: p.enumSpecifier(), lexicalScope: (*lexicalScope)(p.scope)}
+		return &TypeSpecEnum{Enum: p.enumSpecifier(), lexicalScope: (*lexicalScope)(p.scope)}
 	case rune(FLOAT):
-		return &TypeSpecifier{Case: TypeSpecifierFloat, Token: p.shift(false)}
+		return &TypeSpecName{Case: TypeSpecifierFloat, Name: p.shift(false)}
 	case rune(INT):
-		return &TypeSpecifier{Case: TypeSpecifierInt, Token: p.shift(false)}
+		return &TypeSpecName{Case: TypeSpecifierInt, Name: p.shift(false)}
 	case rune(LONG):
-		return &TypeSpecifier{Case: TypeSpecifierLong, Token: p.shift(false)}
+		return &TypeSpecName{Case: TypeSpecifierLong, Name: p.shift(false)}
 	case rune(SIGNED):
-		return &TypeSpecifier{Case: TypeSpecifierSigned, Token: p.shift(false)}
+		return &TypeSpecName{Case: TypeSpecifierSigned, Name: p.shift(false)}
 	case rune(SHORT):
-		return &TypeSpecifier{Case: TypeSpecifierShort, Token: p.shift(false)}
+		return &TypeSpecName{Case: TypeSpecifierShort, Name: p.shift(false)}
 	case rune(TYPENAME):
-		return &TypeSpecifier{Case: TypeSpecifierTypeName, Token: p.shift(true), lexicalScope: (*lexicalScope)(p.scope)}
+		return &TypeSpecName{Case: TypeSpecifierTypeName, Name: p.shift(true), lexicalScope: (*lexicalScope)(p.scope)}
 	case rune(UNSIGNED):
-		return &TypeSpecifier{Case: TypeSpecifierUnsigned, Token: p.shift(false)}
+		return &TypeSpecName{Case: TypeSpecifierUnsigned, Name: p.shift(false)}
 	case
 		rune(STRUCT),
 		rune(UNION):
 
-		return &TypeSpecifier{Case: TypeSpecifierStructOrUnion, StructOrUnionSpecifier: p.structOrUnionSpecifier()}
+		return &TypeSpecStructOrUnion{StructOrUnion: p.structOrUnionSpecifier()}
 	case rune(VOID):
-		return &TypeSpecifier{Case: TypeSpecifierVoid, Token: p.shift(false)}
+		return &TypeSpecName{Case: TypeSpecifierVoid, Name: p.shift(false)}
 	case rune(BOOL):
-		return &TypeSpecifier{Case: TypeSpecifierBool, Token: p.shift(false)}
+		return &TypeSpecName{Case: TypeSpecifierBool, Name: p.shift(false)}
 	case rune(COMPLEX):
-		return &TypeSpecifier{Case: TypeSpecifierComplex, Token: p.shift(false)}
+		return &TypeSpecName{Case: TypeSpecifierComplex, Name: p.shift(false)}
 	case rune(IMAGINARY):
-		return &TypeSpecifier{Case: TypeSpecifierImaginary, Token: p.shift(false)}
+		return &TypeSpecName{Case: TypeSpecifierImaginary, Name: p.shift(false)}
 	case rune(FLOAT16):
-		return &TypeSpecifier{Case: TypeSpecifierFloat16, Token: p.shift(false)}
+		return &TypeSpecName{Case: TypeSpecifierFloat16, Name: p.shift(false)}
 	case rune(FLOAT32):
-		return &TypeSpecifier{Case: TypeSpecifierFloat32, Token: p.shift(false)}
+		return &TypeSpecName{Case: TypeSpecifierFloat32, Name: p.shift(false)}
 	case rune(FLOAT32X):
-		return &TypeSpecifier{Case: TypeSpecifierFloat32x, Token: p.shift(false)}
+		return &TypeSpecName{Case: TypeSpecifierFloat32x, Name: p.shift(false)}
 	case rune(FLOAT64):
-		return &TypeSpecifier{Case: TypeSpecifierFloat64, Token: p.shift(false)}
+		return &TypeSpecName{Case: TypeSpecifierFloat64, Name: p.shift(false)}
 	case rune(FLOAT64X):
-		return &TypeSpecifier{Case: TypeSpecifierFloat64x, Token: p.shift(false)}
+		return &TypeSpecName{Case: TypeSpecifierFloat64x, Name: p.shift(false)}
 	case rune(FLOAT128):
-		return &TypeSpecifier{Case: TypeSpecifierFloat128, Token: p.shift(false)}
+		return &TypeSpecName{Case: TypeSpecifierFloat128, Name: p.shift(false)}
 	case rune(FLOAT128X):
-		return &TypeSpecifier{Case: TypeSpecifierFloat128x, Token: p.shift(false)}
+		return &TypeSpecName{Case: TypeSpecifierFloat128x, Name: p.shift(false)}
 	case rune(ATOMIC):
-		return &TypeSpecifier{Case: TypeSpecifierAtomic, AtomicTypeSpecifier: p.atomicTypeSpecifier()}
+		return &TypeSpecAtomic{Atomic: p.atomicTypeSpecifier()}
 	case rune(UINT128):
-		return &TypeSpecifier{Case: TypeSpecifierUint128, Token: p.shift(false)}
+		return &TypeSpecName{Case: TypeSpecifierUint128, Name: p.shift(false)}
 	case rune(INT128):
-		return &TypeSpecifier{Case: TypeSpecifierInt128, Token: p.shift(false)}
+		return &TypeSpecName{Case: TypeSpecifierInt128, Name: p.shift(false)}
 	case rune(DECIMAL32):
-		return &TypeSpecifier{Case: TypeSpecifierDecimal32, Token: p.shift(false)}
+		return &TypeSpecName{Case: TypeSpecifierDecimal32, Name: p.shift(false)}
 	case rune(DECIMAL64):
-		return &TypeSpecifier{Case: TypeSpecifierDecimal64, Token: p.shift(false)}
+		return &TypeSpecName{Case: TypeSpecifierDecimal64, Name: p.shift(false)}
 	case rune(DECIMAL128):
-		return &TypeSpecifier{Case: TypeSpecifierDecimal128, Token: p.shift(false)}
+		return &TypeSpecName{Case: TypeSpecifierDecimal128, Name: p.shift(false)}
 	case rune(TYPEOF):
 		switch ch := p.peek(2, true).Ch; {
 		case p.isTypeSpecifier(ch, true):
-			return &TypeSpecifier{Case: TypeSpecifierTypeofType, Token: p.shift(false), Token2: p.must('('), TypeName: p.typeName(), Token3: p.must(')')}
+			return &TypeSpecTypeOfType{TypeOf: p.shift(false), LeftParen: p.must('('), Name: p.typeName(), RightParen: p.must(')')}
 		case p.isExpression(ch):
-			return &TypeSpecifier{Case: TypeSpecifierTypeofExpr, Token: p.shift(false), Token2: p.must('('), ExpressionList: p.expression(false), Token3: p.must(')')}
+			return &TypeSpecTypeOfExpr{TypeOf: p.shift(false), LeftParen: p.must('('), Expr: p.expression(false), RightParen: p.must(')')}
 		default:
 			t := p.shift(false)
 			p.cpp.eh("%v: unexpected %v, expected type specifier", t.Position(), runeName(t.Ch))

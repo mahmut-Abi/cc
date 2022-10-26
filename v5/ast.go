@@ -942,7 +942,6 @@ type DeclarationSpecifier interface {
 }
 
 func (*StorageClassSpecifier) isDeclarationSpecifier() {}
-func (*TypeSpecifier) isDeclarationSpecifier()         {}
 func (*TypeQualifier) isDeclarationSpecifier()         {}
 func (*FunctionSpecifier) isDeclarationSpecifier()     {}
 func (*AlignmentSpecifier) isDeclarationSpecifier()    {}
@@ -3437,7 +3436,7 @@ type SpecifierQualifierList struct {
 	Case                   SpecifierQualifierListCase `PrettyPrint:"stringer,zero"`
 	SpecifierQualifierList *SpecifierQualifierList
 	TypeQualifier          *TypeQualifier
-	TypeSpecifier          *TypeSpecifier
+	TypeSpecifier          TypeSpecifier
 }
 
 // String implements fmt.Stringer.
@@ -4137,68 +4136,174 @@ func (n TypeSpecifierCase) String() string {
 //	|       "_Float64"                       // Case TypeSpecifierFloat64
 //	|       "_Float32x"                      // Case TypeSpecifierFloat32x
 //	|       "_Float64x"                      // Case TypeSpecifierFloat64x
-type TypeSpecifier struct {
+type TypeSpecifier interface {
+	DeclarationSpecifier
+	LexicalScope() *Scope
+	TypeSpecifierCase() TypeSpecifierCase
+	check(c *ctx, isAtomic *bool) (r Type)
+}
+
+type TypeSpecName struct {
 	*lexicalScope
-	AtomicTypeSpecifier    *AtomicTypeSpecifier
-	Case                   TypeSpecifierCase `PrettyPrint:"stringer,zero"`
-	EnumSpecifier          *EnumSpecifier
-	ExpressionList         Expression
-	StructOrUnionSpecifier *StructOrUnionSpecifier
-	Token                  Token
-	Token2                 Token
-	Token3                 Token
-	TypeName               *TypeName
+	Case TypeSpecifierCase `PrettyPrint:"stringer,zero"`
+	Name Token
+}
+
+func (*TypeSpecName) isDeclarationSpecifier() {}
+
+func (n *TypeSpecName) TypeSpecifierCase() TypeSpecifierCase {
+	return n.Case
 }
 
 // String implements fmt.Stringer.
-func (n *TypeSpecifier) String() string { return PrettyString(n) }
+func (n *TypeSpecName) String() string { return PrettyString(n) }
 
 // Position reports the position of the first component of n, if available.
-func (n *TypeSpecifier) Position() (r token.Position) {
+func (n *TypeSpecName) Position() (r token.Position) {
 	if n == nil {
 		return r
 	}
+	return n.Name.Position()
+}
 
-	switch n.Case {
-	case 25:
-		return n.AtomicTypeSpecifier.Position()
-	case 21:
-		return n.EnumSpecifier.Position()
-	case 20:
-		return n.StructOrUnionSpecifier.Position()
-	case 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 22, 26, 27, 28, 29:
-		return n.Token.Position()
-	case 23:
-		if p := n.Token.Position(); p.IsValid() {
-			return p
-		}
+type TypeSpecStructOrUnion struct {
+	*lexicalScope
+	StructOrUnion *StructOrUnionSpecifier
+}
 
-		if p := n.Token2.Position(); p.IsValid() {
-			return p
-		}
+func (*TypeSpecStructOrUnion) isDeclarationSpecifier() {}
 
-		if p := n.ExpressionList.Position(); p.IsValid() {
-			return p
-		}
+func (*TypeSpecStructOrUnion) TypeSpecifierCase() TypeSpecifierCase {
+	return TypeSpecifierStructOrUnion
+}
 
-		return n.Token3.Position()
-	case 24:
-		if p := n.Token.Position(); p.IsValid() {
-			return p
-		}
+// String implements fmt.Stringer.
+func (n *TypeSpecStructOrUnion) String() string { return PrettyString(n) }
 
-		if p := n.Token2.Position(); p.IsValid() {
-			return p
-		}
-
-		if p := n.TypeName.Position(); p.IsValid() {
-			return p
-		}
-
-		return n.Token3.Position()
-	default:
-		panic("internal error")
+// Position reports the position of the first component of n, if available.
+func (n *TypeSpecStructOrUnion) Position() (r token.Position) {
+	if n == nil {
+		return r
 	}
+	return n.StructOrUnion.Position()
+}
+
+type TypeSpecEnum struct {
+	*lexicalScope
+	Enum *EnumSpecifier
+}
+
+func (*TypeSpecEnum) isDeclarationSpecifier() {}
+
+func (*TypeSpecEnum) TypeSpecifierCase() TypeSpecifierCase {
+	return TypeSpecifierEnum
+}
+
+// String implements fmt.Stringer.
+func (n *TypeSpecEnum) String() string { return PrettyString(n) }
+
+// Position reports the position of the first component of n, if available.
+func (n *TypeSpecEnum) Position() (r token.Position) {
+	if n == nil {
+		return r
+	}
+	return n.Enum.Position()
+}
+
+type TypeSpecTypeOfExpr struct {
+	*lexicalScope
+	TypeOf     Token
+	LeftParen  Token
+	Expr       Expression
+	RightParen Token
+}
+
+func (*TypeSpecTypeOfExpr) isDeclarationSpecifier() {}
+
+func (*TypeSpecTypeOfExpr) TypeSpecifierCase() TypeSpecifierCase {
+	return TypeSpecifierTypeofExpr
+}
+
+// String implements fmt.Stringer.
+func (n *TypeSpecTypeOfExpr) String() string { return PrettyString(n) }
+
+// Position reports the position of the first component of n, if available.
+func (n *TypeSpecTypeOfExpr) Position() (r token.Position) {
+	if n == nil {
+		return r
+	}
+	if p := n.TypeOf.Position(); p.IsValid() {
+		return p
+	}
+
+	if p := n.LeftParen.Position(); p.IsValid() {
+		return p
+	}
+
+	if p := n.Expr.Position(); p.IsValid() {
+		return p
+	}
+
+	return n.RightParen.Position()
+}
+
+type TypeSpecTypeOfType struct {
+	*lexicalScope
+	TypeOf     Token
+	LeftParen  Token
+	Name       *TypeName
+	RightParen Token
+}
+
+func (*TypeSpecTypeOfType) isDeclarationSpecifier() {}
+
+func (*TypeSpecTypeOfType) TypeSpecifierCase() TypeSpecifierCase {
+	return TypeSpecifierTypeofType
+}
+
+// String implements fmt.Stringer.
+func (n *TypeSpecTypeOfType) String() string { return PrettyString(n) }
+
+// Position reports the position of the first component of n, if available.
+func (n *TypeSpecTypeOfType) Position() (r token.Position) {
+	if n == nil {
+		return r
+	}
+	if p := n.TypeOf.Position(); p.IsValid() {
+		return p
+	}
+
+	if p := n.LeftParen.Position(); p.IsValid() {
+		return p
+	}
+
+	if p := n.Name.Position(); p.IsValid() {
+		return p
+	}
+
+	return n.RightParen.Position()
+}
+
+type TypeSpecAtomic struct {
+	*lexicalScope
+	Atomic *AtomicTypeSpecifier
+}
+
+func (*TypeSpecAtomic) isDeclarationSpecifier() {}
+
+func (*TypeSpecAtomic) TypeSpecifierCase() TypeSpecifierCase {
+	return TypeSpecifierAtomic
+}
+
+// String implements fmt.Stringer.
+func (n *TypeSpecAtomic) String() string { return PrettyString(n) }
+
+// Position reports the position of the first component of n, if available.
+func (n *TypeSpecAtomic) Position() (r token.Position) {
+	if n == nil {
+		return r
+	}
+	return n.Atomic.Position()
 }
 
 // UnaryExpressionCase represents case numbers of production UnaryExpression

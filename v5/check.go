@@ -1958,8 +1958,8 @@ func checkDeclarationSpecifiers(c *ctx, list DeclarationSpecifiers, isExtern, is
 		switch n := n.(type) {
 		case *StorageClassSpecifier:
 			n.check(c, isExtern, isStatic, isThreadLocal, isRegister, isAuto)
-		case *TypeSpecifier:
-			ts = append(ts, n.Case)
+		case TypeSpecifier:
+			ts = append(ts, n.TypeSpecifierCase())
 			r = n.check(c, isAtomic)
 		case *TypeQualifier:
 			if attr := n.check(c, isConst, isVolatile, isAtomic, isRestrict); attr != nil {
@@ -2258,11 +2258,11 @@ func (n *StorageClassSpecifier) check(c *ctx, isExtern, isStatic, isThreadLocal,
 //  |       "_Float64"                       // Case TypeSpecifierFloat64
 //  |       "_Float32x"                      // Case TypeSpecifierFloat32x
 //  |       "_Float64x"                      // Case TypeSpecifierFloat64x
-func (n *TypeSpecifier) check(c *ctx, isAtomic *bool) (r Type) {
+
+func (n *TypeSpecName) check(c *ctx, isAtomic *bool) (r Type) {
 	if n == nil {
 		return Invalid
 	}
-
 	switch n.Case {
 	case TypeSpecifierVoid: // "void"
 		// ok
@@ -2304,23 +2304,12 @@ func (n *TypeSpecifier) check(c *ctx, isAtomic *bool) (r Type) {
 		// ok
 	case TypeSpecifierImaginary: // "_Imaginary"
 		c.errors.add(errorf("TODO %v", n.Case))
-	case TypeSpecifierStructOrUnion: // StructOrUnionSpecifier
-		return n.StructOrUnionSpecifier.check(c)
-	case TypeSpecifierEnum: // EnumSpecifier
-		return n.EnumSpecifier.check(c)
 	case TypeSpecifierTypeName: // TYPENAME
-		if x, ok := n.LexicalScope().ident(n.Token).(*Declarator); ok && x.isTypename {
+		if x, ok := n.LexicalScope().ident(n.Name).(*Declarator); ok && x.isTypename {
 			return x.Type()
 		}
 
-		c.errors.add(errorf("%v: undefined type name: %s", n.Position(), n.Token.Src()))
-	case TypeSpecifierTypeofExpr: // "typeof" '(' ExpressionList ')'
-		return n.ExpressionList.check(c, 0)
-	case TypeSpecifierTypeofType: // "typeof" '(' TypeName ')'
-		return n.TypeName.check(c)
-	case TypeSpecifierAtomic: // AtomicTypeSpecifier
-		*isAtomic = true
-		return n.AtomicTypeSpecifier.check(c)
+		c.errors.add(errorf("%v: undefined type name: %s", n.Position(), n.Name.Src()))
 	case TypeSpecifierFloat32: // "_Float32"
 		// ok
 	case TypeSpecifierFloat64: // "_Float64"
@@ -2333,6 +2322,42 @@ func (n *TypeSpecifier) check(c *ctx, isAtomic *bool) (r Type) {
 		c.errors.add(errorf("internal error: %v", n.Case))
 	}
 	return nil
+}
+
+func (n *TypeSpecStructOrUnion) check(c *ctx, isAtomic *bool) (r Type) {
+	if n == nil {
+		return Invalid
+	}
+	return n.StructOrUnion.check(c)
+}
+
+func (n *TypeSpecEnum) check(c *ctx, isAtomic *bool) (r Type) {
+	if n == nil {
+		return Invalid
+	}
+	return n.Enum.check(c)
+}
+
+func (n *TypeSpecTypeOfExpr) check(c *ctx, isAtomic *bool) (r Type) {
+	if n == nil {
+		return Invalid
+	}
+	return n.Expr.check(c, 0)
+}
+
+func (n *TypeSpecTypeOfType) check(c *ctx, isAtomic *bool) (r Type) {
+	if n == nil {
+		return Invalid
+	}
+	return n.Name.check(c)
+}
+
+func (n *TypeSpecAtomic) check(c *ctx, isAtomic *bool) (r Type) {
+	if n == nil {
+		return Invalid
+	}
+	*isAtomic = true
+	return n.Atomic.check(c)
 }
 
 func (n *AtomicTypeSpecifier) check(c *ctx) (r Type) {
@@ -2724,7 +2749,7 @@ func (n *SpecifierQualifierList) check(c *ctx, isAtomic, isConst, isVolatile, is
 	for ; n != nil; n = n.SpecifierQualifierList {
 		switch n.Case {
 		case SpecifierQualifierListTypeSpec: // TypeSpecifier SpecifierQualifierList
-			ts = append(ts, n.TypeSpecifier.Case)
+			ts = append(ts, n.TypeSpecifier.TypeSpecifierCase())
 			r = n.TypeSpecifier.check(c, isAtomic)
 		case SpecifierQualifierListTypeQual: // TypeQualifier SpecifierQualifierList
 			if attr := n.TypeQualifier.check(c, isConst, isVolatile, isAtomic, isRestrict); attr != nil {
