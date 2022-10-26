@@ -687,7 +687,7 @@ func (n *BinaryExpression) eval(c *ctx, mode flags) (r Value) {
 	return n.Value()
 }
 
-func (n *CastExpression) eval(c *ctx, mode flags) (r Value) {
+func (n *CastExpr) eval(c *ctx, mode flags) (r Value) {
 	if mode.has(addrOf) {
 		c.errors.add(errorf("TODO %v", mode.has(addrOf)))
 		return n.Value()

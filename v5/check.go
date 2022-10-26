@@ -3160,7 +3160,7 @@ func (n *BinaryExpression) check(c *ctx, mode flags) (r Type) {
 //  CastExpression:
 //          UnaryExpression                  // Case CastExpressionUnary
 //  |       '(' TypeName ')' CastExpression  // Case CastExpressionCast
-func (n *CastExpression) check(c *ctx, mode flags) (r Type) {
+func (n *CastExpr) check(c *ctx, mode flags) (r Type) {
 	if n == nil {
 		return Invalid
 	}
@@ -3364,7 +3364,7 @@ func (c *ctx) takeAddr(n Node) {
 		}
 	case *CompositeLitExpr:
 		// nop
-	case *CastExpression:
+	case *CastExpr:
 		c.takeAddr(x.Expr)
 	case *UnaryExpression:
 		switch x.Case {

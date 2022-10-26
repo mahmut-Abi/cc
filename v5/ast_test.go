@@ -1233,10 +1233,10 @@ func ExampleBlockItem_case1() {
 	// }
 }
 
-func ExampleCastExpression_cast() {
+func ExampleCastExpr_cast() {
 	fmt.Println(exampleAST(43, "int i = (__attribute__((a)) int)3.14;"))
 	// Output:
-	// &cc.CastExpression{
+	// &cc.CastExpr{
 	// · Lparen: example.c:1:9: '(' "(",
 	// · TypeName: &cc.TypeName{
 	// · · SpecifierQualifiers: []*cc.TypeQualifier{ // len 2

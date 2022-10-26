@@ -698,12 +698,12 @@ func (*IterationStatement) isBlockItem()  {}
 func (*JumpStatement) isBlockItem()       {}
 func (*AsmStatement) isBlockItem()        {}
 
-// CastExpression represents data reduced by productions:
+// CastExpr represents data reduced by productions:
 //
 //	CastExpression:
 //	        UnaryExpression                  // Case CastExpressionUnary
 //	|       '(' TypeName ')' CastExpression  // Case CastExpressionCast
-type CastExpression struct {
+type CastExpr struct {
 	typer
 	valuer
 	Lparen   Token
@@ -713,10 +713,10 @@ type CastExpression struct {
 }
 
 // String implements fmt.Stringer.
-func (n *CastExpression) String() string { return PrettyString(n) }
+func (n *CastExpr) String() string { return PrettyString(n) }
 
 // Position reports the position of the first component of n, if available.
-func (n *CastExpression) Position() (r token.Position) {
+func (n *CastExpr) Position() (r token.Position) {
 	if n == nil {
 		return r
 	}

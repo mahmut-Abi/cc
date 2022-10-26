@@ -1799,7 +1799,7 @@ func (p *parser) castExpression(checkTypeName bool) (r, u Expression) {
 				u = p.unaryExpression(lparen, tn, rparen, checkTypeName)
 				return u, u
 			default:
-				r := &CastExpression{Lparen: lparen, TypeName: tn, Rparen: rparen}
+				r := &CastExpr{Lparen: lparen, TypeName: tn, Rparen: rparen}
 				r.Expr, _ = p.castExpression(checkTypeName)
 				return r, nil
 			}
