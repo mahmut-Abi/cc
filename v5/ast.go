@@ -3011,164 +3011,175 @@ func (n *Pointer) Position() (r token.Position) {
 	}
 }
 
-// PostfixExpressionCase represents case numbers of production PostfixExpression
-type PostfixExpressionCase int
-
-// Values of type PostfixExpressionCase
-const (
-	PostfixExpressionPrimary PostfixExpressionCase = iota
-	PostfixExpressionIndex
-	PostfixExpressionCall
-	PostfixExpressionSelect
-	PostfixExpressionPSelect
-	PostfixExpressionInc
-	PostfixExpressionDec
-	PostfixExpressionComplit
-)
-
-// String implements fmt.Stringer
-func (n PostfixExpressionCase) String() string {
-	switch n {
-	case PostfixExpressionPrimary:
-		return "PostfixExpressionPrimary"
-	case PostfixExpressionIndex:
-		return "PostfixExpressionIndex"
-	case PostfixExpressionCall:
-		return "PostfixExpressionCall"
-	case PostfixExpressionSelect:
-		return "PostfixExpressionSelect"
-	case PostfixExpressionPSelect:
-		return "PostfixExpressionPSelect"
-	case PostfixExpressionInc:
-		return "PostfixExpressionInc"
-	case PostfixExpressionDec:
-		return "PostfixExpressionDec"
-	case PostfixExpressionComplit:
-		return "PostfixExpressionComplit"
-	default:
-		return fmt.Sprintf("PostfixExpressionCase(%v)", int(n))
-	}
-}
-
-// PostfixExpression represents data reduced by productions:
-//
-//	PostfixExpression:
-//	        PrimaryExpression                                 // Case PostfixExpressionPrimary
-//	|       PostfixExpression '[' ExpressionList ']'          // Case PostfixExpressionIndex
-//	|       PostfixExpression '(' ArgumentExpressionList ')'  // Case PostfixExpressionCall
-//	|       PostfixExpression '.' IDENTIFIER                  // Case PostfixExpressionSelect
-//	|       PostfixExpression "->" IDENTIFIER                 // Case PostfixExpressionPSelect
-//	|       PostfixExpression "++"                            // Case PostfixExpressionInc
-//	|       PostfixExpression "--"                            // Case PostfixExpressionDec
-//	|       '(' TypeName ')' '{' InitializerList ',' '}'      // Case PostfixExpressionComplit
-type PostfixExpression struct {
+type IndexExpr struct {
 	typer
 	valuer
-	field                  *Field
-	ArgumentExpressionList *ArgumentExpressionList
-	Case                   PostfixExpressionCase `PrettyPrint:"stringer,zero"`
-	ExpressionList         Expression
-	InitializerList        *InitializerList
-	Expression             Expression
-	Expression2            Expression
-	Token                  Token
-	Token2                 Token
-	Token3                 Token
-	Token4                 Token
-	Token5                 Token
-	TypeName               *TypeName
+	Expr       Expression
+	LeftBrace  Token
+	Index      Expression
+	RightBrace Token
 }
 
 // String implements fmt.Stringer.
-func (n *PostfixExpression) String() string { return PrettyString(n) }
+func (n *IndexExpr) String() string { return PrettyString(n) }
 
 // Position reports the position of the first component of n, if available.
-func (n *PostfixExpression) Position() (r token.Position) {
+func (n *IndexExpr) Position() (r token.Position) {
 	if n == nil {
 		return r
 	}
 
-	switch n.Case {
-	case 5, 6:
-		if p := n.Expression.Position(); p.IsValid() {
-			return p
-		}
-
-		return n.Token.Position()
-	case 2:
-		if p := n.Expression.Position(); p.IsValid() {
-			return p
-		}
-
-		if p := n.Token.Position(); p.IsValid() {
-			return p
-		}
-
-		if p := n.ArgumentExpressionList.Position(); p.IsValid() {
-			return p
-		}
-
-		return n.Token2.Position()
-	case 1:
-		if p := n.Expression.Position(); p.IsValid() {
-			return p
-		}
-
-		if p := n.Token.Position(); p.IsValid() {
-			return p
-		}
-
-		if p := n.ExpressionList.Position(); p.IsValid() {
-			return p
-		}
-
-		return n.Token2.Position()
-	case 3, 4:
-		if p := n.Expression.Position(); p.IsValid() {
-			return p
-		}
-
-		if p := n.Token.Position(); p.IsValid() {
-			return p
-		}
-
-		return n.Token2.Position()
-	case 0:
-		return n.Expression2.Position()
-	case 7:
-		if p := n.Token.Position(); p.IsValid() {
-			return p
-		}
-
-		if p := n.TypeName.Position(); p.IsValid() {
-			return p
-		}
-
-		if p := n.Token2.Position(); p.IsValid() {
-			return p
-		}
-
-		if p := n.Token3.Position(); p.IsValid() {
-			return p
-		}
-
-		if p := n.InitializerList.Position(); p.IsValid() {
-			return p
-		}
-
-		if p := n.Token4.Position(); p.IsValid() {
-			return p
-		}
-
-		return n.Token5.Position()
-	default:
-		panic("internal error")
+	if p := n.Expr.Position(); p.IsValid() {
+		return p
 	}
+
+	if p := n.LeftBrace.Position(); p.IsValid() {
+		return p
+	}
+
+	if p := n.Index.Position(); p.IsValid() {
+		return p
+	}
+
+	return n.RightBrace.Position()
 }
 
-// Field reports the resolved field for cases PostfixExpressionSelect and
-// PostfixExpressionPSelect.
-func (n *PostfixExpression) Field() *Field { return n.field }
+type CallExpr struct {
+	typer
+	valuer
+	Func       Expression
+	LeftParen  Token
+	Arguments  *ArgumentExpressionList
+	RightParen Token
+}
+
+// String implements fmt.Stringer.
+func (n *CallExpr) String() string { return PrettyString(n) }
+
+// Position reports the position of the first component of n, if available.
+func (n *CallExpr) Position() (r token.Position) {
+	if n == nil {
+		return r
+	}
+
+	if p := n.Func.Position(); p.IsValid() {
+		return p
+	}
+
+	if p := n.LeftParen.Position(); p.IsValid() {
+		return p
+	}
+
+	if p := n.Arguments.Position(); p.IsValid() {
+		return p
+	}
+
+	return n.RightParen.Position()
+}
+
+type SelectorExpr struct {
+	typer
+	valuer
+	field *Field
+	Expr  Expression
+	Token Token
+	Sel   Token
+	Ptr   bool
+}
+
+// String implements fmt.Stringer.
+func (n *SelectorExpr) String() string { return PrettyString(n) }
+
+// Field reports the resolved field.
+func (n *SelectorExpr) Field() *Field { return n.field }
+
+// Position reports the position of the first component of n, if available.
+func (n *SelectorExpr) Position() (r token.Position) {
+	if n == nil {
+		return r
+	}
+
+	if p := n.Expr.Position(); p.IsValid() {
+		return p
+	}
+
+	if p := n.Token.Position(); p.IsValid() {
+		return p
+	}
+
+	return n.Sel.Position()
+}
+
+type PostfixExpr struct {
+	typer
+	valuer
+	Expr  Expression
+	Token Token
+	Dec   bool
+}
+
+// String implements fmt.Stringer.
+func (n *PostfixExpr) String() string { return PrettyString(n) }
+
+// Position reports the position of the first component of n, if available.
+func (n *PostfixExpr) Position() (r token.Position) {
+	if n == nil {
+		return r
+	}
+
+	if p := n.Expr.Position(); p.IsValid() {
+		return p
+	}
+
+	return n.Token.Position()
+}
+
+type CompositeLitExpr struct {
+	typer
+	valuer
+	LeftParen       Token
+	TypeName        *TypeName
+	RightParen      Token
+	LeftBrace       Token
+	InitializerList *InitializerList
+	Comma           Token
+	RightBrace      Token
+}
+
+// String implements fmt.Stringer.
+func (n *CompositeLitExpr) String() string { return PrettyString(n) }
+
+// Position reports the position of the first component of n, if available.
+func (n *CompositeLitExpr) Position() (r token.Position) {
+	if n == nil {
+		return r
+	}
+	if p := n.LeftParen.Position(); p.IsValid() {
+		return p
+	}
+
+	if p := n.TypeName.Position(); p.IsValid() {
+		return p
+	}
+
+	if p := n.RightParen.Position(); p.IsValid() {
+		return p
+	}
+
+	if p := n.LeftBrace.Position(); p.IsValid() {
+		return p
+	}
+
+	if p := n.InitializerList.Position(); p.IsValid() {
+		return p
+	}
+
+	if p := n.Comma.Position(); p.IsValid() {
+		return p
+	}
+
+	return n.RightBrace.Position()
+}
 
 // PrimaryExpressionCase represents case numbers of production PrimaryExpression
 type PrimaryExpressionCase int

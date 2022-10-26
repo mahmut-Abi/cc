@@ -831,47 +831,138 @@ func (n *UnaryExpression) eval(c *ctx, mode flags) (r Value) {
 	return n.Value()
 }
 
-func (n *PostfixExpression) eval(c *ctx, mode flags) (r Value) {
+func (n *IndexExpr) eval(c *ctx, mode flags) (r Value) {
 	if mode.has(addrOf) {
-		switch n.Case {
-		case PostfixExpressionPrimary: // PrimaryExpression
-			c.errors.add(errorf("TODO %v %v", n.Case, mode.has(addrOf)))
-		case PostfixExpressionIndex: // PostfixExpression '[' Expression ']'
-			switch x := n.Expression.eval(c, mode.del(addrOf)).(type) {
-			case *UnknownValue, StringValue, UTF16StringValue, UTF32StringValue:
-				// ok
-			case UInt64Value:
-				if p, ok := n.Expression.Type().(*PointerType); ok {
-					if ix, ok := int64Value(c, n.ExpressionList); ok && ix >= 0 {
-						if esz := p.Elem().Size(); esz >= 0 {
-							n.val = convert(x+UInt64Value(ix*esz), c.newPointerType(p.Elem()))
-						}
+		switch x := n.Expr.eval(c, mode.del(addrOf)).(type) {
+		case *UnknownValue, StringValue, UTF16StringValue, UTF32StringValue:
+			// ok
+		case UInt64Value:
+			if p, ok := n.Expr.Type().(*PointerType); ok {
+				if ix, ok := int64Value(c, n.Index); ok && ix >= 0 {
+					if esz := p.Elem().Size(); esz >= 0 {
+						n.val = convert(x+UInt64Value(ix*esz), c.newPointerType(p.Elem()))
 					}
 				}
-			default:
-				c.errors.add(errorf("TODO %v %v %T", n.Case, mode.has(addrOf), x))
 			}
-		case PostfixExpressionCall: // PostfixExpression '(' ArgumentExpressionList ')'
-			c.errors.add(errorf("TODO %v %v", n.Case, mode.has(addrOf)))
-		case PostfixExpressionSelect: // PostfixExpression '.' IDENTIFIER
-			switch x := n.Expression.Type().(type) {
+		default:
+			c.errors.add(errorf("TODO %v %T", mode.has(addrOf), x))
+		}
+		return n.Value()
+	}
+
+	switch {
+	case isPointerType(n.Expr.Type()) && IsIntegerType(n.Index.Type()):
+		switch v := n.Expr.eval(c, mode).(type) {
+		case *UnknownValue:
+			// nop
+		case StringValue:
+			switch x := n.Index.eval(c, 0).(type) {
+			case *UnknownValue:
+				// nop
+			case Int64Value:
+				if x >= 0 && x < Int64Value(len(v)) {
+					n.val = convert(Int64Value(v[x]), n.Type())
+				}
+			case UInt64Value:
+				if x < UInt64Value(len(v)) {
+					n.val = convert(Int64Value(v[x]), n.Type())
+				}
+			default:
+				c.errors.add(errorf("TODO %T", x))
+			}
+		case UTF32StringValue:
+			switch x := n.Index.eval(c, 0).(type) {
+			case *UnknownValue:
+				// nop
+			case Int64Value:
+				if x >= 0 && x < Int64Value(len(v)) {
+					n.val = convert(Int64Value(v[x]), n.Type())
+				}
+			case UInt64Value:
+				if x < UInt64Value(len(v)) {
+					n.val = convert(Int64Value(v[x]), n.Type())
+				}
+			default:
+				c.errors.add(errorf("TODO %T", x))
+			}
+		case UTF16StringValue:
+			switch x := n.Index.eval(c, 0).(type) {
+			case *UnknownValue:
+				// nop
+			case Int64Value:
+				if x >= 0 && x < Int64Value(len(v)) {
+					n.val = convert(Int64Value(v[x]), n.Type())
+				}
+			case UInt64Value:
+				if x < UInt64Value(len(v)) {
+					n.val = convert(Int64Value(v[x]), n.Type())
+				}
+			default:
+				c.errors.add(errorf("TODO %T", x))
+			}
+		case UInt64Value:
+			// nop
+		default:
+			// trc("%v: %v %v [%v %v] %T", n.Token.Position(), n.PostfixExpression.Value(), n.PostfixExpression.Type(), n.ExpressionList.Value(), n.ExpressionList.Type(), v)
+			c.errors.add(errorf("TODO %T", v))
+		}
+	case IsIntegerType(n.Expr.Type()) && isPointerType(n.Index.Type()):
+		switch v := n.Index.eval(c, mode).(type) {
+		case *UnknownValue:
+			// nop
+		case StringValue:
+			switch x := n.Expr.eval(c, 0).(type) {
+			case *UnknownValue:
+				// nop
+			case Int64Value:
+				if x >= 0 && x < Int64Value(len(v)) {
+					n.val = convert(Int64Value(v[x]), n.Type())
+				}
+			case UInt64Value:
+				if x < UInt64Value(len(v)) {
+					n.val = convert(Int64Value(v[x]), n.Type())
+				}
+			default:
+				c.errors.add(errorf("TODO %T", x))
+			}
+		default:
+			// trc("%v: %v %v [%v %v] %T", n.Token.Position(), n.PostfixExpression.Value(), n.PostfixExpression.Type(), n.ExpressionList.Value(), n.ExpressionList.Type(), v)
+			c.errors.add(errorf("TODO %T", v))
+		}
+	}
+
+	return n.Value()
+}
+
+func (n *CallExpr) eval(c *ctx, mode flags) (r Value) {
+	if mode.has(addrOf) {
+		c.errors.add(errorf("TODO %T %v", n, mode.has(addrOf)))
+	}
+	// nop
+	return n.Value()
+}
+
+func (n *SelectorExpr) eval(c *ctx, mode flags) (r Value) {
+	if mode.has(addrOf) {
+		if !n.Ptr {
+			switch x := n.Expr.Type().(type) {
 			case *StructType:
-				switch y := n.Expression.eval(c, mode).(type) {
+				switch y := n.Expr.eval(c, mode).(type) {
 				case *UnknownValue:
 					// ok
 				case UInt64Value:
-					if f := x.FieldByName(n.Token2.SrcStr()); f != nil {
+					if f := x.FieldByName(n.Sel.SrcStr()); f != nil {
 						n.val = convert(y+UInt64Value(f.Offset()), c.newPointerType(f.Type()))
 					}
 				default:
 					c.errors.add(errorf("TODO %T %T", x, y))
 				}
 			case *UnionType:
-				switch y := n.Expression.eval(c, mode).(type) {
+				switch y := n.Expr.eval(c, mode).(type) {
 				case *UnknownValue:
 					// ok
 				case UInt64Value:
-					if f := x.FieldByName(n.Token2.SrcStr()); f != nil {
+					if f := x.FieldByName(n.Sel.SrcStr()); f != nil {
 						n.val = convert(y+UInt64Value(f.Offset()), c.newPointerType(f.Type()))
 					}
 				default:
@@ -880,20 +971,20 @@ func (n *PostfixExpression) eval(c *ctx, mode flags) (r Value) {
 			default:
 				c.errors.add(errorf("TODO %T", x))
 			}
-		case PostfixExpressionPSelect: // PostfixExpression "->" IDENTIFIER
-			switch x := n.Expression.Type().(type) {
+		} else {
+			switch x := n.Expr.Type().(type) {
 			case *PointerType:
-				switch y := n.Expression.eval(c, mode.del(addrOf)).(type) {
+				switch y := n.Expr.eval(c, mode.del(addrOf)).(type) {
 				case *UnknownValue:
 					// ok
 				case UInt64Value:
 					switch z := x.Elem().(type) {
 					case *StructType:
-						if f := z.FieldByName(n.Token2.SrcStr()); f != nil {
+						if f := z.FieldByName(n.Sel.SrcStr()); f != nil {
 							n.val = convert(y+UInt64Value(f.Offset()), c.newPointerType(f.Type()))
 						}
 					case *UnionType:
-						if f := z.FieldByName(n.Token2.SrcStr()); f != nil {
+						if f := z.FieldByName(n.Sel.SrcStr()); f != nil {
 							n.val = convert(y+UInt64Value(f.Offset()), c.newPointerType(f.Type()))
 						}
 					default:
@@ -905,128 +996,42 @@ func (n *PostfixExpression) eval(c *ctx, mode flags) (r Value) {
 			default:
 				c.errors.add(errorf("TODO %T", x))
 			}
-		case PostfixExpressionInc: // PostfixExpression "++"
-			c.errors.add(errorf("TODO %v %v", n.Case, mode.has(addrOf)))
-		case PostfixExpressionDec: // PostfixExpression "--"
-			c.errors.add(errorf("TODO %v %v", n.Case, mode.has(addrOf)))
-		case PostfixExpressionComplit: // '(' TypeName ')' '{' InitializerList ',' '}'
-			// ok
-		default:
-			c.errors.add(errorf("internal error: %v", n.Case))
 		}
 		return n.Value()
 	}
 
-	switch n.Case {
-	case PostfixExpressionPrimary: // PrimaryExpression
-		n.val = n.Expression2.eval(c, mode)
-	case PostfixExpressionIndex: // PostfixExpression '[' Expression ']'
-		switch {
-		case isPointerType(n.Expression.Type()) && IsIntegerType(n.ExpressionList.Type()):
-			switch v := n.Expression.eval(c, mode).(type) {
-			case *UnknownValue:
-				// nop
-			case StringValue:
-				switch x := n.ExpressionList.eval(c, 0).(type) {
-				case *UnknownValue:
-					// nop
-				case Int64Value:
-					if x >= 0 && x < Int64Value(len(v)) {
-						n.val = convert(Int64Value(v[x]), n.Type())
-					}
-				case UInt64Value:
-					if x < UInt64Value(len(v)) {
-						n.val = convert(Int64Value(v[x]), n.Type())
-					}
-				default:
-					c.errors.add(errorf("TODO %v %T", n.Case, x))
-				}
-			case UTF32StringValue:
-				switch x := n.ExpressionList.eval(c, 0).(type) {
-				case *UnknownValue:
-					// nop
-				case Int64Value:
-					if x >= 0 && x < Int64Value(len(v)) {
-						n.val = convert(Int64Value(v[x]), n.Type())
-					}
-				case UInt64Value:
-					if x < UInt64Value(len(v)) {
-						n.val = convert(Int64Value(v[x]), n.Type())
-					}
-				default:
-					c.errors.add(errorf("TODO %v %T", n.Case, x))
-				}
-			case UTF16StringValue:
-				switch x := n.ExpressionList.eval(c, 0).(type) {
-				case *UnknownValue:
-					// nop
-				case Int64Value:
-					if x >= 0 && x < Int64Value(len(v)) {
-						n.val = convert(Int64Value(v[x]), n.Type())
-					}
-				case UInt64Value:
-					if x < UInt64Value(len(v)) {
-						n.val = convert(Int64Value(v[x]), n.Type())
-					}
-				default:
-					c.errors.add(errorf("TODO %v %T", n.Case, x))
-				}
-			case UInt64Value:
-				// nop
-			default:
-				// trc("%v: %v %v [%v %v] %T", n.Token.Position(), n.PostfixExpression.Value(), n.PostfixExpression.Type(), n.ExpressionList.Value(), n.ExpressionList.Type(), v)
-				c.errors.add(errorf("TODO %v %T", n.Case, v))
-			}
-		case IsIntegerType(n.Expression.Type()) && isPointerType(n.ExpressionList.Type()):
-			switch v := n.ExpressionList.eval(c, mode).(type) {
-			case *UnknownValue:
-				// nop
-			case StringValue:
-				switch x := n.Expression.eval(c, 0).(type) {
-				case *UnknownValue:
-					// nop
-				case Int64Value:
-					if x >= 0 && x < Int64Value(len(v)) {
-						n.val = convert(Int64Value(v[x]), n.Type())
-					}
-				case UInt64Value:
-					if x < UInt64Value(len(v)) {
-						n.val = convert(Int64Value(v[x]), n.Type())
-					}
-				default:
-					c.errors.add(errorf("TODO %v %T", n.Case, x))
-				}
-			default:
-				// trc("%v: %v %v [%v %v] %T", n.Token.Position(), n.PostfixExpression.Value(), n.PostfixExpression.Type(), n.ExpressionList.Value(), n.ExpressionList.Type(), v)
-				c.errors.add(errorf("TODO %v %T", n.Case, v))
-			}
-		}
-	case PostfixExpressionCall: // PostfixExpression '(' ArgumentExpressionList ')'
-		// nop
-	case PostfixExpressionSelect: // PostfixExpression '.' IDENTIFIER
-		// nop
-	case PostfixExpressionPSelect: // PostfixExpression "->" IDENTIFIER
-		// nop
-	case PostfixExpressionInc: // PostfixExpression "++"
-		// nop
-	case PostfixExpressionDec: // PostfixExpression "--"
-		// nop
-	case PostfixExpressionComplit: // '(' TypeName ')' '{' InitializerList ',' '}'
-		if n.InitializerList == nil || n.InitializerList.InitializerList != nil || n.InitializerList.Initializer.Case != InitializerExpr {
-			break
-		}
+	// nop
+	return n.Value()
+}
 
-		v := convert(n.InitializerList.Initializer.Expression.eval(c, mode), n.Type())
-		switch n.Type().(type) {
-		case *PredefinedType:
-			n.val = v
-		case *EnumType:
-			n.val = v
-		case *PointerType:
-			n.val = v
-		}
-	default:
-		c.errors.add(errorf("internal error: %v", n.Case))
+func (n *PostfixExpr) eval(c *ctx, mode flags) (r Value) {
+	if mode.has(addrOf) {
+		c.errors.add(errorf("TODO %T %v", n, mode.has(addrOf)))
+		return n.Value()
+	}
+
+	// nop
+	return n.Value()
+}
+
+func (n *CompositeLitExpr) eval(c *ctx, mode flags) (r Value) {
+	if mode.has(addrOf) {
+		// ok
+		return n.Value()
+	}
+
+	if n.InitializerList == nil || n.InitializerList.InitializerList != nil || n.InitializerList.Initializer.Case != InitializerExpr {
+		return n.Value()
+	}
+
+	v := convert(n.InitializerList.Initializer.Expression.eval(c, mode), n.Type())
+	switch n.Type().(type) {
+	case *PredefinedType:
+		n.val = v
+	case *EnumType:
+		n.val = v
+	case *PointerType:
+		n.val = v
 	}
 	return n.Value()
 }

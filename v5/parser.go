@@ -2178,19 +2178,20 @@ func (p *parser) unaryExpression(lp Token, tn *TypeName, rp Token, checkTypeName
 // 	( type-name ) { initializer-list , }
 // 	__builtin_types_compatible_p ( type-name , type-name )
 func (p *parser) postfixExpression(lp Token, tn *TypeName, rp Token, checkTypeName bool) (r Expression) {
-	var r0 *PostfixExpression
+	var r0 Expression
 	switch {
 	case tn != nil:
-		r0 = &PostfixExpression{Case: PostfixExpressionComplit, Token: lp, TypeName: tn, Token2: rp, Token3: p.must('{'), InitializerList: p.initializerList(nil)}
+		cl := &CompositeLitExpr{LeftParen: lp, TypeName: tn, RightParen: rp, LeftBrace: p.must('{'), InitializerList: p.initializerList(nil)}
+		r0 = cl
 		switch p.rune(false) {
 		case eof:
 			p.cpp.eh("%v: unexpected EOF", p.toks[0].Position())
 			return nil
 		case ',':
-			r0.Token4 = p.shift(false)
+			cl.Comma = p.shift(false)
 			fallthrough
 		default:
-			r0.Token5 = p.must('}')
+			cl.RightBrace = p.must('}')
 		}
 	default:
 		switch p.rune(false) {
@@ -2200,18 +2201,19 @@ func (p *parser) postfixExpression(lp Token, tn *TypeName, rp Token, checkTypeNa
 		case '(':
 			switch ch := p.peek(1, true).Ch; {
 			case p.isExpression(ch) || ch == '{':
-				r0 = &PostfixExpression{Case: PostfixExpressionPrimary, Expression2: p.primaryExpression(checkTypeName)}
+				r0 = p.primaryExpression(checkTypeName)
 			case p.isSpecifierQualifer(ch, true):
-				r0 = &PostfixExpression{Case: PostfixExpressionComplit, Token: p.shift(false), TypeName: p.typeName(), Token2: p.must(')'), Token3: p.must('{'), InitializerList: p.initializerList(nil)}
+				cl := &CompositeLitExpr{LeftParen: p.shift(false), TypeName: p.typeName(), RightParen: p.must(')'), LeftBrace: p.must('{'), InitializerList: p.initializerList(nil)}
+				r0 = cl
 				switch p.rune(false) {
 				case eof:
 					p.cpp.eh("%v: unexpected EOF", p.toks[0].Position())
 					return nil
 				case ',':
-					r0.Token4 = p.shift(false)
+					cl.Comma = p.shift(false)
 					fallthrough
 				default:
-					r0.Token5 = p.must('}')
+					cl.RightBrace = p.must('}')
 					return r0
 				}
 			default:
@@ -2220,36 +2222,33 @@ func (p *parser) postfixExpression(lp Token, tn *TypeName, rp Token, checkTypeNa
 				return nil
 			}
 		default:
-			r0 = &PostfixExpression{Case: PostfixExpressionPrimary, Expression2: p.primaryExpression(checkTypeName)}
+			r0 = p.primaryExpression(checkTypeName)
 		}
 	}
 	r = r0
-	if r0.Case == PostfixExpressionPrimary && r0.Expression2 != nil {
-		r = r0.Expression2
-	}
 	for {
 		switch p.rune(false) {
 		case eof:
 			p.cpp.eh("%v: unexpected EOF", p.toks[0].Position())
 			return nil
 		case '[':
-			r = &PostfixExpression{Case: PostfixExpressionIndex, Expression: r, Token: p.shift(false), ExpressionList: p.expression(false), Token2: p.must(']')}
+			r = &IndexExpr{Expr: r, LeftBrace: p.shift(false), Index: p.expression(false), RightBrace: p.must(']')}
 		case '(':
 			switch ch := p.peek(1, true).Ch; {
 			case p.isExpression(ch) || ch == ')':
-				r = &PostfixExpression{Case: PostfixExpressionCall, Expression: r, Token: p.shift(false), ArgumentExpressionList: p.argumentExpressionListOpt(true), Token2: p.must(')')}
+				r = &CallExpr{Func: r, LeftParen: p.shift(false), Arguments: p.argumentExpressionListOpt(true), RightParen: p.must(')')}
 			default:
 				t := p.shift(false)
 				p.cpp.eh("%v: unexpected %v, expected postfix expression", t.Position(), runeName(t.Ch))
 			}
 		case '.':
-			r = &PostfixExpression{Case: PostfixExpressionSelect, Expression: r, Token: p.shift(false), Token2: p.must(rune(IDENTIFIER))}
+			r = &SelectorExpr{Expr: r, Token: p.shift(false), Sel: p.must(rune(IDENTIFIER)), Ptr: false}
 		case rune(ARROW):
-			r = &PostfixExpression{Case: PostfixExpressionPSelect, Expression: r, Token: p.shift(false), Token2: p.must(rune(IDENTIFIER))}
+			r = &SelectorExpr{Expr: r, Token: p.shift(false), Sel: p.must(rune(IDENTIFIER)), Ptr: true}
 		case rune(INC):
-			r = &PostfixExpression{Case: PostfixExpressionInc, Expression: r, Token: p.shift(false)}
+			r = &PostfixExpr{Expr: r, Token: p.shift(false), Dec: false}
 		case rune(DEC):
-			r = &PostfixExpression{Case: PostfixExpressionDec, Expression: r, Token: p.shift(false)}
+			r = &PostfixExpr{Expr: r, Token: p.shift(false), Dec: true}
 		default:
 			return r
 		}

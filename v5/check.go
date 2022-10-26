@@ -2932,19 +2932,14 @@ func (c *ctx) assignTo(n Node, unread bool) {
 		default:
 			c.errors.add(errorf("internal error: %v", x.Case))
 		}
-	case *PostfixExpression:
-		switch x.Case {
-		case PostfixExpressionIndex: // PostfixExpression '[' ExpressionList ']'
-			//nop
-		case PostfixExpressionSelect: // PostfixExpression '.' IDENTIFIER
-			c.assignTo(x.Expression, unread)
-		case PostfixExpressionPSelect: // PostfixExpression "->" IDENTIFIER
-			// nop
-		case PostfixExpressionComplit: // '(' TypeName ')' '{' InitializerList ',' '}'
-			// nop
-		default:
-			c.errors.add(errorf("internal error: %v", x.Case))
+	case *IndexExpr:
+		//nop
+	case *SelectorExpr:
+		if !x.Ptr {
+			c.assignTo(x.Expr, unread)
 		}
+	case *CompositeLitExpr:
+		//nop
 	case *UnaryExpression:
 		switch x.Case {
 		case UnaryExpressionDeref: // '*' CastExpression
@@ -3356,24 +3351,19 @@ func (c *ctx) takeAddr(n Node) {
 		default:
 			c.errors.add(errorf("internal error: %v", x.Case))
 		}
-	case *PostfixExpression:
-		switch x.Case {
-		case PostfixExpressionIndex: // PostfixExpression '[' ExpressionList ']'
-			switch {
-			case IsIntegerType(x.ExpressionList.Type()):
-				c.takeAddr(x.Expression)
-			default:
-				c.takeAddr(x.ExpressionList)
-			}
-		case PostfixExpressionSelect: // PostfixExpression '.' IDENTIFIER
-			c.takeAddr(x.Expression)
-		case PostfixExpressionPSelect: // PostfixExpression "->" IDENTIFIER
-			// nop
-		case PostfixExpressionComplit: // '(' TypeName ')' '{' InitializerList ',' '}'
-			// nop
+	case *IndexExpr:
+		switch {
+		case IsIntegerType(x.Index.Type()):
+			c.takeAddr(x.Expr)
 		default:
-			c.errors.add(errorf("internal error: %v", x.Case))
+			c.takeAddr(x.Index)
 		}
+	case *SelectorExpr:
+		if !x.Ptr {
+			c.takeAddr(x.Expr)
+		}
+	case *CompositeLitExpr:
+		// nop
 	case *CastExpression:
 		c.takeAddr(x.Expr)
 	case *UnaryExpression:
@@ -3403,14 +3393,14 @@ func (c *ctx) takeAddr(n Node) {
 //  |       PostfixExpression "++"                            // Case PostfixExpressionInc
 //  |       PostfixExpression "--"                            // Case PostfixExpressionDec
 //  |       '(' TypeName ')' '{' InitializerList ',' '}'      // Case PostfixExpressionComplit
-func (n *PostfixExpression) check(c *ctx, mode flags) (r Type) {
+func (n *IndexExpr) check(c *ctx, mode flags) (r Type) {
 	if n == nil {
 		return Invalid
 	}
 
 	defer func() {
 		if r == nil || r == Invalid {
-			c.errors.add(errorf("TODO %T missed/failed type check %v", n, n.Case))
+			c.errors.add(errorf("TODO %T missed/failed type check", n))
 			return
 		}
 
@@ -3418,76 +3408,106 @@ func (n *PostfixExpression) check(c *ctx, mode flags) (r Type) {
 		n.typ = r
 	}()
 
-out:
-	switch n.Case {
-	case PostfixExpressionPrimary: // PrimaryExpression
-		n.typ = n.Expression2.check(c, mode)
-	case PostfixExpressionIndex: // PostfixExpression '[' ExpressionList ']'
-		// One of the expressions shall have type ‘‘pointer to object type’’, the other
-		// expression shall have integer type, and the result has type ‘‘type’’.
-		mode = mode.add(decay)
-		switch t1, t2 := n.Expression.check(c, mode), n.ExpressionList.check(c, mode); {
-		case isPointerType(t1) && IsIntegerType(t2):
-			n.typ = t1.(*PointerType).Elem().Decay()
-		case isPointerType(t2) && IsIntegerType(t1):
-			n.typ = t2.(*PointerType).Elem().Decay()
-		case isVectorType(t1) && IsIntegerType(t2):
-			n.typ = t1
-		case isVectorType(t2) && IsIntegerType(t1):
-			n.typ = t2
-		default:
-			c.errors.add(errorf("%v: one of the expressions shall be a pointer and the other shall have integer type: %s and %s", n.Token.Position(), t1, t2))
-			n.typ = c.intT
-		}
-	case PostfixExpressionCall: // PostfixExpression '(' ArgumentExpressionList ')'
-		switch isName(n.Expression) {
-		case "__builtin_types_compatible_p_impl":
-			n.typ = c.intT
-			args := n.ArgumentExpressionList.check(c, 0)
-			if len(args) != 2 {
-				c.errors.add(errorf("%v: expected two arguments: (%s)", n.Position(), NodeSource(n.ArgumentExpressionList)))
-				break out
-			}
+	// One of the expressions shall have type ‘‘pointer to object type’’, the other
+	// expression shall have integer type, and the result has type ‘‘type’’.
+	mode = mode.add(decay)
+	switch t1, t2 := n.Expr.check(c, mode), n.Index.check(c, mode); {
+	case isPointerType(t1) && IsIntegerType(t2):
+		n.typ = t1.(*PointerType).Elem().Decay()
+	case isPointerType(t2) && IsIntegerType(t1):
+		n.typ = t2.(*PointerType).Elem().Decay()
+	case isVectorType(t1) && IsIntegerType(t2):
+		n.typ = t1
+	case isVectorType(t2) && IsIntegerType(t1):
+		n.typ = t2
+	default:
+		c.errors.add(errorf("%v: one of the expressions shall be a pointer and the other shall have integer type: %s and %s", n.LeftBrace.Position(), t1, t2))
+		n.typ = c.intT
+	}
+	return n.Type()
+}
+func (n *CallExpr) check(c *ctx, mode flags) (r Type) {
+	if n == nil {
+		return Invalid
+	}
 
-			n.val = bool2int(args[0].Type().IsCompatible(args[1].Type()))
-			break out
-		case "__builtin_constant_p":
-			n.Expression.check(c, mode.add(decay|implicitFuncDef))
-			n.typ = c.intT
-			args := n.ArgumentExpressionList.check(c, decay)
-			if len(args) != 1 {
-				c.errors.add(errorf("%v: expected one argument: (%s)", n.Position(), NodeSource(n.ArgumentExpressionList)))
-				break out
-			}
-
-			n.val = bool2int(args[0].Value() != Unknown)
-			break out
-		default:
-			mode = mode.add(implicitFuncDef)
-		}
-		t := n.Expression.check(c, mode.add(decay))
-		n.ArgumentExpressionList.check(c, decay)
-		if t == nil || mode.has(asmArgList) {
-			n.typ = c.intT
-			break
+	defer func() {
+		if r == nil || r == Invalid {
+			c.errors.add(errorf("TODO %T missed/failed type check", n))
+			return
 		}
 
-		if t.Kind() != Ptr {
-			c.errors.add(errorf("%v: expected pointer to function: %s", n.Position(), t))
-			break
+		r = c.decay(r, mode)
+		n.typ = r
+	}()
+
+	switch isName(n.Func) {
+	case "__builtin_types_compatible_p_impl":
+		n.typ = c.intT
+		args := n.Arguments.check(c, 0)
+		if len(args) != 2 {
+			c.errors.add(errorf("%v: expected two arguments: (%s)", n.Position(), NodeSource(n.Arguments)))
+			return n.Type()
 		}
 
-		pt := t.(*PointerType)
-		if pt.Elem().Kind() != Function {
-			c.errors.add(errorf("%v: expected pointer to function: %s", n.Position(), pt))
-			break
+		n.val = bool2int(args[0].Type().IsCompatible(args[1].Type()))
+		return n.Type()
+	case "__builtin_constant_p":
+		n.Func.check(c, mode.add(decay|implicitFuncDef))
+		n.typ = c.intT
+		args := n.Arguments.check(c, decay)
+		if len(args) != 1 {
+			c.errors.add(errorf("%v: expected one argument: (%s)", n.Position(), NodeSource(n.Arguments)))
+			return n.Type()
 		}
 
-		ft := pt.Elem().(*FunctionType)
-		n.typ = ft.Result()
-	case PostfixExpressionSelect: // PostfixExpression '.' IDENTIFIER
-		nm := n.Token2.SrcStr()
-		switch t := n.Expression.check(c, mode.add(decay)); t.Kind() {
+		n.val = bool2int(args[0].Value() != Unknown)
+		return n.Type()
+	default:
+		mode = mode.add(implicitFuncDef)
+	}
+	t := n.Func.check(c, mode.add(decay))
+	n.Arguments.check(c, decay)
+	if t == nil || mode.has(asmArgList) {
+		n.typ = c.intT
+		return n.Type()
+	}
+
+	if t.Kind() != Ptr {
+		c.errors.add(errorf("%v: expected pointer to function: %s", n.Position(), t))
+		return n.Type()
+	}
+
+	pt := t.(*PointerType)
+	if pt.Elem().Kind() != Function {
+		c.errors.add(errorf("%v: expected pointer to function: %s", n.Position(), pt))
+		return n.Type()
+	}
+
+	ft := pt.Elem().(*FunctionType)
+	n.typ = ft.Result()
+
+	return n.Type()
+}
+
+func (n *SelectorExpr) check(c *ctx, mode flags) (r Type) {
+	if n == nil {
+		return Invalid
+	}
+
+	defer func() {
+		if r == nil || r == Invalid {
+			c.errors.add(errorf("TODO %T missed/failed type check", n))
+			return
+		}
+
+		r = c.decay(r, mode)
+		n.typ = r
+	}()
+
+	if !n.Ptr {
+		nm := n.Sel.SrcStr()
+		switch t := n.Expr.check(c, mode.add(decay)); t.Kind() {
 		case Struct:
 			st := t.(*StructType)
 			f := st.FieldByName(nm)
@@ -3511,9 +3531,9 @@ out:
 		default:
 			c.errors.add(errorf("%v: expected a struct or union: %s", n.Token.Position(), t))
 		}
-	case PostfixExpressionPSelect: // PostfixExpression "->" IDENTIFIER
-		nm := n.Token2.SrcStr()
-		switch t := n.Expression.check(c, mode.add(decay)); t.Kind() {
+	} else {
+		nm := n.Sel.SrcStr()
+		switch t := n.Expr.check(c, mode.add(decay)); t.Kind() {
 		case Ptr:
 			switch et := t.(*PointerType).Elem(); et.Kind() {
 			case Struct:
@@ -3542,37 +3562,67 @@ out:
 		default:
 			c.errors.add(errorf("%v: expected a pointer: %s", n.Token.Position(), t))
 		}
+	}
+	return n.Type()
+}
+
+func (n *PostfixExpr) check(c *ctx, mode flags) (r Type) {
+	if n == nil {
+		return Invalid
+	}
+
+	defer func() {
+		if r == nil || r == Invalid {
+			c.errors.add(errorf("TODO %T missed/failed type check", n))
+			return
+		}
+
+		r = c.decay(r, mode)
+		n.typ = r
+	}()
+
+	t := n.Expr.check(c, mode.add(decay))
+	c.assignTo(n.Expr, false)
+	switch {
 	case
-		PostfixExpressionInc, // PostfixExpression "++"
-		PostfixExpressionDec: // PostfixExpression "--"
-		t := n.Expression.check(c, mode.add(decay))
-		c.assignTo(n.Expression, false)
-		switch {
-		case
-			// The operand of the postfix increment or decrement operator shall have
-			// qualified or unqualified real or pointer type and shall be a modifiable
-			// lvalue.
-			realKinds[t.Kind()] || isPointerType(t):
+		// The operand of the postfix increment or decrement operator shall have
+		// qualified or unqualified real or pointer type and shall be a modifiable
+		// lvalue.
+		realKinds[t.Kind()] || isPointerType(t):
 
-			n.typ = t
-			if !isModifiableLvalue(t) {
-				c.errors.add(errorf("%v: operand shall be a modifiable lvalue: %s", n.Expression.Position(), t))
-			}
-		default:
-			c.errors.add(errorf("%v: invalid operand: %s", n.Expression.Position(), t))
-		}
-	case PostfixExpressionComplit: // '(' TypeName ')' '{' InitializerList ',' '}'
-		n.typ = n.TypeName.check(c)
-		if n.InitializerList == nil {
-			n.val = Zero
-			break
-		}
-
-		if n := n.InitializerList.check(c, n.Type(), n.Type(), 0); n != nil {
-			c.errors.add(errorf("%v: too many items in initializer", n.Position()))
+		n.typ = t
+		if !isModifiableLvalue(t) {
+			c.errors.add(errorf("%v: operand shall be a modifiable lvalue: %s", n.Expr.Position(), t))
 		}
 	default:
-		c.errors.add(errorf("internal error: %v", n.Case))
+		c.errors.add(errorf("%v: invalid operand: %s", n.Expr.Position(), t))
+	}
+	return n.Type()
+}
+
+func (n *CompositeLitExpr) check(c *ctx, mode flags) (r Type) {
+	if n == nil {
+		return Invalid
+	}
+
+	defer func() {
+		if r == nil || r == Invalid {
+			c.errors.add(errorf("TODO %T missed/failed type check", n))
+			return
+		}
+
+		r = c.decay(r, mode)
+		n.typ = r
+	}()
+
+	n.typ = n.TypeName.check(c)
+	if n.InitializerList == nil {
+		n.val = Zero
+		return n.Type()
+	}
+
+	if n := n.InitializerList.check(c, n.Type(), n.Type(), 0); n != nil {
+		c.errors.add(errorf("%v: too many items in initializer", n.Position()))
 	}
 	return n.Type()
 }
