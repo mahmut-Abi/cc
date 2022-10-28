@@ -205,13 +205,17 @@ func HostCppConfig(cpp string, opts ...string) (predefined string, includePaths,
 	if env("GOARCH", runtime.GOARCH) == "386" {
 		args = append(args, "-m32")
 	}
-	pre, err := exec.Command(cpp, args...).Output()
+	cmd := exec.Command(cpp, args...)
+	cmd.Env = append(cmd.Environ(), "LC_ALL=C")
+	pre, err := cmd.Output()
 	if err != nil {
 		return "", nil, nil, err
 	}
 
 	args = append(append([]string{"-v"}, opts...), os.DevNull)
-	out, err := exec.Command(cpp, args...).CombinedOutput()
+	cmd = exec.Command(cpp, args...)
+	cmd.Env = append(cmd.Environ(), "LC_ALL=C")
+	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return "", nil, nil, err
 	}
