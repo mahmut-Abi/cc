@@ -34,7 +34,6 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"runtime"
 	"runtime/debug"
@@ -205,17 +204,13 @@ func HostCppConfig(cpp string, opts ...string) (predefined string, includePaths,
 	if env("GOARCH", runtime.GOARCH) == "386" {
 		args = append(args, "-m32")
 	}
-	cmd := exec.Command(cpp, args...)
-	cmd.Env = append(cmd.Environ(), "LC_ALL=C")
-	pre, err := cmd.Output()
+	pre, err := command(cpp, args...).Output()
 	if err != nil {
 		return "", nil, nil, err
 	}
 
 	args = append(append([]string{"-v"}, opts...), os.DevNull)
-	cmd = exec.Command(cpp, args...)
-	cmd.Env = append(cmd.Environ(), "LC_ALL=C")
-	out, err := cmd.CombinedOutput()
+	out, err := command(cpp, args...).CombinedOutput()
 	if err != nil {
 		return "", nil, nil, err
 	}

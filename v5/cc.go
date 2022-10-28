@@ -421,9 +421,7 @@ func newConfig(opts []string) (cc, predefined string, includePaths, sysIncludePa
 		}
 
 		args := append(opts, "-dM", "-E", "-")
-		cmd := exec.Command(cc, args...)
-		cmd.Env = append(cmd.Environ(), "LC_ALL=C")
-		pre, err := cmd.CombinedOutput()
+		pre, err := command(cc, args...).CombinedOutput()
 		if err != nil {
 			if Dmesgs {
 				Dmesg("cc: %s %v ----\n%s\n----: %v", cc, args, pre, err)
@@ -445,9 +443,7 @@ func newConfig(opts []string) (cc, predefined string, includePaths, sysIncludePa
 		}
 		predefined = strings.Join(a[:w], "\n")
 		args = append(opts, "-v", "-E", "-")
-		cmd = exec.Command(cc, args...)
-		cmd.Env = append(cmd.Environ(), "LC_ALL=C")
-		out, err := cmd.CombinedOutput()
+		out, err := command(cc, args...).CombinedOutput()
 		if err != nil {
 			if Dmesgs {
 				Dmesg("cc: %s %v ----\n%s\n----: %v", cc, args, pre, err)
