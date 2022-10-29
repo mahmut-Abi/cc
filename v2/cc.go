@@ -206,7 +206,7 @@ func HostCppConfig(cpp string, opts ...string) (predefined string, includePaths,
 		args = append(args, "-m32")
 	}
 	cmd := exec.Command(cpp, args...)
-	cmd.Env = append(cmd.Environ(), "LC_ALL=C")
+	cmd.Env = append(os.Environ(), "LC_ALL=C")
 	pre, err := cmd.Output()
 	if err != nil {
 		return "", nil, nil, err
@@ -214,7 +214,7 @@ func HostCppConfig(cpp string, opts ...string) (predefined string, includePaths,
 
 	args = append(append([]string{"-v"}, opts...), os.DevNull)
 	cmd = exec.Command(cpp, args...)
-	cmd.Env = append(cmd.Environ(), "LC_ALL=C")
+	cmd.Env = append(os.Environ(), "LC_ALL=C")
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return "", nil, nil, err
