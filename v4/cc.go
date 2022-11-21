@@ -292,7 +292,16 @@ func init() { //TODO- DBG
 //
 // Execution of NewConfig is expensive, caching the results is recommended
 // wherever possible.
+//
+// If goos or goarch are empty, the current OS and architecture are used.
 func NewConfig(goos, goarch string, opts ...string) (r *Config, err error) {
+	if goos == "" {
+		goos = runtime.GOOS
+	}
+	if goarch == "" {
+		goarch = runtime.GOARCH
+	}
+
 	cc, predefined, includePaths, sysIncludePaths, keywords, err := newConfig(opts)
 	if err != nil {
 		return nil, fmt.Errorf("NewConfig: %v", err)
