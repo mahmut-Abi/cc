@@ -638,6 +638,9 @@ func preprocess(cpp *cpp, w io.Writer) (err error) {
 
 // Parse preprocesses and parses a translation unit, consisting of inputs in
 // sources.
+//
+// Config.Predefined and cc.Builtin are not used by default, the caller is
+// responsible for manually inserting them in sources.
 func Parse(cfg *Config, sources []Source) (*AST, error) {
 	p, err := newParser(cfg, newFset(), sources)
 	if err != nil {
