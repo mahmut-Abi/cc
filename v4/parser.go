@@ -5,7 +5,6 @@
 package cc // import "modernc.org/cc/v4"
 
 import (
-	"bytes"
 	"fmt"
 	"strings"
 )
@@ -113,7 +112,6 @@ type parser struct {
 	gotos      []*JumpStatement
 	keywords   map[string]rune
 	orderN     int64
-	prevNL     Token
 	scope      *Scope
 	switchCtx  *SelectionStatement
 	toks       []Token
@@ -174,11 +172,6 @@ func (p *parser) isKeyword(s []byte) (r rune, ok bool) {
 
 func (p *parser) next() {
 	var b []byte
-	set := false
-	if p.prevNL.Ch != 0 {
-		b = p.prevNL.Sep()
-		set = true
-	}
 	for {
 		p.cpp.rune()
 		t := p.cpp.shift()
@@ -186,15 +179,11 @@ func (p *parser) next() {
 		case ' ':
 			// nop
 		case '\n':
-			if p.prevNL.Ch != 0 {
-				b = append(b, p.prevNL.Src()...)
-				set = true
-			}
-			p.prevNL = t
 			b = append(b, t.Sep()...)
+			b = append(b, '\n')
 		default:
-			if set && !bytes.Equal(b, p.prevNL.Sep()) {
-				p.prevNL.Set(b, p.prevNL.Src())
+			if len(b) != 0 {
+				t.Set(append(b, t.Sep()...), t.Src())
 			}
 			p.seq++
 			t.seq = p.seq
@@ -258,11 +247,6 @@ func (p *parser) tok(t Token) (r Token) {
 
 func (p *parser) shift0() (r Token) {
 	r = p.toks[0]
-	if r.Ch != '\n' && p.prevNL.Ch != 0 {
-		sep := append(p.prevNL.Sep(), p.prevNL.Src()...)
-		sep = append(sep, r.Sep()...)
-		r.Set(sep, r.Src())
-	}
 	if r.Ch != eof {
 		switch {
 		case len(p.toks) == 1:
@@ -270,7 +254,6 @@ func (p *parser) shift0() (r Token) {
 		default:
 			p.toks = p.toks[1:]
 		}
-		p.prevNL.Ch = 0
 		p.rune(false)
 	}
 	return r
@@ -369,7 +352,6 @@ func (p *parser) parse() (ast *AST, err error) {
 			errors.add(errorf("<bultin>: missing definition of '__predefined_declarator'"))
 		}
 		t := p.shift(false)
-		t.Set(append(p.prevNL.Sep(), p.prevNL.Src()...), nil)
 		return &AST{
 			ABI:                   p.cpp.cfg.ABI,
 			EOF:                   t,

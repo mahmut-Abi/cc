@@ -2173,3 +2173,63 @@ func TestABI(t *testing.T) {
 		}
 	}
 }
+
+// https://gitlab.com/cznic/cc/-/issues/146
+func TestIssue146(t *testing.T) {
+	const src = `enum foo {
+	/* First comment */
+	FOO_A,
+	/* Second comment */
+	FOO_B,
+};
+`
+
+	cfg, err := NewConfig(runtime.GOOS, runtime.GOARCH)
+	if err != nil {
+		t.Fatalf("failed to create new config: %v", err)
+	}
+
+	sources := []Source{
+		{Name: "<predefined>", Value: cfg.Predefined},
+		{Name: "<builtin>", Value: Builtin},
+		{Name: "test.h", Value: src},
+	}
+
+	ast, err := Parse(cfg, sources)
+	if err != nil {
+		t.Fatalf("parse error: %v", err)
+	}
+
+	var toks []Token
+	for tu := ast.TranslationUnit; tu != nil; tu = tu.TranslationUnit {
+		if tu.ExternalDeclaration == nil {
+			continue
+		}
+		if tu.ExternalDeclaration.Case != ExternalDeclarationDecl {
+			continue
+		}
+		decl := tu.ExternalDeclaration.Declaration
+
+		if decl.Position().Filename != "test.h" {
+			continue
+		}
+
+		enumSpec := decl.DeclarationSpecifiers.TypeSpecifier.EnumSpecifier
+		for el := enumSpec.EnumeratorList; el != nil; el = el.EnumeratorList {
+			t.Logf("el.Enumerator.Token: %v", el.Enumerator.Token)
+			toks = append(toks, el.Enumerator.Token)
+			t.Logf("el.Enumerator.Token.Sep(): %q", string(el.Enumerator.Token.Sep()))
+			t.Logf("el.Token: %v", el.Token)
+			t.Logf("el.Token.Sep(): %q", string(el.Token.Sep()))
+			t.Log("---")
+		}
+	}
+	for i, v := range []string{
+		"\n\t/* First comment */\n\t",
+		"\n\t/* Second comment */\n\t",
+	} {
+		if g, e := string(toks[i].Sep()), v; g != e {
+			t.Errorf("%v: %q %q", i, g, e)
+		}
+	}
+}
