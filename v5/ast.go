@@ -53,9 +53,9 @@ func (n *AbstractDeclarator) Position() (r token.Position) {
 	}
 
 	switch n.Case {
-	case 0:
+	case AbstractDeclaratorPtr:
 		return n.Pointer.Position()
-	case 1:
+	case AbstractDeclaratorDecl:
 		if p := n.Pointer.Position(); p.IsValid() {
 			return p
 		}
@@ -162,7 +162,7 @@ func (n *AlignmentSpecifier) Position() (r token.Position) {
 	}
 
 	switch n.Case {
-	case 1:
+	case AlignmentSpecifierExpr:
 		if p := n.Token.Position(); p.IsValid() {
 			return p
 		}
@@ -176,7 +176,7 @@ func (n *AlignmentSpecifier) Position() (r token.Position) {
 		}
 
 		return n.Token3.Position()
-	case 0:
+	case AlignmentSpecifierType:
 		if p := n.Token.Position(); p.IsValid() {
 			return p
 		}
@@ -626,9 +626,9 @@ func (n *AttributeValue) Position() (r token.Position) {
 	}
 
 	switch n.Case {
-	case 0:
+	case AttributeValueIdent:
 		return n.Token.Position()
-	case 1:
+	case AttributeValueExpr:
 		if p := n.Token.Position(); p.IsValid() {
 			return p
 		}
@@ -1250,7 +1250,7 @@ func (n *Designator) Position() (r token.Position) {
 	}
 
 	switch n.Case {
-	case 0:
+	case DesignatorIndex:
 		if p := n.Token.Position(); p.IsValid() {
 			return p
 		}
@@ -1260,7 +1260,7 @@ func (n *Designator) Position() (r token.Position) {
 		}
 
 		return n.Token2.Position()
-	case 1:
+	case DesignatorIndex2:
 		if p := n.Token.Position(); p.IsValid() {
 			return p
 		}
@@ -1278,7 +1278,7 @@ func (n *Designator) Position() (r token.Position) {
 		}
 
 		return n.Token3.Position()
-	case 2, 3:
+	case DesignatorField, DesignatorField3:
 		if p := n.Token.Position(); p.IsValid() {
 			return p
 		}
@@ -1354,7 +1354,7 @@ func (n *DirectAbstractDeclarator) Position() (r token.Position) {
 	}
 
 	switch n.Case {
-	case 5:
+	case DirectAbstractDeclaratorFunc:
 		if p := n.DirectAbstractDeclarator.Position(); p.IsValid() {
 			return p
 		}
@@ -1368,7 +1368,7 @@ func (n *DirectAbstractDeclarator) Position() (r token.Position) {
 		}
 
 		return n.Token2.Position()
-	case 4:
+	case DirectAbstractDeclaratorArrStar:
 		if p := n.DirectAbstractDeclarator.Position(); p.IsValid() {
 			return p
 		}
@@ -1382,7 +1382,7 @@ func (n *DirectAbstractDeclarator) Position() (r token.Position) {
 		}
 
 		return n.Token3.Position()
-	case 2:
+	case DirectAbstractDeclaratorStaticArr:
 		if p := n.DirectAbstractDeclarator.Position(); p.IsValid() {
 			return p
 		}
@@ -1406,7 +1406,7 @@ func (n *DirectAbstractDeclarator) Position() (r token.Position) {
 		}
 
 		return n.Token3.Position()
-	case 1:
+	case DirectAbstractDeclaratorArr:
 		if p := n.DirectAbstractDeclarator.Position(); p.IsValid() {
 			return p
 		}
@@ -1426,7 +1426,7 @@ func (n *DirectAbstractDeclarator) Position() (r token.Position) {
 		}
 
 		return n.Token2.Position()
-	case 3:
+	case DirectAbstractDeclaratorArrStatic:
 		if p := n.DirectAbstractDeclarator.Position(); p.IsValid() {
 			return p
 		}
@@ -1450,7 +1450,7 @@ func (n *DirectAbstractDeclarator) Position() (r token.Position) {
 		}
 
 		return n.Token3.Position()
-	case 0:
+	case DirectAbstractDeclaratorDecl:
 		if p := n.Token.Position(); p.IsValid() {
 			return p
 		}
@@ -1539,7 +1539,7 @@ func (n *DirectDeclarator) Position() (r token.Position) {
 	}
 
 	switch n.Case {
-	case 7:
+	case DirectDeclaratorFuncIdent:
 		if p := n.DirectDeclarator.Position(); p.IsValid() {
 			return p
 		}
@@ -1553,7 +1553,7 @@ func (n *DirectDeclarator) Position() (r token.Position) {
 		}
 
 		return n.Token2.Position()
-	case 6:
+	case DirectDeclaratorFuncParam:
 		if p := n.DirectDeclarator.Position(); p.IsValid() {
 			return p
 		}
@@ -1567,7 +1567,7 @@ func (n *DirectDeclarator) Position() (r token.Position) {
 		}
 
 		return n.Token2.Position()
-	case 3:
+	case DirectDeclaratorStaticArr:
 		if p := n.DirectDeclarator.Position(); p.IsValid() {
 			return p
 		}
@@ -1591,7 +1591,7 @@ func (n *DirectDeclarator) Position() (r token.Position) {
 		}
 
 		return n.Token3.Position()
-	case 2:
+	case DirectDeclaratorArr:
 		if p := n.DirectDeclarator.Position(); p.IsValid() {
 			return p
 		}
@@ -1611,7 +1611,7 @@ func (n *DirectDeclarator) Position() (r token.Position) {
 		}
 
 		return n.Token2.Position()
-	case 4:
+	case DirectDeclaratorArrStatic:
 		if p := n.DirectDeclarator.Position(); p.IsValid() {
 			return p
 		}
@@ -1635,7 +1635,7 @@ func (n *DirectDeclarator) Position() (r token.Position) {
 		}
 
 		return n.Token3.Position()
-	case 5:
+	case DirectDeclaratorStar:
 		if p := n.DirectDeclarator.Position(); p.IsValid() {
 			return p
 		}
@@ -1655,9 +1655,9 @@ func (n *DirectDeclarator) Position() (r token.Position) {
 		}
 
 		return n.Token3.Position()
-	case 0:
+	case DirectDeclaratorIdent:
 		return n.Token.Position()
-	case 1:
+	case DirectDeclaratorDecl:
 		if p := n.Token.Position(); p.IsValid() {
 			return p
 		}
@@ -1749,13 +1749,13 @@ func (n *EnumSpecifier) Position() (r token.Position) {
 	}
 
 	switch n.Case {
-	case 1:
+	case EnumSpecifierTag:
 		if p := n.Token.Position(); p.IsValid() {
 			return p
 		}
 
 		return n.Token2.Position()
-	case 0:
+	case EnumSpecifierDef:
 		if p := n.Token.Position(); p.IsValid() {
 			return p
 		}
@@ -1829,9 +1829,9 @@ func (n *Enumerator) Position() (r token.Position) {
 	}
 
 	switch n.Case {
-	case 0:
+	case EnumeratorIdent:
 		return n.Token.Position()
-	case 1:
+	case EnumeratorExpr:
 		if p := n.Token.Position(); p.IsValid() {
 			return p
 		}
@@ -2082,7 +2082,7 @@ func (n *GenericAssociation) Position() (r token.Position) {
 	}
 
 	switch n.Case {
-	case 1:
+	case GenericAssociationDefault:
 		if p := n.Token.Position(); p.IsValid() {
 			return p
 		}
@@ -2092,7 +2092,7 @@ func (n *GenericAssociation) Position() (r token.Position) {
 		}
 
 		return n.Expression.Position()
-	case 0:
+	case GenericAssociationType:
 		if p := n.TypeName.Position(); p.IsValid() {
 			return p
 		}
@@ -2296,9 +2296,9 @@ func (n *Initializer) Position() (r token.Position) {
 	}
 
 	switch n.Case {
-	case 0:
+	case InitializerExpr:
 		return n.Expression.Position()
-	case 1:
+	case InitializerInitList:
 		if p := n.Token.Position(); p.IsValid() {
 			return p
 		}
@@ -2419,7 +2419,7 @@ func (n *IterationStatement) Position() (r token.Position) {
 	}
 
 	switch n.Case {
-	case 1:
+	case IterationStatementDo:
 		if p := n.Token.Position(); p.IsValid() {
 			return p
 		}
@@ -2445,7 +2445,7 @@ func (n *IterationStatement) Position() (r token.Position) {
 		}
 
 		return n.Token5.Position()
-	case 3:
+	case IterationStatementForDecl:
 		if p := n.Token.Position(); p.IsValid() {
 			return p
 		}
@@ -2475,7 +2475,7 @@ func (n *IterationStatement) Position() (r token.Position) {
 		}
 
 		return n.Statement.Position()
-	case 2:
+	case IterationStatementFor:
 		if p := n.Token.Position(); p.IsValid() {
 			return p
 		}
@@ -2509,7 +2509,7 @@ func (n *IterationStatement) Position() (r token.Position) {
 		}
 
 		return n.Statement.Position()
-	case 0:
+	case IterationStatementWhile:
 		if p := n.Token.Position(); p.IsValid() {
 			return p
 		}
@@ -2590,7 +2590,7 @@ func (n *JumpStatement) Position() (r token.Position) {
 	}
 
 	switch n.Case {
-	case 4:
+	case JumpStatementReturn:
 		if p := n.Token.Position(); p.IsValid() {
 			return p
 		}
@@ -2600,13 +2600,13 @@ func (n *JumpStatement) Position() (r token.Position) {
 		}
 
 		return n.Token2.Position()
-	case 2, 3:
+	case JumpStatementContinue, JumpStatementBreak:
 		if p := n.Token.Position(); p.IsValid() {
 			return p
 		}
 
 		return n.Token2.Position()
-	case 1:
+	case JumpStatementGotoExpr:
 		if p := n.Token.Position(); p.IsValid() {
 			return p
 		}
@@ -2620,7 +2620,7 @@ func (n *JumpStatement) Position() (r token.Position) {
 		}
 
 		return n.Token3.Position()
-	case 0:
+	case JumpStatementGoto:
 		if p := n.Token.Position(); p.IsValid() {
 			return p
 		}
@@ -2726,7 +2726,7 @@ func (n *LabeledStatement) Position() (r token.Position) {
 	}
 
 	switch n.Case {
-	case 2:
+	case LabeledStatementRange:
 		if p := n.Token.Position(); p.IsValid() {
 			return p
 		}
@@ -2748,7 +2748,7 @@ func (n *LabeledStatement) Position() (r token.Position) {
 		}
 
 		return n.Statement.Position()
-	case 1:
+	case LabeledStatementCaseLabel:
 		if p := n.Token.Position(); p.IsValid() {
 			return p
 		}
@@ -2762,7 +2762,7 @@ func (n *LabeledStatement) Position() (r token.Position) {
 		}
 
 		return n.Statement.Position()
-	case 0, 3:
+	case LabeledStatementLabel, LabeledStatementDefault:
 		if p := n.Token.Position(); p.IsValid() {
 			return p
 		}
@@ -2831,7 +2831,7 @@ func (n *ParameterDeclaration) Position() (r token.Position) {
 	}
 
 	switch n.Case {
-	case 1:
+	case ParameterDeclarationAbstract:
 		for _, s := range n.DeclarationSpecifiers {
 			if p := s.Position(); p.IsValid() {
 				return p
@@ -2839,7 +2839,7 @@ func (n *ParameterDeclaration) Position() (r token.Position) {
 		}
 
 		return n.AbstractDeclarator.Position()
-	case 0:
+	case ParameterDeclarationDecl:
 		for _, s := range n.DeclarationSpecifiers {
 			if p := s.Position(); p.IsValid() {
 				return p
@@ -2918,9 +2918,9 @@ func (n *ParameterTypeList) Position() (r token.Position) {
 	}
 
 	switch n.Case {
-	case 0:
+	case ParameterTypeListList:
 		return n.ParameterList.Position()
-	case 1:
+	case ParameterTypeListVar:
 		if p := n.ParameterList.Position(); p.IsValid() {
 			return p
 		}
@@ -2982,7 +2982,7 @@ func (n *Pointer) Position() (r token.Position) {
 	}
 
 	switch n.Case {
-	case 0, 2:
+	case PointerTypeQual, PointerBlock:
 		if p := n.Token.Position(); p.IsValid() {
 			return p
 		}
@@ -2994,7 +2994,7 @@ func (n *Pointer) Position() (r token.Position) {
 		}
 
 		return r
-	case 1:
+	case PointerPtr:
 		if p := n.Token.Position(); p.IsValid() {
 			return p
 		}
@@ -3263,11 +3263,12 @@ func (n *PrimaryExpression) Position() (r token.Position) {
 	}
 
 	switch n.Case {
-	case 9:
+	case PrimaryExpressionGeneric:
 		return n.GenericSelection.Position()
-	case 0, 1, 2, 3, 4, 5, 6:
+	case PrimaryExpressionIdent, PrimaryExpressionInt, PrimaryExpressionFloat, PrimaryExpressionChar,
+		PrimaryExpressionLChar, PrimaryExpressionString, PrimaryExpressionLString:
 		return n.Token.Position()
-	case 8:
+	case PrimaryExpressionStmt:
 		if p := n.Token.Position(); p.IsValid() {
 			return p
 		}
@@ -3277,7 +3278,7 @@ func (n *PrimaryExpression) Position() (r token.Position) {
 		}
 
 		return n.Token2.Position()
-	case 7:
+	case PrimaryExpressionExpr:
 		if p := n.Token.Position(); p.IsValid() {
 			return p
 		}
@@ -3354,7 +3355,7 @@ func (n *SelectionStatement) Position() (r token.Position) {
 	}
 
 	switch n.Case {
-	case 0, 2:
+	case SelectionStatementIf, SelectionStatementSwitch:
 		if p := n.Token.Position(); p.IsValid() {
 			return p
 		}
@@ -3372,7 +3373,7 @@ func (n *SelectionStatement) Position() (r token.Position) {
 		}
 
 		return n.Statement.Position()
-	case 1:
+	case SelectionStatementIfElse:
 		if p := n.Token.Position(); p.IsValid() {
 			return p
 		}
@@ -3566,9 +3567,10 @@ func (n *StorageClassSpecifier) Position() (r token.Position) {
 	}
 
 	switch n.Case {
-	case 0, 1, 2, 3, 4, 5:
+	case StorageClassSpecifierTypedef, StorageClassSpecifierExtern, StorageClassSpecifierStatic,
+		StorageClassSpecifierAuto, StorageClassSpecifierRegister, StorageClassSpecifierThreadLocal:
 		return n.Token.Position()
-	case 6:
+	case StorageClassSpecifierDeclspec:
 		if p := n.Token.Position(); p.IsValid() {
 			return p
 		}
@@ -3628,7 +3630,7 @@ func (n *StructDeclaration) Position() (r token.Position) {
 	}
 
 	switch n.Case {
-	case 0:
+	case StructDeclarationDecl:
 		for _, q := range n.SpecifierQualifiers {
 			if p := q.Position(); p.IsValid() {
 				return p
@@ -3640,7 +3642,7 @@ func (n *StructDeclaration) Position() (r token.Position) {
 		}
 
 		return n.Token.Position()
-	case 1:
+	case StructDeclarationAssert:
 		return n.StaticAssertDeclaration.Position()
 	default:
 		panic("internal error")
@@ -3712,9 +3714,9 @@ func (n *StructDeclarator) Position() (r token.Position) {
 	}
 
 	switch n.Case {
-	case 0:
+	case StructDeclaratorDecl:
 		return n.Declarator.Position()
-	case 1:
+	case StructDeclaratorBitField:
 		if p := n.Declarator.Position(); p.IsValid() {
 			return p
 		}
@@ -3845,13 +3847,13 @@ func (n *StructOrUnionSpecifier) Position() (r token.Position) {
 	}
 
 	switch n.Case {
-	case 1:
+	case StructOrUnionSpecifierTag:
 		if p := n.StructOrUnion.Position(); p.IsValid() {
 			return p
 		}
 
 		return n.Token.Position()
-	case 0:
+	case StructOrUnionSpecifierDef:
 		if p := n.StructOrUnion.Position(); p.IsValid() {
 			return p
 		}
