@@ -1278,7 +1278,7 @@ func (n *Designator) Position() (r token.Position) {
 		}
 
 		return n.Token3.Position()
-	case DesignatorField, DesignatorField3:
+	case DesignatorField, DesignatorField2:
 		if p := n.Token.Position(); p.IsValid() {
 			return p
 		}
