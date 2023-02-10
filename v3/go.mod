@@ -8,7 +8,7 @@ require (
 	lukechampine.com/uint128 v1.2.0
 	modernc.org/mathutil v1.5.0
 	modernc.org/strutil v1.1.3
-	modernc.org/token v1.0.1
+	modernc.org/token v1.1.0
 )
 
 require github.com/remyoudompheng/bigfft v0.0.0-20200410134404-eec4a21b6bb0 // indirect
